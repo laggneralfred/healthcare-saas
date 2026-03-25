@@ -127,7 +127,7 @@ No expiry currently (add if compliance requires it).
 | 1 | Foundation: Practice, User, Practitioner, Filament panel | ✅ Done |
 | 2 | Scheduling: AppointmentType, Appointment + state machine | ✅ Done |
 | 3 | Patient, Intake, Consent, public token forms | ✅ Done |
-| 4 | Encounter (core + acupuncture extension) | Pending |
+| 4 | Encounter (core + acupuncture extension) | ✅ Done |
 | 5–6 | Checkout state machine + payment flow | Pending |
 | 7 | Reporting, polish, prod deploy | Pending |
 

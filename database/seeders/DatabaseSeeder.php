@@ -4,7 +4,9 @@ namespace Database\Seeders;
 
 use App\Models\Appointment;
 use App\Models\AppointmentType;
+use App\Models\AcupunctureEncounter;
 use App\Models\ConsentRecord;
+use App\Models\Encounter;
 use App\Models\IntakeSubmission;
 use App\Models\Patient;
 use App\Models\Practice;
@@ -166,6 +168,10 @@ class DatabaseSeeder extends Seeder
             statuses: $statuses,
             count: 2,
         );
+
+        // ── Encounters: 5 per practice with acupuncture extension ─────────────
+        $this->seedEncounters($acupuncture, $acuPatients, $acuPractitioners);
+        $this->seedEncounters($massage, $massagePatients, $massagePractitioners);
     }
 
     private function seedIntakeAndConsent(
@@ -193,6 +199,40 @@ class DatabaseSeeder extends Seeder
             $isComplete
                 ? $consentFactory->complete()->create()
                 : $consentFactory->missing()->create();
+        });
+    }
+
+    private function seedEncounters(
+        Practice $practice,
+        \Illuminate\Support\Collection $patients,
+        \Illuminate\Support\Collection $practitioners,
+    ): void {
+        // Pick 5 appointments for this practice that don't already have an encounter
+        $appointments = Appointment::where('practice_id', $practice->id)
+            ->whereNotIn('status', ['scheduled'])
+            ->inRandomOrder()
+            ->limit(5)
+            ->get();
+
+        $appointments->each(function (Appointment $appointment, int $index) use ($practice, $practitioners) {
+            $isComplete = $index < 4; // 4 complete, 1 draft
+
+            $encounter = Encounter::factory()
+                ->state([
+                    'practice_id'     => $practice->id,
+                    'patient_id'      => $appointment->patient_id,
+                    'appointment_id'  => $appointment->id,
+                    'practitioner_id' => $appointment->practitioner_id,
+                    'visit_date'      => $appointment->start_datetime->format('Y-m-d'),
+                ])
+                ->when($isComplete, fn ($f) => $f->complete(), fn ($f) => $f->draft())
+                ->create();
+
+            // Attach acupuncture extension to every encounter
+            AcupunctureEncounter::factory()
+                ->state(['encounter_id' => $encounter->id])
+                ->when($isComplete, fn ($f) => $f->withClinicalData())
+                ->create();
         });
     }
 
