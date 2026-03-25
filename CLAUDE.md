@@ -129,9 +129,52 @@ No expiry currently (add if compliance requires it).
 | 3 | Patient, Intake, Consent, public token forms | ✅ Done |
 | 4 | Encounter (core + acupuncture extension) | ✅ Done |
 | 5–6 | Checkout state machine + Stripe subscription billing | ✅ Done |
-| 7 | Reporting, polish, prod deploy | Pending |
+| 7 | Reporting, polish, prod deploy | ✅ Done |
 
 ---
+
+## Week 7 Completion Summary
+
+### Reporting
+- **DashboardPage**: Real-time practice metrics dashboard showing:
+  - Monthly appointment counts (scheduled/completed/pending)
+  - Patient metrics (total, new this month)
+  - Revenue metrics (paid, pending, by practitioner)
+  - Appointment status breakdown chart
+  - Revenue by practitioner breakdown
+
+### Polish
+- **Model Enhancements**:
+  - Added query scopes (byPractice, byStatus, paid, pending, thisMonth)
+  - Added calculated properties (amount_due, is_fully_paid, is_partially_paid)
+  - Added model-level validation for amount constraints
+  - Enhanced Practice model with subscription helpers
+  - Added practitioner limit checking based on subscription plan
+
+- **API Endpoints**:
+  - Created PracticeStatsController for programmatic access to metrics
+  - `/api/practices/{practice}/stats` endpoint with comprehensive data
+  - Sanctum-authenticated API for external integrations
+
+- **Testing**:
+  - Created comprehensive CheckoutSessionTest suite (13+ test cases)
+  - Test state management, calculations, and validation
+  - Test query scopes and relationships
+
+### Production Deployment
+- **Environment Configuration**:
+  - `.env.production.example` with PostgreSQL, Redis, S3 configuration
+  - Support for production Stripe live keys
+  - Security hardening (HTTPS, secure cookies, HSTS)
+
+- **Deployment Guide** (`DEPLOYMENT.md`):
+  - 20+ item pre-deployment checklist
+  - Step-by-step deployment procedure
+  - Nginx and Apache configuration examples
+  - Database, queue, and caching setup
+  - Health check and monitoring procedures
+  - Post-deployment maintenance schedule
+  - Rollback procedures
 
 ## Dev Setup
 
@@ -142,5 +185,16 @@ php artisan migrate --seed      # or migrate:fresh --seed to reset
 npm install && npm run build
 php artisan serve
 # Admin panel: http://localhost:8000/admin
+# Dashboard: http://localhost:8000/admin/dashboard-page
+# Billing: http://localhost:8000/admin/billing
+# API Stats: GET /api/practices/{id}/stats (requires Sanctum token)
 # Login: admin@healthcare.test / password
 ```
+
+## Production Deployment
+
+See `DEPLOYMENT.md` for comprehensive production deployment guide including:
+- Pre-deployment checklist (environment, database, Stripe, security)
+- Nginx/Apache configuration
+- Post-deployment monitoring and maintenance
+- Disaster recovery procedures
