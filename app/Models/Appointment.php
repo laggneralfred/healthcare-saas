@@ -6,6 +6,7 @@ use App\Models\States\Appointment\AppointmentState;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Spatie\ModelStates\HasStates;
 
 class Appointment extends Model
@@ -52,5 +53,10 @@ class Appointment extends Model
     public function appointmentType(): BelongsTo
     {
         return $this->belongsTo(AppointmentType::class);
+    }
+
+    public function checkoutSession(): HasOne
+    {
+        return $this->hasOne(CheckoutSession::class);
     }
 }

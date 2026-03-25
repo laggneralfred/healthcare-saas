@@ -5,12 +5,15 @@ namespace Database\Seeders;
 use App\Models\Appointment;
 use App\Models\AppointmentType;
 use App\Models\AcupunctureEncounter;
+use App\Models\CheckoutLine;
+use App\Models\CheckoutSession;
 use App\Models\ConsentRecord;
 use App\Models\Encounter;
 use App\Models\IntakeSubmission;
 use App\Models\Patient;
 use App\Models\Practice;
 use App\Models\Practitioner;
+use App\Models\ServiceFee;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
@@ -34,15 +37,33 @@ class DatabaseSeeder extends Seeder
             'is_active' => true,
         ]);
 
+        // Service fees for acupuncture
+        $acuFees = collect([
+            ['name' => 'Initial Consultation',   'price' => 150.00, 'desc' => 'Comprehensive new patient assessment'],
+            ['name' => 'Follow-up Treatment',     'price' => 95.00,  'desc' => 'Standard follow-up acupuncture session'],
+            ['name' => 'Cupping Session',         'price' => 80.00,  'desc' => 'Cupping therapy (standalone or add-on)'],
+            ['name' => 'Herbal Consultation',     'price' => 75.00,  'desc' => 'TCM herbal formula consultation'],
+            ['name' => 'Late Cancellation Fee',   'price' => 50.00,  'desc' => 'Fee for cancellation under 24 hours'],
+        ])->map(fn ($data) => ServiceFee::create([
+            'practice_id'       => $acupuncture->id,
+            'name'              => $data['name'],
+            'short_description' => $data['desc'],
+            'default_price'     => $data['price'],
+            'is_active'         => true,
+        ]));
+
+        $acuFeeByName = $acuFees->keyBy('name');
+
         $acuTypes = collect([
-            'Initial Consultation',
-            'Follow-up Treatment',
-            'Cupping Session',
-            'Herbal Consultation',
-        ])->map(fn ($name) => AppointmentType::create([
-            'practice_id' => $acupuncture->id,
-            'name'        => $name,
-            'is_active'   => true,
+            ['name' => 'Initial Consultation',   'fee' => 'Initial Consultation'],
+            ['name' => 'Follow-up Treatment',    'fee' => 'Follow-up Treatment'],
+            ['name' => 'Cupping Session',        'fee' => 'Cupping Session'],
+            ['name' => 'Herbal Consultation',    'fee' => 'Herbal Consultation'],
+        ])->map(fn ($data) => AppointmentType::create([
+            'practice_id'            => $acupuncture->id,
+            'name'                   => $data['name'],
+            'is_active'              => true,
+            'default_service_fee_id' => $acuFeeByName[$data['fee']]->id,
         ]));
 
         $acuPractitioners = collect([
@@ -91,15 +112,33 @@ class DatabaseSeeder extends Seeder
             'is_active' => true,
         ]);
 
+        // Service fees for massage
+        $massageFees = collect([
+            ['name' => 'Swedish Massage (60 min)', 'price' => 90.00,  'desc' => 'Relaxation massage — 60 minutes'],
+            ['name' => 'Deep Tissue Massage',       'price' => 110.00, 'desc' => 'Deep tissue therapeutic massage'],
+            ['name' => 'Sports Recovery Massage',   'price' => 100.00, 'desc' => 'Sports recovery and injury prevention'],
+            ['name' => 'Hot Stone Therapy',          'price' => 120.00, 'desc' => 'Hot stone massage therapy'],
+            ['name' => 'Late Cancellation Fee',      'price' => 50.00,  'desc' => 'Fee for cancellation under 24 hours'],
+        ])->map(fn ($data) => ServiceFee::create([
+            'practice_id'       => $massage->id,
+            'name'              => $data['name'],
+            'short_description' => $data['desc'],
+            'default_price'     => $data['price'],
+            'is_active'         => true,
+        ]));
+
+        $massageFeeByName = $massageFees->keyBy('name');
+
         $massageTypes = collect([
-            'Swedish Massage (60 min)',
-            'Deep Tissue Massage',
-            'Sports Recovery Massage',
-            'Hot Stone Therapy',
-        ])->map(fn ($name) => AppointmentType::create([
-            'practice_id' => $massage->id,
-            'name'        => $name,
-            'is_active'   => true,
+            ['name' => 'Swedish Massage (60 min)', 'fee' => 'Swedish Massage (60 min)'],
+            ['name' => 'Deep Tissue Massage',       'fee' => 'Deep Tissue Massage'],
+            ['name' => 'Sports Recovery Massage',   'fee' => 'Sports Recovery Massage'],
+            ['name' => 'Hot Stone Therapy',          'fee' => 'Hot Stone Therapy'],
+        ])->map(fn ($data) => AppointmentType::create([
+            'practice_id'            => $massage->id,
+            'name'                   => $data['name'],
+            'is_active'              => true,
+            'default_service_fee_id' => $massageFeeByName[$data['fee']]->id,
         ]));
 
         $massagePractitioners = collect([
@@ -172,6 +211,10 @@ class DatabaseSeeder extends Seeder
         // ── Encounters: 5 per practice with acupuncture extension ─────────────
         $this->seedEncounters($acupuncture, $acuPatients, $acuPractitioners);
         $this->seedEncounters($massage, $massagePatients, $massagePractitioners);
+
+        // ── Checkout sessions: 1 per checkout-status appointment ──────────────
+        $this->seedCheckoutSessions($acupuncture, $acuFees);
+        $this->seedCheckoutSessions($massage, $massageFees);
     }
 
     private function seedIntakeAndConsent(
@@ -272,5 +315,86 @@ class DatabaseSeeder extends Seeder
                 ]);
             }
         }
+    }
+
+    private function seedCheckoutSessions(
+        Practice $practice,
+        \Illuminate\Support\Collection $serviceFees,
+    ): void {
+        // Get all checkout-status appointments for this practice that don't yet have a session
+        $appointments = Appointment::where('practice_id', $practice->id)
+            ->where('status', 'checkout')
+            ->get();
+
+        // State distribution: paid (card), paid (cash), payment_due, open
+        $statePattern = ['paid_card', 'paid_cash', 'payment_due', 'open'];
+
+        $appointments->each(function (Appointment $appointment, int $index) use ($practice, $serviceFees, $statePattern) {
+            $stateKey = $statePattern[$index % count($statePattern)];
+
+            // Pick a service fee to use as the primary line item
+            $fee = $serviceFees->random();
+
+            // Create session base data
+            $sessionData = [
+                'practice_id'     => $practice->id,
+                'appointment_id'  => $appointment->id,
+                'patient_id'      => $appointment->patient_id,
+                'practitioner_id' => $appointment->practitioner_id,
+                'charge_label'    => $fee->name,
+                'amount_total'    => 0, // will be synced from lines
+                'amount_paid'     => 0,
+                'started_on'      => $appointment->start_datetime,
+            ];
+
+            // Set state-specific fields
+            $sessionData['state'] = match ($stateKey) {
+                'paid_card'   => 'paid',
+                'paid_cash'   => 'paid',
+                'payment_due' => 'payment_due',
+                'open'        => 'open',
+            };
+
+            if (in_array($stateKey, ['paid_card', 'paid_cash'])) {
+                $sessionData['tender_type'] = $stateKey === 'paid_card' ? 'card' : 'cash';
+                $sessionData['paid_on']     = $appointment->end_datetime;
+            }
+
+            $session = CheckoutSession::create($sessionData);
+
+            // Create line items (disable model events temporarily to avoid partial syncs)
+            $lines = [];
+
+            // Primary line from the service fee
+            $lines[] = [
+                'checkout_session_id' => $session->id,
+                'practice_id'         => $practice->id,
+                'sequence'            => 0,
+                'description'         => $fee->name,
+                'amount'              => $fee->default_price,
+            ];
+
+            // 30% chance of an additional supply/materials line
+            if ($index % 3 === 0) {
+                $lines[] = [
+                    'checkout_session_id' => $session->id,
+                    'practice_id'         => $practice->id,
+                    'sequence'            => 1,
+                    'description'         => 'Supplies & Materials',
+                    'amount'              => 15.00,
+                ];
+            }
+
+            // Insert lines directly to avoid double-firing events during seed
+            CheckoutLine::insert($lines);
+
+            // Manually sync total (model events don't fire on ::insert)
+            $total = collect($lines)->sum('amount');
+            $paidAmount = in_array($stateKey, ['paid_card', 'paid_cash']) ? $total : 0;
+            $session->updateQuietly([
+                'amount_total' => $total,
+                'amount_paid'  => $paidAmount,
+            ]);
+        });
     }
 }

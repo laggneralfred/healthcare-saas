@@ -7,14 +7,24 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class AppointmentType extends Model
+class ServiceFee extends Model
 {
     use HasFactory;
-    protected $fillable = ['practice_id', 'name', 'is_active', 'default_service_fee_id'];
+
+    protected $fillable = [
+        'practice_id',
+        'name',
+        'short_description',
+        'default_price',
+        'is_active',
+    ];
 
     protected function casts(): array
     {
-        return ['is_active' => 'boolean'];
+        return [
+            'default_price' => 'decimal:2',
+            'is_active'     => 'boolean',
+        ];
     }
 
     public function practice(): BelongsTo
@@ -22,13 +32,8 @@ class AppointmentType extends Model
         return $this->belongsTo(Practice::class);
     }
 
-    public function appointments(): HasMany
+    public function appointmentTypes(): HasMany
     {
-        return $this->hasMany(Appointment::class);
-    }
-
-    public function defaultServiceFee(): BelongsTo
-    {
-        return $this->belongsTo(ServiceFee::class, 'default_service_fee_id');
+        return $this->hasMany(AppointmentType::class, 'default_service_fee_id');
     }
 }
