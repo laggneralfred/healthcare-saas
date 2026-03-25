@@ -10,6 +10,7 @@ use Laravel\Cashier\Billable;
 class Practice extends Model
 {
     use Billable, HasFactory;
+
     protected $fillable = [
         'name', 'slug', 'timezone', 'is_active',
         'stripe_id', 'pm_type', 'pm_last_four', 'trial_ends_at',
@@ -20,6 +21,8 @@ class Practice extends Model
         return ['is_active' => 'boolean'];
     }
 
+    // ── Relationships ──────────────────────────────────────────────────────────────
+
     public function users(): HasMany
     {
         return $this->hasMany(User::class);
@@ -28,5 +31,64 @@ class Practice extends Model
     public function practitioners(): HasMany
     {
         return $this->hasMany(Practitioner::class);
+    }
+
+    public function patients(): HasMany
+    {
+        return $this->hasMany(Patient::class);
+    }
+
+    public function appointments(): HasMany
+    {
+        return $this->hasMany(Appointment::class);
+    }
+
+    public function checkoutSessions(): HasMany
+    {
+        return $this->hasMany(CheckoutSession::class);
+    }
+
+    // ── Subscription Helpers ───────────────────────────────────────────────────────
+
+    public function currentPlan(): ?SubscriptionPlan
+    {
+        if (!$this->subscribed('default')) {
+            return null;
+        }
+
+        $stripePrice = $this->subscription('default')?->stripe_price;
+
+        return SubscriptionPlan::where('stripe_price_id', $stripePrice)->first();
+    }
+
+    public function canAddPractitioner(): bool
+    {
+        $plan = $this->currentPlan();
+
+        if (!$plan) {
+            return false;
+        }
+
+        if ($plan->max_practitioners === -1) {
+            return true;
+        }
+
+        return $this->practitioners()->count() < $plan->max_practitioners;
+    }
+
+    public function practitionerCountLimit(): int
+    {
+        return $this->currentPlan()?->max_practitioners ?? 0;
+    }
+
+    public function availablePractitionerSlots(): int
+    {
+        $limit = $this->practitionerCountLimit();
+
+        if ($limit === -1) {
+            return PHP_INT_MAX;
+        }
+
+        return max(0, $limit - $this->practitioners()->count());
     }
 }

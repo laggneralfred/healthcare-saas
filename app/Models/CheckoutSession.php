@@ -51,6 +51,18 @@ class CheckoutSession extends Model
                 $session->started_on = now();
             }
         });
+
+        static::saving(function (CheckoutSession $session) {
+            // Ensure amount_paid is never greater than amount_total
+            if ($session->amount_paid > $session->amount_total) {
+                $session->amount_paid = $session->amount_total;
+            }
+
+            // Ensure paid_on is only set when in paid state
+            if ($session->state->name !== 'paid' && $session->paid_on) {
+                $session->paid_on = null;
+            }
+        });
     }
 
     // ── Relationships ──────────────────────────────────────────────────────────
@@ -125,5 +137,52 @@ class CheckoutSession extends Model
     {
         $total = $this->checkoutLines()->sum('amount');
         $this->updateQuietly(['amount_total' => $total]);
+    }
+
+    // ── Query Scopes ────────────────────────────────────────────────────────────────
+
+    public function scopeByPractice($query, $practiceId)
+    {
+        return $query->where('practice_id', $practiceId);
+    }
+
+    public function scopeByStatus($query, $status)
+    {
+        return $query->where('state', $status);
+    }
+
+    public function scopePaid($query)
+    {
+        return $query->where('state', 'paid');
+    }
+
+    public function scopePending($query)
+    {
+        return $query->whereIn('state', ['open', 'payment_due']);
+    }
+
+    public function scopeThisMonth($query)
+    {
+        return $query->whereBetween('created_at', [
+            now()->startOfMonth(),
+            now()->endOfMonth(),
+        ]);
+    }
+
+    // ── Calculated Properties ───────────────────────────────────────────────────────
+
+    public function getAmountDueAttribute(): float|int
+    {
+        return $this->amount_total - $this->amount_paid;
+    }
+
+    public function getIsFullyPaidAttribute(): bool
+    {
+        return $this->amount_paid >= $this->amount_total && $this->amount_total > 0;
+    }
+
+    public function getIsPartiallyPaidAttribute(): bool
+    {
+        return $this->amount_paid > 0 && !$this->is_fully_paid;
     }
 }
