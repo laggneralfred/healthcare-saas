@@ -128,7 +128,7 @@ No expiry currently (add if compliance requires it).
 | 2 | Scheduling: AppointmentType, Appointment + state machine | ✅ Done |
 | 3 | Patient, Intake, Consent, public token forms | ✅ Done |
 | 4 | Encounter (core + acupuncture extension) | ✅ Done |
-| 5–6 | Checkout state machine + payment flow | Pending |
+| 5–6 | Checkout state machine + Stripe subscription billing | ✅ Done |
 | 7 | Reporting, polish, prod deploy | Pending |
 
 ---
