@@ -1,0 +1,34 @@
+<?php
+
+namespace App\Filament\Resources\Practitioners\Schemas;
+
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
+use Filament\Schemas\Schema;
+
+class PractitionerForm
+{
+    public static function configure(Schema $schema): Schema
+    {
+        return $schema
+            ->components([
+                Select::make('practice_id')
+                    ->relationship('practice', 'name')
+                    ->searchable()
+                    ->preload()
+                    ->required(),
+                Select::make('user_id')
+                    ->relationship('user', 'name')
+                    ->searchable()
+                    ->preload()
+                    ->required(),
+                TextInput::make('license_number')
+                    ->maxLength(100),
+                TextInput::make('specialty')
+                    ->maxLength(150),
+                Toggle::make('is_active')
+                    ->default(true),
+            ]);
+    }
+}

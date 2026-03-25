@@ -2,6 +2,8 @@
 
 namespace App\Filament\Resources\Practices\Schemas;
 
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Schema;
 
 class PracticeForm
@@ -10,7 +12,23 @@ class PracticeForm
     {
         return $schema
             ->components([
-                //
+                TextInput::make('name')
+                    ->required()
+                    ->maxLength(255),
+
+                TextInput::make('slug')
+                    ->required()
+                    ->unique(ignoreRecord: true)
+                    ->maxLength(100)
+                    ->helperText('URL-safe identifier, e.g. "green-valley-acupuncture"'),
+
+                TextInput::make('timezone')
+                    ->required()
+                    ->default('UTC')
+                    ->maxLength(50),
+
+                Toggle::make('is_active')
+                    ->default(true),
             ]);
     }
 }
