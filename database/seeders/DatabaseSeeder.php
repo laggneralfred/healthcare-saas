@@ -4,6 +4,8 @@ namespace Database\Seeders;
 
 use App\Models\Appointment;
 use App\Models\AppointmentType;
+use App\Models\ConsentRecord;
+use App\Models\IntakeSubmission;
 use App\Models\Patient;
 use App\Models\Practice;
 use App\Models\Practitioner;
@@ -136,6 +138,12 @@ class DatabaseSeeder extends Seeder
             'is_patient'  => true,
         ]));
 
+        // ── Intake & Consent for acupuncture patients ─────────────────────────
+        $this->seedIntakeAndConsent($acupuncture, $acuPatients);
+
+        // ── Intake & Consent for massage patients ─────────────────────────────
+        $this->seedIntakeAndConsent($massage, $massagePatients);
+
         // ── Appointments: 20 total, 4 per status, split across both practices ─
         $statuses = ['scheduled', 'in_progress', 'completed', 'closed', 'checkout'];
 
@@ -158,6 +166,34 @@ class DatabaseSeeder extends Seeder
             statuses: $statuses,
             count: 2,
         );
+    }
+
+    private function seedIntakeAndConsent(
+        Practice $practice,
+        \Illuminate\Support\Collection $patients,
+    ): void {
+        // First 7 patients → complete; last 3 → missing (pending)
+        $patients->each(function (Patient $patient, int $index) use ($practice) {
+            $isComplete = $index < 7;
+
+            $intakeFactory = IntakeSubmission::factory()->state([
+                'practice_id' => $practice->id,
+                'patient_id'  => $patient->id,
+            ]);
+
+            $consentFactory = ConsentRecord::factory()->state([
+                'practice_id' => $practice->id,
+                'patient_id'  => $patient->id,
+            ]);
+
+            $isComplete
+                ? $intakeFactory->complete()->create()
+                : $intakeFactory->missing()->create();
+
+            $isComplete
+                ? $consentFactory->complete()->create()
+                : $consentFactory->missing()->create();
+        });
     }
 
     private function seedAppointments(

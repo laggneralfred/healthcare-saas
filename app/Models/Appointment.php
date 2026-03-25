@@ -3,13 +3,14 @@
 namespace App\Models;
 
 use App\Models\States\Appointment\AppointmentState;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Spatie\ModelStates\HasStates;
 
 class Appointment extends Model
 {
-    use HasStates;
+    use HasFactory, HasStates;
 
     protected $fillable = [
         'practice_id',
