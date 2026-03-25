@@ -14,6 +14,7 @@ use App\Models\Patient;
 use App\Models\Practice;
 use App\Models\Practitioner;
 use App\Models\ServiceFee;
+use App\Models\SubscriptionPlan;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
@@ -22,6 +23,9 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
+        // ── Subscription plan catalog ─────────────────────────────────────────
+        $this->seedSubscriptionPlans();
+
         // ── Admin user (for Filament panel login) ─────────────────────────────
         User::factory()->create([
             'name'     => 'Admin',
@@ -215,6 +219,10 @@ class DatabaseSeeder extends Seeder
         // ── Checkout sessions: 1 per checkout-status appointment ──────────────
         $this->seedCheckoutSessions($acupuncture, $acuFees);
         $this->seedCheckoutSessions($massage, $massageFees);
+
+        // ── Test subscriptions (local Cashier records, no live Stripe calls) ──
+        $this->seedTestSubscription($acupuncture, 'solo');
+        $this->seedTestSubscription($massage, 'clinic');
     }
 
     private function seedIntakeAndConsent(
@@ -396,5 +404,94 @@ class DatabaseSeeder extends Seeder
                 'amount_paid'  => $paidAmount,
             ]);
         });
+    }
+
+    private function seedSubscriptionPlans(): void
+    {
+        $stripePrices = config('services.stripe.subscription_prices', []);
+
+        $plans = [
+            [
+                'key'                => 'solo',
+                'name'               => 'Solo Plan',
+                'price_monthly'      => 4900,   // $49.00
+                'stripe_price_id'    => $stripePrices['solo'] ?? null,
+                'max_practitioners'  => 1,
+                'features'           => [
+                    '1 practitioner',
+                    'Unlimited patients',
+                    'Appointment scheduling',
+                    'Intake & consent forms',
+                    'Encounter notes',
+                    'Checkout & payment tracking',
+                ],
+            ],
+            [
+                'key'                => 'clinic',
+                'name'               => 'Clinic Plan',
+                'price_monthly'      => 9900,   // $99.00
+                'stripe_price_id'    => $stripePrices['clinic'] ?? null,
+                'max_practitioners'  => 5,
+                'features'           => [
+                    'Up to 5 practitioners',
+                    'Unlimited patients',
+                    'All Solo features',
+                    'Multi-practitioner scheduling',
+                    'Team reporting',
+                ],
+            ],
+            [
+                'key'                => 'enterprise',
+                'name'               => 'Enterprise Plan',
+                'price_monthly'      => 19900,  // $199.00
+                'stripe_price_id'    => $stripePrices['enterprise'] ?? null,
+                'max_practitioners'  => -1,
+                'features'           => [
+                    'Unlimited practitioners',
+                    'Unlimited patients',
+                    'All Clinic features',
+                    'Priority support',
+                    'Custom integrations',
+                ],
+            ],
+        ];
+
+        foreach ($plans as $plan) {
+            SubscriptionPlan::updateOrCreate(['key' => $plan['key']], $plan);
+        }
+    }
+
+    /**
+     * Seed a local Cashier subscription record without calling Stripe.
+     * Use this for test/demo environments to simulate active subscriptions.
+     */
+    private function seedTestSubscription(Practice $practice, string $planKey): void
+    {
+        $plan = SubscriptionPlan::where('key', $planKey)->first();
+
+        if (! $plan) {
+            return;
+        }
+
+        // Create a fake Stripe customer ID and subscription ID for local dev
+        $fakeCustomerId     = 'cus_test_' . substr(md5($practice->slug), 0, 14);
+        $fakeSubscriptionId = 'sub_test_' . substr(md5($practice->slug . $planKey), 0, 14);
+        $fakePriceId        = $plan->stripe_price_id ?? ('price_test_' . $plan->key);
+
+        // Set the practice's stripe_id so the billing portal link appears
+        $practice->updateQuietly(['stripe_id' => $fakeCustomerId]);
+
+        // Create the local Cashier subscription record
+        $practice->subscriptions()->updateOrCreate(
+            ['stripe_id' => $fakeSubscriptionId],
+            [
+                'type'          => 'default',
+                'stripe_status' => 'active',
+                'stripe_price'  => $fakePriceId,
+                'quantity'      => 1,
+                'trial_ends_at' => null,
+                'ends_at'       => null,
+            ]
+        );
     }
 }
