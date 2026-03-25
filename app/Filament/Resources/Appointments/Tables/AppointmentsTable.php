@@ -21,6 +21,7 @@ class AppointmentsTable
         return $table
             ->columns([
                 TextColumn::make('practice.name')->sortable()->searchable()->toggleable(),
+                TextColumn::make('patient.name')->label('Patient')->sortable()->searchable(),
                 TextColumn::make('practitioner.user.name')->label('Practitioner')->sortable()->searchable(),
                 TextColumn::make('appointmentType.name')->label('Type')->sortable()->searchable(),
                 TextColumn::make('status')

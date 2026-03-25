@@ -25,6 +25,12 @@ class AppointmentForm
                     ->preload()
                     ->required(),
 
+                Select::make('patient_id')
+                    ->relationship('patient', 'name')
+                    ->searchable()
+                    ->preload()
+                    ->required(),
+
                 Select::make('practitioner_id')
                     ->relationship('practitioner', 'id')
                     ->getOptionLabelFromRecordUsing(fn ($record) => $record->user?->name ?? "Practitioner #{$record->id}")

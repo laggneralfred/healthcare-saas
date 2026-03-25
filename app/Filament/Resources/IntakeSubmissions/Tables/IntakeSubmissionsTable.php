@@ -1,0 +1,43 @@
+<?php
+
+namespace App\Filament\Resources\IntakeSubmissions\Tables;
+
+use Filament\Actions\Action;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteBulkAction;
+use Filament\Actions\EditAction;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Table;
+
+class IntakeSubmissionsTable
+{
+    public static function configure(Table $table): Table
+    {
+        return $table
+            ->columns([
+                TextColumn::make('patient.name')->searchable()->sortable(),
+                TextColumn::make('practice.name')->searchable()->toggleable(),
+                TextColumn::make('status')
+                    ->badge()
+                    ->color(fn (string $state) => $state === 'complete' ? 'success' : 'warning'),
+                TextColumn::make('submitted_on')->dateTime()->sortable()->placeholder('—'),
+                TextColumn::make('appointment.start_datetime')
+                    ->label('Appointment')
+                    ->dateTime()
+                    ->placeholder('No appointment')
+                    ->toggleable(),
+                TextColumn::make('created_at')->dateTime()->sortable()->toggleable(isToggledHiddenByDefault: true),
+            ])
+            ->filters([
+                //
+            ])
+            ->recordActions([
+                EditAction::make(),
+            ])
+            ->toolbarActions([
+                BulkActionGroup::make([
+                    DeleteBulkAction::make(),
+                ]),
+            ]);
+    }
+}
