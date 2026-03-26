@@ -59,7 +59,8 @@ class CheckoutSession extends Model
             }
 
             // Ensure paid_on is only set when in paid state
-            if ($session->state->name !== 'paid' && $session->paid_on) {
+            // Only apply this logic if state is loaded and not null
+            if ($session->state && $session->state->name !== 'paid' && $session->paid_on) {
                 $session->paid_on = null;
             }
         });
@@ -96,19 +97,23 @@ class CheckoutSession extends Model
 
     public function isEditable(): bool
     {
-        return $this->state->equals(Open::class);
+        return $this->state && $this->state->equals(Open::class);
     }
 
     // ── State transitions ──────────────────────────────────────────────────────
 
     public function transitionToOpen(): void
     {
-        $this->state->transitionTo(Open::class);
+        if ($this->state) {
+            $this->state->transitionTo(Open::class);
+        }
     }
 
     public function markPaid(string $tenderType): void
     {
-        $this->state->transitionTo(Paid::class);
+        if ($this->state) {
+            $this->state->transitionTo(Paid::class);
+        }
         $this->update([
             'tender_type'  => $tenderType,
             'amount_paid'  => $this->amount_total,
@@ -118,7 +123,9 @@ class CheckoutSession extends Model
 
     public function markPaymentDue(): void
     {
-        $this->state->transitionTo(PaymentDue::class);
+        if ($this->state) {
+            $this->state->transitionTo(PaymentDue::class);
+        }
         $this->update([
             'tender_type' => null,
             'amount_paid' => 0,
@@ -128,7 +135,9 @@ class CheckoutSession extends Model
 
     public function voidSession(): void
     {
-        $this->state->transitionTo(Voided::class);
+        if ($this->state) {
+            $this->state->transitionTo(Voided::class);
+        }
     }
 
     // ── Totals ─────────────────────────────────────────────────────────────────
