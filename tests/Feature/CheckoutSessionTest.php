@@ -11,10 +11,12 @@ use App\Models\States\CheckoutSession\Draft;
 use App\Models\States\CheckoutSession\Paid;
 use App\Models\States\CheckoutSession\PaymentDue;
 use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class CheckoutSessionTest extends TestCase
 {
+    use RefreshDatabase;
     protected Practice $practice;
     protected User $user;
     protected Patient $patient;
@@ -116,7 +118,7 @@ class CheckoutSessionTest extends TestCase
     public function test_can_mark_paid()
     {
         $session = CheckoutSession::factory()
-            ->state('open')
+            ->open()
             ->create([
                 'practice_id'  => $this->practice->id,
                 'amount_total' => 10000,
@@ -135,7 +137,7 @@ class CheckoutSessionTest extends TestCase
     public function test_can_mark_payment_due()
     {
         $session = CheckoutSession::factory()
-            ->state('open')
+            ->open()
             ->create([
                 'practice_id'  => $this->practice->id,
                 'amount_total' => 10000,
@@ -167,8 +169,8 @@ class CheckoutSessionTest extends TestCase
 
     public function test_query_scope_paid()
     {
-        CheckoutSession::factory()->state('paid')->count(2)->create(['practice_id' => $this->practice->id]);
-        CheckoutSession::factory()->state('open')->count(3)->create(['practice_id' => $this->practice->id]);
+        CheckoutSession::factory()->paid()->count(2)->create(['practice_id' => $this->practice->id]);
+        CheckoutSession::factory()->open()->count(3)->create(['practice_id' => $this->practice->id]);
 
         $results = CheckoutSession::byPractice($this->practice->id)->paid()->get();
 

@@ -8,21 +8,29 @@ use App\Models\Patient;
 use App\Models\Practice;
 use App\Models\States\CheckoutSession\Paid;
 use App\Models\States\CheckoutSession\PaymentDue;
+use App\Services\PracticeContext;
+use BackedEnum;
 use Filament\Pages\Page;
+use Filament\Support\Icons\Heroicon;
 use Illuminate\Support\Number;
 
 class DashboardPage extends Page
 {
-    protected static ?string $title = 'Dashboard';
+    protected static ?string                    $slug                     = 'dashboard';
+    protected static ?string                    $title                    = 'Dashboard';
+    protected static ?string                    $navigationLabel          = 'Dashboard';
+    protected static string|BackedEnum|null     $navigationIcon           = Heroicon::OutlinedHome;
+    protected static bool                       $shouldRegisterNavigation = true;
+    protected static ?int                       $navigationSort           = -1;
     protected string $view = 'filament.pages.dashboard';
-    protected static ?int $navigationSort = -1;
 
     public function getViewData(): array
     {
-        $practice = auth()->user()->practice;
+        $practiceId = PracticeContext::currentPracticeId();
+        $practice   = $practiceId ? Practice::find($practiceId) : null;
 
-        if (!$practice) {
-            return [];
+        if (! $practice) {
+            return ['practice' => null];
         }
 
         $now = now();

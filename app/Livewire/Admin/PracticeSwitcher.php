@@ -15,12 +15,14 @@ class PracticeSwitcher extends Component
         $this->selectedPracticeId = PracticeContext::currentPracticeId();
     }
 
-    public function updatedSelectedPracticeId(?string $value): void
+    public function switchTo(string $practiceId): void
     {
-        if ($value) {
-            PracticeContext::setCurrentPracticeId((int) $value);
+        $id = (int) $practiceId;
+        if ($id > 0) {
+            $this->selectedPracticeId = $id;
+            PracticeContext::setCurrentPracticeId($id);
         }
-        // Reload the current page so all resource queries re-run with the new context
+        // Full page reload so all resource queries re-run with the new practice context
         $this->redirect(request()->header('referer') ?? url()->current());
     }
 

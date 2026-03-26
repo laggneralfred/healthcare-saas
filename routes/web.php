@@ -10,6 +10,11 @@ Route::get('/', function () {
     return view('welcome');
 });
 
+// Filament v5 homeUrl bug workaround: /admin always redirects to dashboard
+Route::get('/admin', function () {
+    return redirect('/admin/dashboard');
+})->middleware(['web']);
+
 // Stripe webhook — exempt from CSRF, no auth required
 // Takes precedence over Cashier's own /stripe/webhook route
 Route::post('/stripe/webhook', [StripeWebhookController::class, 'handleWebhook'])

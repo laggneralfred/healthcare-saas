@@ -16,6 +16,8 @@ class BillingPage extends Page
 
     protected static ?string $title = 'Billing & Subscription';
 
+    protected static ?int $navigationSort = 10;
+
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedCreditCard;
 
     protected string $view = 'filament.pages.billing';

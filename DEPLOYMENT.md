@@ -1,5 +1,30 @@
 # Healthcare SaaS — Production Deployment Guide
 
+> Last updated: 2026-03-26. Reflects Sprint 22 feature freeze.
+
+## What's Included
+
+### Core Features
+- **Multi-tenant admin panel** (Filament v5) — each practice is fully isolated via `practice_id`
+- **Public booking page** — `/book/{practice:slug}` — no login required; 5-step availability calendar wizard
+- **Patient intake & consent forms** — token-based public forms with cross-linking after submission
+- **Encounter notes** — acupuncture-specialised visit recording (extensible to other disciplines)
+- **Checkout & payment tracking** — state-machine checkout sessions (open → paid / payment_due)
+- **Stripe subscription billing** — Solo / Clinic / Enterprise plans via Laravel Cashier
+
+### Admin Panel Structure
+- Dashboard at `/admin/dashboard` — monthly metrics, status breakdown, revenue by practitioner
+- Practice switcher in top bar — super-admins (no `practice_id`) can switch between all practices; regular users see their own practice name
+- All resource tables are scoped to the currently selected practice via `BelongsToPractice` trait
+- Subscription middleware bypassed in `local` environment; enforced in production for practice users
+- Billing page at `/admin/billing` — Stripe Checkout + swap + billing portal
+
+### Email Notifications (queued)
+- **Patient confirmation** — appointment details + intake and consent CTA buttons
+- **Practitioner notification** — new booking summary with patient contact info
+
+---
+
 ## Pre-Deployment Checklist
 
 ### Environment & Configuration
@@ -13,8 +38,15 @@
 ### Database
 - [ ] Create PostgreSQL database
 - [ ] Run migrations: `php artisan migrate --force`
-- [ ] Seed plans data: `php artisan db:seed --force`
+- [ ] Seed subscription plans: `php artisan db:seed --class=DatabaseSeeder --force`
+- [ ] (Optional) Seed demo data: `php artisan db:seed --class=DemoSeeder --force`
 - [ ] Verify database backups are configured
+
+### Queue Worker (required for email notifications)
+- [ ] Configure queue driver (`QUEUE_CONNECTION=database` or `redis`)
+- [ ] Start queue worker: `php artisan queue:work --daemon`
+- [ ] Or configure Laravel Horizon / Supervisor for production
+- [ ] Test email dispatch by booking a test appointment via `/book/{slug}`
 
 ### File Storage
 - [ ] Configure AWS S3 or compatible storage
@@ -31,11 +63,13 @@
 ### Stripe Integration
 - [ ] Switch to live Stripe keys (`pk_live_*` and `sk_live_*`)
 - [ ] Register webhook endpoint: `https://your-domain.com/stripe/webhook`
-- [ ] Generate webhook signing secret
-- [ ] Update `STRIPE_WEBHOOK_SECRET` in `.env`
-- [ ] Create live subscription plan Price IDs
-- [ ] Update `STRIPE_SOLO_PRICE`, `STRIPE_CLINIC_PRICE`, `STRIPE_ENTERPRISE_PRICE`
-- [ ] Test payment flow in production mode
+- [ ] Generate webhook signing secret and set `STRIPE_WEBHOOK_SECRET`
+- [ ] Create live subscription plan Price IDs in Stripe Dashboard
+- [ ] Update `STRIPE_SOLO_PRICE`, `STRIPE_CLINIC_PRICE`, `STRIPE_ENTERPRISE_PRICE` in `.env`
+- [ ] Update `SubscriptionPlan` rows via `stripe_price_id` column (seeder reads from config)
+- [ ] Run `php artisan stripe:sync --practice-id=X` after first subscription created to confirm local DB sync
+- [ ] Test payment flow end-to-end: subscribe → webhook → admin shows "Current Plan"
+- [ ] Verify fake/test Stripe IDs are NOT in database (`practices.stripe_id` should be null before first payment)
 
 ### Security
 - [ ] Enable HTTPS (SSL/TLS certificate required)
@@ -75,10 +109,12 @@
 - [ ] Set up uptime monitoring (UptimeRobot, Pingdom)
 
 ### Access Control & Multi-Tenancy
-- [ ] Verify practice isolation via `practice_id` scoping
-- [ ] Test user access controls across practices
-- [ ] Verify subscription middleware on protected routes
-- [ ] Test role-based access (practice owner vs practitioner)
+- [ ] Verify practice isolation via `practice_id` scoping (`BelongsToPractice` trait on all resources)
+- [ ] Confirm `RequiresActiveSubscription` middleware is active (`APP_ENV=production`, not `local`)
+- [ ] Test regular user cannot see other practices' data
+- [ ] Test super-admin (no `practice_id`) can switch between practices via top-bar switcher
+- [ ] Verify public booking page `/book/{slug}` is accessible without login
+- [ ] Verify intake/consent token URLs are not guessable (64-char random token)
 
 ---
 
@@ -104,14 +140,19 @@ php artisan route:cache
 php artisan view:cache
 ```
 
-### 2. Run Migrations
+### 2. Run Migrations & Seed
 
 ```bash
 # Run all pending migrations
 php artisan migrate --force
 
-# Seed reference data (subscription plans)
+# Seed subscription plan catalog (idempotent — safe to re-run)
 php artisan db:seed --class=DatabaseSeeder --force
+
+# Optional: seed demo practice with sample data
+php artisan db:seed --class=DemoSeeder --force
+# Login: demo@example.com / password
+# Booking: /book/demo-acupuncture-clinic
 ```
 
 ### 3. Set Permissions
