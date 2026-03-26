@@ -20,39 +20,214 @@ class BillingPage extends Page
 
     protected string $view = 'filament.pages.billing';
 
-    // ── Data for the view ──────────────────────────────────────────────────────
+    // ── Livewire reactive properties ───────────────────────────────────────────
+    // These are tracked by Livewire and trigger a re-render when mutated,
+    // which is why subscription state (active/inactive, current plan) must
+    // live here rather than only inside getViewData().
+
+    public bool $hasActiveSubscription = false;
+
+    public bool $hasPastDueSubscription = false;
+
+    public ?string $activePriceId = null;
+
+    public ?string $currentPlanName = null;
+
+    public ?string $subscriptionEndsAt = null;
+
+    // ── Lifecycle ──────────────────────────────────────────────────────────────
+
+    public function mount(): void
+    {
+        if (request()->query('success')) {
+            $practice = $this->getPractice();
+
+            // Force sync from Stripe so the local subscriptions table is up to date
+            // before we load reactive state below. Uses the same logic as
+            // `php artisan stripe:sync` so there is a single source of truth.
+            if ($practice && $practice->stripe_id) {
+                app(\App\Console\Commands\StripeSyncCommand::class)->syncPractice($practice);
+            }
+
+            Notification::make()
+                ->title('Subscription activated successfully!')
+                ->body('Your subscription is now active.')
+                ->success()
+                ->persistent()
+                ->send();
+        }
+
+        // Always populate reactive properties on mount so the view has correct
+        // initial state regardless of the success redirect flow.
+        $this->loadSubscriptionState();
+    }
+
+    // ── Reactive state loader ──────────────────────────────────────────────────
+
+    /**
+     * Populate the public Livewire properties from the current subscription state.
+     * Called in mount() and can be called again after subscribe/swap to refresh the UI.
+     */
+    protected function loadSubscriptionState(): void
+    {
+        $practice = $this->getPractice();
+
+        if (! $practice) {
+            return;
+        }
+
+        $priceId = $this->resolveActivePriceId($practice);
+
+        $this->activePriceId          = $priceId;
+        $this->hasActiveSubscription  = $priceId !== null;
+        $this->currentPlanName        = $priceId
+            ? SubscriptionPlan::where('stripe_price_id', $priceId)->value('name')
+            : null;
+
+        $sub = $practice->subscription('default');
+        $this->hasPastDueSubscription = $sub && $sub->stripe_status === 'past_due';
+        $this->subscriptionEndsAt     = $sub?->ends_at?->format('M d, Y');
+    }
+
+    // ── Helpers ────────────────────────────────────────────────────────────────
 
     public function getPractice(): ?\App\Models\Practice
     {
-        return auth()->user()?->practice;
+        return auth()->user()?->practice()->first();
     }
 
     public function getCurrentPlan(): ?SubscriptionPlan
     {
-        $practice = $this->getPractice();
-
-        if (! $practice || ! $practice->subscribed('default')) {
-            return null;
-        }
-
-        $stripePrice = $practice->subscription('default')?->stripe_price;
-
-        return SubscriptionPlan::where('stripe_price_id', $stripePrice)->first();
+        return $this->activePriceId
+            ? SubscriptionPlan::where('stripe_price_id', $this->activePriceId)->first()
+            : null;
     }
 
-    public function getSubscription(): ?\Laravel\Cashier\Subscription
+    /**
+     * Returns the active Stripe price ID.
+     * Checks the local subscription record first (fast path). If nothing is found
+     * but the practice has a stripe_id, calls syncPractice() once to pull the latest
+     * data from Stripe (handles cases where the webhook missed or local dev has no
+     * webhook listener), then re-reads the local DB.
+     */
+    protected function resolveActivePriceId(\App\Models\Practice $practice): ?string
     {
-        return $this->getPractice()?->subscription('default');
+        $sub = $practice->subscription('default');
+
+        if ($sub && in_array($sub->stripe_status, ['active', 'trialing'])) {
+            return $sub->stripe_price ?? null;
+        }
+
+        // No local record — sync from Stripe and try once more
+        if ($practice->stripe_id) {
+            app(\App\Console\Commands\StripeSyncCommand::class)->syncPractice($practice);
+
+            $sub = $practice->subscriptions()
+                ->whereIn('stripe_status', ['active', 'trialing'])
+                ->latest('created_at')
+                ->first();
+
+            return $sub?->stripe_price ?? null;
+        }
+
+        return null;
     }
 
     protected function getViewData(): array
     {
-        $practice     = $this->getPractice();
-        $subscription = $this->getSubscription();
-        $currentPlan  = $this->getCurrentPlan();
-        $allPlans     = SubscriptionPlan::where('is_active', true)->orderBy('price_monthly')->get();
+        $currentPlan = $this->getCurrentPlan();
+        $allPlans    = SubscriptionPlan::where('is_active', true)->orderBy('price_monthly')->get();
 
-        return compact('practice', 'subscription', 'currentPlan', 'allPlans');
+        // $hasActiveSubscription, $hasPastDueSubscription, $activePriceId,
+        // $currentPlanName, and $subscriptionEndsAt are public Livewire properties —
+        // they are available in the view automatically without being listed here.
+        return compact('currentPlan', 'allPlans');
+    }
+
+    // ── Subscribe action (called from blade via wire:click) ───────────────────
+
+    public function subscribeToPlan(string $planKey): mixed
+    {
+        $practice = auth()->user()?->practice()->first();
+
+        if (! $practice) {
+            Notification::make()
+                ->title('No practice associated with your account')
+                ->body('Your user account is not linked to a practice. Please contact support.')
+                ->danger()
+                ->send();
+
+            return null;
+        }
+
+        $plan = SubscriptionPlan::where('key', $planKey)->first();
+
+        if (! $plan) {
+            Notification::make()->title('Plan not found')->danger()->send();
+
+            return null;
+        }
+
+        if (! $plan->stripe_price_id) {
+            Notification::make()
+                ->title('Plan not available')
+                ->body('This plan has not been configured in Stripe yet. Please add the stripe_price_id.')
+                ->warning()
+                ->send();
+
+            return null;
+        }
+
+        try {
+            return $this->attemptSubscription($practice, $plan);
+        } catch (\Stripe\Exception\InvalidRequestException $e) {
+            if (str_contains($e->getMessage(), 'No such customer')) {
+                $practice->stripe_id     = null;
+                $practice->pm_type       = null;
+                $practice->pm_last_four  = null;
+                $practice->trial_ends_at = null;
+                $practice->save();
+                $practice->subscriptions()->delete();
+
+                return $this->attemptSubscription($practice, $plan);
+            }
+
+            Notification::make()->title('Payment error')->body($e->getMessage())->danger()->send();
+
+            return null;
+        }
+    }
+
+    private function attemptSubscription(\App\Models\Practice $practice, SubscriptionPlan $plan): mixed
+    {
+        $subscription = $practice->subscription('default');
+
+        if ($subscription && in_array($subscription->stripe_status, ['active', 'trialing'])) {
+            try {
+                $subscription->swap($plan->stripe_price_id);
+
+                // Refresh reactive state so the UI reflects the new plan immediately
+                $this->loadSubscriptionState();
+
+                Notification::make()
+                    ->title('Plan updated')
+                    ->body("Switched to {$plan->name}.")
+                    ->success()
+                    ->send();
+
+                return null;
+            } catch (\Stripe\Exception\InvalidRequestException $e) {
+                $subscription->delete();
+            }
+        }
+
+        $checkout = $practice->newSubscription('default', $plan->stripe_price_id)
+            ->checkout([
+                'success_url' => route('filament.admin.pages.billing') . '?success=true',
+                'cancel_url'  => route('filament.admin.pages.billing'),
+            ]);
+
+        return redirect($checkout->url);
     }
 
     // ── Header actions ─────────────────────────────────────────────────────────
@@ -95,7 +270,7 @@ class BillingPage extends Page
                     if (! $plan->stripe_price_id) {
                         Notification::make()
                             ->title('Plan not available')
-                            ->body('This plan has not been configured in Stripe yet. Please add the stripe_price_id.')
+                            ->body('This plan has not been configured in Stripe yet.')
                             ->warning()
                             ->send();
 
@@ -106,6 +281,7 @@ class BillingPage extends Page
 
                     if ($subscription) {
                         $subscription->swap($plan->stripe_price_id);
+                        $this->loadSubscriptionState();
                         Notification::make()
                             ->title('Plan updated')
                             ->body("Switched to {$plan->name}.")
@@ -114,7 +290,7 @@ class BillingPage extends Page
                     } else {
                         Notification::make()
                             ->title('No active subscription')
-                            ->body('Subscribe via the Stripe billing portal.')
+                            ->body('Subscribe via a plan below or the Stripe billing portal.')
                             ->warning()
                             ->send();
                     }

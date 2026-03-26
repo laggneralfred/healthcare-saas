@@ -26,19 +26,22 @@ class DatabaseSeeder extends Seeder
         // ── Subscription plan catalog ─────────────────────────────────────────
         $this->seedSubscriptionPlans();
 
-        // ── Admin user (for Filament panel login) ─────────────────────────────
-        User::factory()->create([
-            'name'     => 'Admin',
-            'email'    => 'admin@healthcare.test',
-            'password' => Hash::make('password'),
+        // ── Practice 1: Green Valley Acupuncture ──────────────────────────────
+        // Created first so the admin user can be linked to it via practice_id.
+        $acupuncture = Practice::create([
+            'name'      => 'Green Valley Acupuncture',
+            'slug'      => 'green-valley-acupuncture',
+            'timezone'  => 'America/Los_Angeles',
+            'is_active' => true,
         ]);
 
-        // ── Practice 1: Green Valley Acupuncture ──────────────────────────────
-        $acupuncture = Practice::create([
-            'name'     => 'Green Valley Acupuncture',
-            'slug'     => 'green-valley-acupuncture',
-            'timezone' => 'America/Los_Angeles',
-            'is_active' => true,
+        // ── Admin user (for Filament panel login) ─────────────────────────────
+        // Linked to the first practice so billing/subscription features work out of the box.
+        User::factory()->create([
+            'name'        => 'Admin',
+            'email'       => 'admin@healthcare.test',
+            'password'    => Hash::make('password'),
+            'practice_id' => $acupuncture->id,
         ]);
 
         // Service fees for acupuncture
@@ -219,10 +222,6 @@ class DatabaseSeeder extends Seeder
         // ── Checkout sessions: 1 per checkout-status appointment ──────────────
         $this->seedCheckoutSessions($acupuncture, $acuFees);
         $this->seedCheckoutSessions($massage, $massageFees);
-
-        // ── Test subscriptions (local Cashier records, no live Stripe calls) ──
-        $this->seedTestSubscription($acupuncture, 'solo');
-        $this->seedTestSubscription($massage, 'clinic');
     }
 
     private function seedIntakeAndConsent(
@@ -461,37 +460,4 @@ class DatabaseSeeder extends Seeder
         }
     }
 
-    /**
-     * Seed a local Cashier subscription record without calling Stripe.
-     * Use this for test/demo environments to simulate active subscriptions.
-     */
-    private function seedTestSubscription(Practice $practice, string $planKey): void
-    {
-        $plan = SubscriptionPlan::where('key', $planKey)->first();
-
-        if (! $plan) {
-            return;
-        }
-
-        // Create a fake Stripe customer ID and subscription ID for local dev
-        $fakeCustomerId     = 'cus_test_' . substr(md5($practice->slug), 0, 14);
-        $fakeSubscriptionId = 'sub_test_' . substr(md5($practice->slug . $planKey), 0, 14);
-        $fakePriceId        = $plan->stripe_price_id ?? ('price_test_' . $plan->key);
-
-        // Set the practice's stripe_id so the billing portal link appears
-        $practice->updateQuietly(['stripe_id' => $fakeCustomerId]);
-
-        // Create the local Cashier subscription record
-        $practice->subscriptions()->updateOrCreate(
-            ['stripe_id' => $fakeSubscriptionId],
-            [
-                'type'          => 'default',
-                'stripe_status' => 'active',
-                'stripe_price'  => $fakePriceId,
-                'quantity'      => 1,
-                'trial_ends_at' => null,
-                'ends_at'       => null,
-            ]
-        );
-    }
 }
