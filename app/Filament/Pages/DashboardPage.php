@@ -6,6 +6,8 @@ use App\Models\Appointment;
 use App\Models\CheckoutSession;
 use App\Models\Patient;
 use App\Models\Practice;
+use App\Models\States\CheckoutSession\Paid;
+use App\Models\States\CheckoutSession\PaymentDue;
 use Filament\Pages\Page;
 use Illuminate\Support\Number;
 
@@ -55,15 +57,15 @@ class DashboardPage extends Page
             ->get();
 
         $totalRevenue = $checkoutSessionsThisMonth
-            ->where('state.name', 'paid')
+            ->filter(fn (CheckoutSession $s) => $s->state instanceof Paid)
             ->sum('amount_total');
 
         $pendingRevenue = $checkoutSessionsThisMonth
-            ->where('state.name', 'payment_due')
+            ->filter(fn (CheckoutSession $s) => $s->state instanceof PaymentDue)
             ->sum('amount_total');
 
         $checkoutSessionsCompleted = $checkoutSessionsThisMonth
-            ->where('state.name', 'paid')
+            ->filter(fn (CheckoutSession $s) => $s->state instanceof Paid)
             ->count();
 
         // Appointment status breakdown

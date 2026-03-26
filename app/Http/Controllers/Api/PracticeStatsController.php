@@ -6,6 +6,8 @@ use App\Models\Appointment;
 use App\Models\CheckoutSession;
 use App\Models\Patient;
 use App\Models\Practice;
+use App\Models\States\CheckoutSession\Paid;
+use App\Models\States\CheckoutSession\PaymentDue;
 use Illuminate\Http\JsonResponse;
 
 class PracticeStatsController
@@ -52,19 +54,19 @@ class PracticeStatsController
             ->get();
 
         $revenuePaid = $checkoutSessionsThisMonth
-            ->where('state.name', 'paid')
+            ->filter(fn (CheckoutSession $s) => $s->state instanceof Paid)
             ->sum('amount_total');
 
         $revenuePending = $checkoutSessionsThisMonth
-            ->where('state.name', 'payment_due')
+            ->filter(fn (CheckoutSession $s) => $s->state instanceof PaymentDue)
             ->sum('amount_total');
 
         $checkoutSessionsCompleted = $checkoutSessionsThisMonth
-            ->where('state.name', 'paid')
+            ->filter(fn (CheckoutSession $s) => $s->state instanceof Paid)
             ->count();
 
         $checkoutSessionsPending = $checkoutSessionsThisMonth
-            ->where('state.name', 'payment_due')
+            ->filter(fn (CheckoutSession $s) => $s->state instanceof PaymentDue)
             ->count();
 
         return response()->json([

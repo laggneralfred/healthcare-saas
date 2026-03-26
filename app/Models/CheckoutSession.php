@@ -59,8 +59,7 @@ class CheckoutSession extends Model
             }
 
             // Ensure paid_on is only set when in paid state
-            // Only apply this logic if state is loaded and not null
-            if ($session->state && $session->state->name !== 'paid' && $session->paid_on) {
+            if ($session->state && ! ($session->state instanceof Paid) && $session->paid_on) {
                 $session->paid_on = null;
             }
         });

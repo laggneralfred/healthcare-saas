@@ -7,6 +7,9 @@ use App\Models\CheckoutSession;
 use App\Models\Patient;
 use App\Models\Practice;
 use App\Models\Practitioner;
+use App\Models\States\CheckoutSession\Draft;
+use App\Models\States\CheckoutSession\Paid;
+use App\Models\States\CheckoutSession\PaymentDue;
 use App\Models\User;
 use Tests\TestCase;
 
@@ -46,7 +49,7 @@ class CheckoutSessionTest extends TestCase
         ]);
 
         $this->assertNotNull($session->id);
-        $this->assertEquals('draft', $session->state->name);
+        $this->assertInstanceOf(Draft::class, $session->state);
         $this->assertNotNull($session->started_on);
     }
 
@@ -123,7 +126,7 @@ class CheckoutSessionTest extends TestCase
         $session->markPaid('card');
         $session->refresh();
 
-        $this->assertEquals('paid', $session->state->name);
+        $this->assertInstanceOf(Paid::class, $session->state);
         $this->assertEquals(10000, $session->amount_paid);
         $this->assertEquals('card', $session->tender_type);
         $this->assertNotNull($session->paid_on);
@@ -143,7 +146,7 @@ class CheckoutSessionTest extends TestCase
         $session->markPaymentDue();
         $session->refresh();
 
-        $this->assertEquals('payment_due', $session->state->name);
+        $this->assertInstanceOf(PaymentDue::class, $session->state);
         $this->assertEquals(0, $session->amount_paid);
         $this->assertNull($session->tender_type);
         $this->assertNull($session->paid_on);
@@ -170,7 +173,7 @@ class CheckoutSessionTest extends TestCase
         $results = CheckoutSession::byPractice($this->practice->id)->paid()->get();
 
         $this->assertCount(2, $results);
-        $this->assertTrue($results->every(fn ($s) => $s->state->name === 'paid'));
+        $this->assertTrue($results->every(fn ($s) => $s->state instanceof Paid));
     }
 
     public function test_sync_total_from_lines()
