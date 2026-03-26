@@ -2,12 +2,12 @@
 
     {{-- Subscription required notice --}}
     @if (session('subscription_required'))
-        <x-filament::section>
-            <div class="flex items-center gap-3 text-warning-600">
-                <x-heroicon-o-exclamation-triangle class="h-5 w-5" />
+        <div class="rounded-lg border border-warning-300 bg-warning-50 p-4 dark:border-warning-600 dark:bg-warning-950">
+            <div class="flex items-center gap-3 text-warning-600 dark:text-warning-400">
+                <x-heroicon-o-exclamation-triangle class="h-5 w-5 shrink-0" />
                 <span class="font-medium">{{ session('subscription_required') }}</span>
             </div>
-        </x-filament::section>
+        </div>
     @endif
 
     {{-- Current plan card --}}
@@ -26,7 +26,7 @@
                         · {{ $currentPlan?->practitionerLimit() ?? '—' }} practitioners
                     </p>
                     @if ($subscription->ends_at)
-                        <p class="mt-1 text-sm text-warning-600">
+                        <p class="mt-1 text-sm text-warning-600 dark:text-warning-400">
                             Cancels on {{ $subscription->ends_at->format('M d, Y') }}
                         </p>
                     @endif
@@ -36,7 +36,7 @@
                     <ul class="text-sm text-gray-600 dark:text-gray-300 space-y-1">
                         @foreach ($currentPlan->features as $feature)
                             <li class="flex items-center gap-1.5">
-                                <x-heroicon-o-check-circle class="h-4 w-4 text-success-500" />
+                                <x-heroicon-o-check-circle class="h-4 w-4 text-success-500 shrink-0" />
                                 {{ $feature }}
                             </li>
                         @endforeach
@@ -45,20 +45,20 @@
             </div>
         @elseif ($subscription && $subscription->stripe_status === 'past_due')
             <x-filament::badge color="danger">Payment Past Due</x-filament::badge>
-            <p class="mt-2 text-sm text-gray-500">Please update your payment method in the Stripe billing portal.</p>
+            <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">Please update your payment method in the Stripe billing portal.</p>
         @else
             <div class="flex items-center gap-2">
                 <x-filament::badge color="gray">No Active Subscription</x-filament::badge>
             </div>
-            <p class="mt-2 text-sm text-gray-500">Select a plan below to get started.</p>
+            <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">Select a plan below to get started.</p>
         @endif
     </x-filament::section>
 
     {{-- Plan comparison --}}
     <x-filament::section heading="Available Plans">
-        <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <div class="grid grid-cols-1 gap-6 md:grid-cols-3">
             @foreach ($allPlans as $plan)
-                @php $isCurrent = $currentPlan?->key === $plan->key; @endphp
+                @php $isCurrent = $currentPlan && $currentPlan->key === $plan->key; @endphp
                 <div @class([
                     'rounded-xl border p-5 flex flex-col gap-3',
                     'border-primary-500 bg-primary-50 dark:bg-primary-950 ring-2 ring-primary-500' => $isCurrent,
@@ -76,12 +76,12 @@
                         <span class="text-sm font-normal text-gray-500">/month</span>
                     </p>
 
-                    <p class="text-sm text-gray-500">{{ $plan->practitionerLimit() }} practitioners</p>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">{{ $plan->practitionerLimit() }} practitioners</p>
 
                     <ul class="space-y-1.5 text-sm text-gray-600 dark:text-gray-300">
                         @foreach ($plan->features as $feature)
                             <li class="flex items-center gap-1.5">
-                                <x-heroicon-o-check class="h-4 w-4 text-success-500 shrink-0" />
+                                <x-heroicon-o-check-circle class="h-4 w-4 text-success-500 shrink-0" />
                                 {{ $feature }}
                             </li>
                         @endforeach
