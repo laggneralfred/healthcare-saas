@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\StripeWebhookController;
+use App\Livewire\Public\BookingCalendar;
 use App\Livewire\Public\ConsentForm;
 use App\Livewire\Public\IntakeForm;
 use Illuminate\Support\Facades\Route;
@@ -14,6 +15,9 @@ Route::get('/', function () {
 Route::post('/stripe/webhook', [StripeWebhookController::class, 'handleWebhook'])
     ->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class])
     ->name('cashier.webhook');
+
+// Public booking page — no authentication required
+Route::get('/book/{practice:slug}', BookingCalendar::class)->name('booking.show');
 
 // Public token-based forms — no authentication required
 Route::get('/intake/{token}', IntakeForm::class)->name('intake.show');
