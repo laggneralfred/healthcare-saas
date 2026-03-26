@@ -71,7 +71,7 @@ Table: acupuncture_encounters
 | Reactive UI | Livewire | 4.x |
 | State machine | spatie/laravel-model-states | 2.12.x |
 | CSS | Tailwind CSS | 4.x (via Vite) |
-| Database | SQLite (dev) / PostgreSQL (prod) |
+| Database | PostgreSQL (dev + prod) |
 
 ---
 

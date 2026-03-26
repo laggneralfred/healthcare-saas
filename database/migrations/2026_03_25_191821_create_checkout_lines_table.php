@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('checkout_session_id')->constrained()->cascadeOnDelete();
             $table->foreignId('practice_id')->constrained()->cascadeOnDelete();
-            $table->unsignedInteger('sequence')->default(0);
+            $table->integer('sequence')->default(0);
             $table->string('description');
             $table->decimal('amount', 10, 2)->default(0);
             $table->timestamps();

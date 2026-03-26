@@ -32,26 +32,26 @@ class PracticeStatsController
         $startOfMonth = $now->copy()->startOfMonth();
         $endOfMonth = $now->copy()->endOfMonth();
 
-        // Appointment metrics
-        $appointmentsTotal = Appointment::where('practice_id', $practice->id)->count();
-        $appointmentsThisMonth = Appointment::where('practice_id', $practice->id)
+        // Appointment metrics — bypass global scope; practice is already bound via route
+        $appointmentsTotal = Appointment::withoutPracticeScope()->where('practice_id', $practice->id)->count();
+        $appointmentsThisMonth = Appointment::withoutPracticeScope()->where('practice_id', $practice->id)
             ->whereBetween('start_datetime', [$startOfMonth, $endOfMonth])
             ->count();
 
-        $appointmentsByStatus = Appointment::where('practice_id', $practice->id)
+        $appointmentsByStatus = Appointment::withoutPracticeScope()->where('practice_id', $practice->id)
             ->selectRaw('status, COUNT(*) as count')
             ->groupBy('status')
             ->pluck('count', 'status')
             ->toArray();
 
         // Patient metrics
-        $patientsTotal = Patient::where('practice_id', $practice->id)->count();
-        $patientsNewThisMonth = Patient::where('practice_id', $practice->id)
+        $patientsTotal = Patient::withoutPracticeScope()->where('practice_id', $practice->id)->count();
+        $patientsNewThisMonth = Patient::withoutPracticeScope()->where('practice_id', $practice->id)
             ->whereBetween('created_at', [$startOfMonth, $endOfMonth])
             ->count();
 
         // Revenue metrics
-        $checkoutSessionsThisMonth = CheckoutSession::where('practice_id', $practice->id)
+        $checkoutSessionsThisMonth = CheckoutSession::withoutPracticeScope()->where('practice_id', $practice->id)
             ->whereBetween('created_at', [$startOfMonth, $endOfMonth])
             ->get();
 

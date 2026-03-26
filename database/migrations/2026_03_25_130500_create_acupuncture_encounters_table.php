@@ -18,7 +18,7 @@ return new class extends Migration
             $table->text('points_used')->nullable();
             $table->text('meridians')->nullable();
             $table->text('treatment_protocol')->nullable();
-            $table->unsignedSmallInteger('needle_count')->nullable();
+            $table->smallInteger('needle_count')->nullable();
             $table->text('session_notes')->nullable();
             $table->timestamps();
         });

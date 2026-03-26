@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\BelongsToPractice;
 use App\Models\States\CheckoutSession\CheckoutSessionState;
 use App\Models\States\CheckoutSession\Open;
 use App\Models\States\CheckoutSession\Paid;
@@ -15,7 +16,7 @@ use Spatie\ModelStates\HasStates;
 
 class CheckoutSession extends Model
 {
-    use HasFactory, HasStates;
+    use HasFactory, HasStates, BelongsToPractice;
 
     protected $fillable = [
         'practice_id',

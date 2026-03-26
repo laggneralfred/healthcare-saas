@@ -2,13 +2,14 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\BelongsToPractice;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class CheckoutLine extends Model
 {
-    use HasFactory;
+    use HasFactory, BelongsToPractice;
 
     protected $fillable = [
         'checkout_session_id',
