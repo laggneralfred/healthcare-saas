@@ -11,7 +11,12 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        //
+        // Synchronise the PostgreSQL `app.practice_id` session variable with
+        // the resolved practice context on every web request so that RLS
+        // policies can enforce tenant isolation at the database level.
+        $middleware->web(append: [
+            \App\Http\Middleware\SetPostgresTenantContext::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

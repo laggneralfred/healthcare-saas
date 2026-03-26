@@ -102,9 +102,17 @@ resources/views/
 ## Multi-tenancy
 
 - Every model has `practice_id` FK — **always include it in queries**
-- Middleware (TBD): resolves current practice from authenticated user
-- Filament resources: scope dropdowns to current practice in production
-- Public routes (/intake, /consent): practice resolved from the token record
+- `BelongsToPractice` global scope (Eloquent layer) enforces tenant isolation on all scoped models
+- `SetPostgresTenantContext` middleware (web group) writes `app.practice_id` to the PostgreSQL session variable on every web request
+- PostgreSQL Row Level Security (RLS) enforces isolation at the database level as a second defence layer — `FORCE ROW LEVEL SECURITY` is enabled on all practice-scoped tables
+- Public routes (/intake, /consent): practice resolved from the token record; component's `mount()` must call `DB::statement("SELECT set_config('app.practice_id', ?, false)", [$id])` after resolving the practice from the token
+
+### Two-database-user model
+
+| User | Privileges | Used by |
+|------|-----------|---------|
+| `postgres` | Superuser, BYPASSRLS | Tests (`phpunit.xml`), `migrate:fresh` during testing |
+| `healthcare` | App user, subject to RLS | Web app `.env`, `migrate:fresh --seed` in dev (seeder sets `app.practice_id` before each practice section) |
 
 ---
 

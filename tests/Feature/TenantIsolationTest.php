@@ -416,8 +416,12 @@ class TenantIsolationTest extends TestCase
         $this->assertCount(1, $scoped);
         $this->assertFalse($scoped->contains('id', $this->patientA->id));
 
-        // Bypassed: all records from both practices are visible.
-        $all = Patient::withoutPracticeScope()->get();
+        // Bypassed: records from both practices are visible.
+        // Use whereIn to scope the verification to just these two practices so
+        // that committed data from other test classes does not affect the count.
+        $all = Patient::withoutPracticeScope()
+            ->whereIn('practice_id', [$this->practiceA->id, $this->practiceB->id])
+            ->get();
         $this->assertCount(2, $all);
         $this->assertTrue($all->contains('id', $this->patientA->id));
         $this->assertTrue($all->contains('id', $patientB->id));

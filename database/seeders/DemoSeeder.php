@@ -13,6 +13,7 @@ use App\Models\ServiceFee;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 
 class DemoSeeder extends Seeder
@@ -27,6 +28,14 @@ class DemoSeeder extends Seeder
                 'timezone'  => 'America/Los_Angeles',
                 'is_active' => true,
             ]
+        );
+
+        // Set the PostgreSQL tenant context so RLS policies allow inserts for
+        // this practice.  The seeder runs as the healthcare DB user which is
+        // subject to FORCE ROW LEVEL SECURITY on all practice-scoped tables.
+        DB::statement(
+            "SELECT set_config('app.practice_id', ?, false)",
+            [(string) $practice->id]
         );
 
         // ── Admin user ────────────────────────────────────────────────────────

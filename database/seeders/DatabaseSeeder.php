@@ -17,6 +17,7 @@ use App\Models\ServiceFee;
 use App\Models\SubscriptionPlan;
 use App\Models\User;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 
 class DatabaseSeeder extends Seeder
@@ -34,6 +35,11 @@ class DatabaseSeeder extends Seeder
             'timezone'  => 'America/Los_Angeles',
             'is_active' => true,
         ]);
+
+        // Set the PostgreSQL tenant context so RLS policies allow inserts for
+        // this practice.  The seeder runs as the healthcare DB user which is
+        // subject to FORCE ROW LEVEL SECURITY on all practice-scoped tables.
+        $this->setPracticeContext($acupuncture->id);
 
         // ── Admin user (for Filament panel login) ─────────────────────────────
         // Linked to the first practice so billing/subscription features work out of the box.
@@ -118,6 +124,9 @@ class DatabaseSeeder extends Seeder
             'timezone' => 'America/New_York',
             'is_active' => true,
         ]);
+
+        $this->setPracticeContext($massage->id);
+
 
         // Service fees for massage
         $massageFees = collect([
@@ -228,6 +237,8 @@ class DatabaseSeeder extends Seeder
         Practice $practice,
         \Illuminate\Support\Collection $patients,
     ): void {
+        $this->setPracticeContext($practice->id);
+
         // First 7 patients → complete; last 3 → missing (pending)
         $patients->each(function (Patient $patient, int $index) use ($practice) {
             $isComplete = $index < 7;
@@ -257,6 +268,8 @@ class DatabaseSeeder extends Seeder
         \Illuminate\Support\Collection $patients,
         \Illuminate\Support\Collection $practitioners,
     ): void {
+        $this->setPracticeContext($practice->id);
+
         // Pick 5 appointments for this practice that don't already have an encounter
         $appointments = Appointment::where('practice_id', $practice->id)
             ->whereNotIn('status', ['scheduled'])
@@ -294,6 +307,8 @@ class DatabaseSeeder extends Seeder
         array $statuses,
         int $count,
     ): void {
+        $this->setPracticeContext($practice->id);
+
         $baseDate = now()->subDays(30);
 
         foreach ($statuses as $statusIndex => $status) {
@@ -328,6 +343,8 @@ class DatabaseSeeder extends Seeder
         Practice $practice,
         \Illuminate\Support\Collection $serviceFees,
     ): void {
+        $this->setPracticeContext($practice->id);
+
         // Get all checkout-status appointments for this practice that don't yet have a session
         $appointments = Appointment::where('practice_id', $practice->id)
             ->where('status', 'checkout')
@@ -403,6 +420,19 @@ class DatabaseSeeder extends Seeder
                 'amount_paid'  => $paidAmount,
             ]);
         });
+    }
+
+    /**
+     * Set the PostgreSQL session variable that the RLS practice_isolation
+     * policy reads.  Must be called before inserting into any practice-scoped
+     * table when the DB user is subject to FORCE ROW LEVEL SECURITY.
+     */
+    private function setPracticeContext(int $practiceId): void
+    {
+        DB::statement(
+            "SELECT set_config('app.practice_id', ?, false)",
+            [(string) $practiceId]
+        );
     }
 
     private function seedSubscriptionPlans(): void
