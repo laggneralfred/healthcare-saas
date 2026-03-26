@@ -7,6 +7,7 @@ use App\Filament\Resources\ServiceFees\Pages\EditServiceFee;
 use App\Filament\Resources\ServiceFees\Pages\ListServiceFees;
 use App\Filament\Resources\ServiceFees\Schemas\ServiceFeeForm;
 use App\Filament\Resources\ServiceFees\Tables\ServiceFeesTable;
+use App\Filament\Traits\BelongsToPractice;
 use App\Models\ServiceFee;
 use BackedEnum;
 use Filament\Resources\Resource;
@@ -16,6 +17,7 @@ use Filament\Tables\Table;
 
 class ServiceFeeResource extends Resource
 {
+    use BelongsToPractice;
     protected static ?string $model = ServiceFee::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedCurrencyDollar;

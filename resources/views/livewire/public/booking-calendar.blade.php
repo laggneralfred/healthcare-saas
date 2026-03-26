@@ -19,7 +19,7 @@
       <p style="margin:0;font-weight:600;color:#0f172a;font-size:1rem;">{{ $type->name }}</p>
       @if($type->defaultServiceFee)
         <p style="margin:0.25rem 0 0;color:#64748b;font-size:0.875rem;">
-          ${{ number_format($type->defaultServiceFee->amount, 2) }}
+          ${{ number_format($type->defaultServiceFee->default_price, 2) }}
         </p>
       @endif
     </button>

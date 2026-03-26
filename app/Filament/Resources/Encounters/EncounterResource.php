@@ -7,6 +7,7 @@ use App\Filament\Resources\Encounters\Pages\EditEncounter;
 use App\Filament\Resources\Encounters\Pages\ListEncounters;
 use App\Filament\Resources\Encounters\Schemas\EncounterForm;
 use App\Filament\Resources\Encounters\Tables\EncountersTable;
+use App\Filament\Traits\BelongsToPractice;
 use App\Models\Encounter;
 use BackedEnum;
 use Filament\Resources\Resource;
@@ -16,6 +17,7 @@ use Filament\Tables\Table;
 
 class EncounterResource extends Resource
 {
+    use BelongsToPractice;
     protected static ?string $model = Encounter::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedClipboardDocument;

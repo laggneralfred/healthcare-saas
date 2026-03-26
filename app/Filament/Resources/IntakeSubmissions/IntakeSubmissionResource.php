@@ -7,6 +7,7 @@ use App\Filament\Resources\IntakeSubmissions\Pages\EditIntakeSubmission;
 use App\Filament\Resources\IntakeSubmissions\Pages\ListIntakeSubmissions;
 use App\Filament\Resources\IntakeSubmissions\Schemas\IntakeSubmissionForm;
 use App\Filament\Resources\IntakeSubmissions\Tables\IntakeSubmissionsTable;
+use App\Filament\Traits\BelongsToPractice;
 use App\Models\IntakeSubmission;
 use BackedEnum;
 use Filament\Resources\Resource;
@@ -16,6 +17,7 @@ use Filament\Tables\Table;
 
 class IntakeSubmissionResource extends Resource
 {
+    use BelongsToPractice;
     protected static ?string $model = IntakeSubmission::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;

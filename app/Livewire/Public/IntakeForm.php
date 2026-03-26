@@ -28,11 +28,14 @@ class IntakeForm extends Component
     public string $notes = '';
 
     public bool $submitted = false;
+    public ?string $consentUrl = null;
 
     public function mount(string $token): void
     {
         $this->submission = IntakeSubmission::findByToken($token)
             ?? abort(404, 'This intake link is not valid.');
+
+        $this->consentUrl = $this->submission->appointment?->consentRecord?->getPublicUrl();
 
         if ($this->submission->isComplete()) {
             $this->submitted = true;

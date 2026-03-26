@@ -59,4 +59,14 @@ class Appointment extends Model
     {
         return $this->hasOne(CheckoutSession::class);
     }
+
+    public function intakeSubmission(): HasOne
+    {
+        return $this->hasOne(IntakeSubmission::class);
+    }
+
+    public function consentRecord(): HasOne
+    {
+        return $this->hasOne(ConsentRecord::class);
+    }
 }

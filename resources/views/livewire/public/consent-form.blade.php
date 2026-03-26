@@ -14,6 +14,14 @@
             @if ($record->signed_on)
                 <p class="mt-3 text-xs text-gray-400">Signed {{ $record->signed_on->format('M j, Y \a\t g:ia') }}</p>
             @endif
+            @if ($intakeUrl)
+                <div class="mt-6">
+                    <a href="{{ $intakeUrl }}"
+                       class="inline-block rounded-lg bg-teal-600 px-5 py-3 text-sm font-semibold text-white hover:bg-teal-700 transition-colors">
+                        📋 Also complete your Intake Form
+                    </a>
+                </div>
+            @endif
         </div>
     @else
         <div class="rounded-2xl bg-white border border-gray-200 shadow-sm overflow-hidden">

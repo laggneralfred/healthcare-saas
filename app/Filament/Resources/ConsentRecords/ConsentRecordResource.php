@@ -7,6 +7,7 @@ use App\Filament\Resources\ConsentRecords\Pages\EditConsentRecord;
 use App\Filament\Resources\ConsentRecords\Pages\ListConsentRecords;
 use App\Filament\Resources\ConsentRecords\Schemas\ConsentRecordForm;
 use App\Filament\Resources\ConsentRecords\Tables\ConsentRecordsTable;
+use App\Filament\Traits\BelongsToPractice;
 use App\Models\ConsentRecord;
 use BackedEnum;
 use Filament\Resources\Resource;
@@ -16,6 +17,7 @@ use Filament\Tables\Table;
 
 class ConsentRecordResource extends Resource
 {
+    use BelongsToPractice;
     protected static ?string $model = ConsentRecord::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;

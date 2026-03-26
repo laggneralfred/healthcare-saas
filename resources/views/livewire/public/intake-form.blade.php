@@ -15,6 +15,14 @@
             @if ($submission->submitted_on)
                 <p class="mt-3 text-xs text-gray-400">Submitted {{ $submission->submitted_on->format('M j, Y \a\t g:ia') }}</p>
             @endif
+            @if ($consentUrl)
+                <div class="mt-6">
+                    <a href="{{ $consentUrl }}"
+                       class="inline-block rounded-lg bg-teal-600 px-5 py-3 text-sm font-semibold text-white hover:bg-teal-700 transition-colors">
+                        ✍️ Next: Sign Consent Form
+                    </a>
+                </div>
+            @endif
         </div>
     @else
         <div class="rounded-2xl bg-white border border-gray-200 shadow-sm overflow-hidden">

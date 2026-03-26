@@ -7,6 +7,7 @@ use App\Filament\Resources\CheckoutSessions\Pages\EditCheckoutSession;
 use App\Filament\Resources\CheckoutSessions\Pages\ListCheckoutSessions;
 use App\Filament\Resources\CheckoutSessions\Schemas\CheckoutSessionForm;
 use App\Filament\Resources\CheckoutSessions\Tables\CheckoutSessionsTable;
+use App\Filament\Traits\BelongsToPractice;
 use App\Models\CheckoutSession;
 use BackedEnum;
 use Filament\Resources\Resource;
@@ -16,6 +17,7 @@ use Filament\Tables\Table;
 
 class CheckoutSessionResource extends Resource
 {
+    use BelongsToPractice;
     protected static ?string $model = CheckoutSession::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedShoppingCart;

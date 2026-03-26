@@ -7,6 +7,7 @@ use App\Filament\Resources\AppointmentTypes\Pages\EditAppointmentType;
 use App\Filament\Resources\AppointmentTypes\Pages\ListAppointmentTypes;
 use App\Filament\Resources\AppointmentTypes\Schemas\AppointmentTypeForm;
 use App\Filament\Resources\AppointmentTypes\Tables\AppointmentTypesTable;
+use App\Filament\Traits\BelongsToPractice;
 use App\Models\AppointmentType;
 use BackedEnum;
 use Filament\Resources\Resource;
@@ -16,6 +17,7 @@ use Filament\Tables\Table;
 
 class AppointmentTypeResource extends Resource
 {
+    use BelongsToPractice;
     protected static ?string $model = AppointmentType::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;

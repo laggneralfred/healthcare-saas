@@ -7,6 +7,7 @@ use App\Filament\Resources\Practitioners\Pages\EditPractitioner;
 use App\Filament\Resources\Practitioners\Pages\ListPractitioners;
 use App\Filament\Resources\Practitioners\Schemas\PractitionerForm;
 use App\Filament\Resources\Practitioners\Tables\PractitionersTable;
+use App\Filament\Traits\BelongsToPractice;
 use App\Models\Practitioner;
 use BackedEnum;
 use Filament\Resources\Resource;
@@ -16,6 +17,7 @@ use Filament\Tables\Table;
 
 class PractitionerResource extends Resource
 {
+    use BelongsToPractice;
     protected static ?string $model = Practitioner::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;

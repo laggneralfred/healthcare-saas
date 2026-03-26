@@ -140,11 +140,13 @@ class BookingCalendar extends Component
         $this->validate();
 
         $tz   = $this->practice->timezone ?? 'UTC';
-        $type = AppointmentType::findOrFail($this->selectedTypeId);
+        $type = AppointmentType::where('practice_id', $this->practice->id)
+            ->findOrFail($this->selectedTypeId);
 
         // Determine practitioner
         if ($this->selectedPractitionerId) {
-            $practitioner = Practitioner::findOrFail($this->selectedPractitionerId);
+            $practitioner = Practitioner::where('practice_id', $this->practice->id)
+                ->findOrFail($this->selectedPractitionerId);
         } else {
             // Pick any available practitioner for the slot
             $practitioner = $this->getAvailablePractitionerForSlot();
@@ -339,6 +341,7 @@ class BookingCalendar extends Component
     {
         $appointmentTypes = AppointmentType::where('practice_id', $this->practice->id)
             ->where('is_active', true)
+            ->with('defaultServiceFee')
             ->get();
 
         $practitioners = $this->getAvailablePractitioners();

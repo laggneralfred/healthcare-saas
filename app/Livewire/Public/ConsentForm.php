@@ -25,11 +25,14 @@ class ConsentForm extends Component
     public bool $confirmed = false;
 
     public bool $submitted = false;
+    public ?string $intakeUrl = null;
 
     public function mount(string $token): void
     {
         $this->record = ConsentRecord::findByToken($token)
             ?? abort(404, 'This consent link is not valid.');
+
+        $this->intakeUrl = $this->record->appointment?->intakeSubmission?->getPublicUrl();
 
         if ($this->record->isComplete()) {
             $this->submitted = true;
