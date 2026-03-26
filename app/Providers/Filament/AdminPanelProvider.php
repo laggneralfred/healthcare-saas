@@ -3,6 +3,8 @@
 namespace App\Providers\Filament;
 
 use App\Http\Middleware\RequiresActiveSubscription;
+use App\Models\Practice;
+use App\Services\PracticeContext;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -12,7 +14,7 @@ use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
 use Filament\Support\Facades\FilamentView;
 use Filament\Widgets\AccountWidget;
-use Illuminate\Support\Facades\Blade;
+use Illuminate\Contracts\View\View;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
@@ -28,7 +30,13 @@ class AdminPanelProvider extends PanelProvider
 
         FilamentView::registerRenderHook(
             'panels::topbar.end',
-            fn (): string => Blade::render('<livewire:admin.practice-switcher />'),
+            function (): View {
+                $isSuperAdmin = PracticeContext::isSuperAdmin();
+                $selectedId   = PracticeContext::currentPracticeId();
+                $practices    = $isSuperAdmin ? Practice::orderBy('name')->get(['id', 'name']) : collect();
+
+                return view('filament.hooks.practice-switcher', compact('isSuperAdmin', 'selectedId', 'practices'));
+            },
         );
     }
 

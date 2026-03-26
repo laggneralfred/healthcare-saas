@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\PracticeSwitchController;
 use App\Http\Controllers\StripeWebhookController;
 use App\Livewire\Public\BookingCalendar;
 use App\Livewire\Public\ConsentForm;
@@ -20,6 +21,11 @@ Route::get('/admin', function () {
 Route::post('/stripe/webhook', [StripeWebhookController::class, 'handleWebhook'])
     ->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class])
     ->name('cashier.webhook');
+
+// Admin practice switcher — authenticated, no subscription check needed
+Route::post('/admin/switch-practice', [PracticeSwitchController::class, 'switch'])
+    ->middleware(['web', 'auth'])
+    ->name('admin.switch-practice');
 
 // Public booking page — no authentication required
 Route::get('/book/{practice:slug}', BookingCalendar::class)->name('booking.show');

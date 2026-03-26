@@ -8,6 +8,7 @@ use App\Models\Patient;
 use App\Models\Practice;
 use App\Models\States\CheckoutSession\Paid;
 use App\Models\States\CheckoutSession\PaymentDue;
+use App\Services\PracticeContext;
 use Illuminate\Http\JsonResponse;
 
 class PracticeStatsController
@@ -21,8 +22,9 @@ class PracticeStatsController
      */
     public function show(Practice $practice): JsonResponse
     {
-        // Verify authorization
-        if ($practice->id !== auth()->user()->practice_id) {
+        // Super-admins (no practice_id) can access any practice.
+        // Regular users are restricted to their own practice.
+        if (! PracticeContext::isSuperAdmin() && $practice->id !== auth()->user()->practice_id) {
             return response()->json(['error' => 'Unauthorized'], 403);
         }
 
