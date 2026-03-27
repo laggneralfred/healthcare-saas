@@ -424,12 +424,16 @@ class DemoSeeder extends Seeder
             $appointmentCount++;
         }
 
+        // Seed inventory products (if add-on is included)
+        $this->call(InventoryProductSeeder::class);
+
         $this->command->info('Demo data seeded successfully.');
         $this->command->info('  Practice : Serenity Acupuncture & Wellness');
         $this->command->info('  Timezone : America/Los_Angeles');
         $this->command->info('  Practitioner : Dr. Sarah Chen, L.Ac.');
         $this->command->info('  Patients : ' . count($patients));
         $this->command->info('  Appointments : ' . $appointmentCount);
+        $this->command->info('  Inventory Products : 15 herbal products, formulas, and supplements');
         $this->command->info('  Login : demo@serenity.test / password');
         $this->command->info('  Booking : /book/serenity-acupuncture');
     }

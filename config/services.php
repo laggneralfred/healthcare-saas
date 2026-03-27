@@ -44,6 +44,9 @@ return [
             'clinic'     => env('STRIPE_CLINIC_PRICE'),
             'enterprise' => env('STRIPE_ENTERPRISE_PRICE'),
         ],
+        'addon_prices' => [
+            'inventory' => env('STRIPE_INVENTORY_ADDON_PRICE_ID'),
+        ],
     ],
 
 ];

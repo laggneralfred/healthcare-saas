@@ -48,6 +48,11 @@ class Practice extends Model
         return $this->hasMany(CheckoutSession::class);
     }
 
+    public function inventoryProducts(): HasMany
+    {
+        return $this->hasMany(InventoryProduct::class);
+    }
+
     // ── Subscription Helpers ───────────────────────────────────────────────────────
 
     public function currentPlan(): ?SubscriptionPlan
@@ -90,5 +95,23 @@ class Practice extends Model
         }
 
         return max(0, $limit - $this->practitioners()->count());
+    }
+
+    public function hasInventoryAddon(): bool
+    {
+        if (!$this->subscribed('default')) {
+            return false;
+        }
+
+        $subscription = $this->subscription('default');
+        $inventoryPriceId = config('services.stripe.addon_prices.inventory');
+
+        if (!$inventoryPriceId) {
+            return false;
+        }
+
+        return $subscription->items()
+            ->where('stripe_price', $inventoryPriceId)
+            ->exists();
     }
 }
