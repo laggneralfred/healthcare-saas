@@ -33,3 +33,11 @@ Route::get('/book/{practice:slug}', BookingCalendar::class)->name('booking.show'
 // Public token-based forms — no authentication required
 Route::get('/intake/{token}', IntakeForm::class)->name('intake.show');
 Route::get('/consent/{token}', ConsentForm::class)->name('consent.show');
+
+// Public trial registration — no authentication required
+use App\Http\Controllers\RegistrationController;
+Route::get('/register', [RegistrationController::class, 'show'])->name('register');
+Route::post('/register', [RegistrationController::class, 'store'])->name('register.store');
+
+// Trial expired / upgrade page — no authentication required (but logged-in users see their data)
+Route::get('/subscribe', fn() => view('subscribe'))->name('subscribe');

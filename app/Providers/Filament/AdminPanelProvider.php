@@ -38,6 +38,28 @@ class AdminPanelProvider extends PanelProvider
                 return view('filament.hooks.practice-switcher', compact('isSuperAdmin', 'selectedId', 'practices'));
             },
         );
+
+        FilamentView::registerRenderHook(
+            'panels::content.start',
+            function (): string|View {
+                $user = auth()->user();
+                if (!$user || !$user->practice_id) {
+                    return '';
+                }
+
+                $practice = $user->practice;
+                if (!$practice || !$practice->trial_ends_at || $practice->trial_ends_at->isPast()) {
+                    return '';
+                }
+
+                if ($practice->subscribed('default')) {
+                    return '';
+                }
+
+                $daysRemaining = (int) now()->diffInDays($practice->trial_ends_at, false);
+                return view('filament.hooks.trial-banner', compact('daysRemaining'))->render();
+            },
+        );
     }
 
     public function panel(Panel $panel): Panel

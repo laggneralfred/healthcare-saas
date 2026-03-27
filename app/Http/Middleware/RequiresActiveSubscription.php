@@ -27,22 +27,36 @@ class RequiresActiveSubscription
             return $next($request);
         }
 
-        // Always allow billing, login, and logout routes to avoid redirect loops
+        // Always allow certain routes to avoid redirect loops
         if ($request->routeIs(
             'filament.admin.pages.billing',
             'filament.admin.auth.login',
             'filament.admin.auth.logout',
+            'register',
+            'register.store',
+            'subscribe',
         )) {
             return $next($request);
         }
 
         $practice = $user->practice;
 
-        if (! $practice || ! $practice->subscribed('default')) {
-            return redirect()->route('filament.admin.pages.billing')
-                ->with('subscription_required', 'An active subscription is required to access the admin panel.');
+        if (! $practice) {
+            return redirect('/subscribe');
         }
 
-        return $next($request);
+        // Allow active trial (no Stripe subscription yet)
+        if ($practice->trial_ends_at && $practice->trial_ends_at->isFuture()) {
+            return $next($request);
+        }
+
+        // Allow active Stripe subscription
+        if ($practice->subscribed('default')) {
+            return $next($request);
+        }
+
+        // Trial expired or no subscription
+        return redirect('/subscribe');
+
     }
 }

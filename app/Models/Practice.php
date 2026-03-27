@@ -14,11 +14,15 @@ class Practice extends Model
     protected $fillable = [
         'name', 'slug', 'timezone', 'is_active',
         'stripe_id', 'pm_type', 'pm_last_four', 'trial_ends_at',
+        'discipline', 'referral_source',
     ];
 
     protected function casts(): array
     {
-        return ['is_active' => 'boolean'];
+        return [
+            'is_active' => 'boolean',
+            'trial_ends_at' => 'datetime',
+        ];
     }
 
     // ── Relationships ──────────────────────────────────────────────────────────────
