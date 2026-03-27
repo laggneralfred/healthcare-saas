@@ -37,17 +37,13 @@ class InventoryMovementsTable
                     ->sortable()
                     ->alignment('center'),
                 TextColumn::make('unit_price')
-                    ->money('USD')
-                    ->nullable(),
+                    ->money('USD'),
                 TextColumn::make('reference')
-                    ->searchable()
-                    ->nullable(),
+                    ->searchable(),
                 TextColumn::make('notes')
-                    ->limit(50)
-                    ->nullable(),
+                    ->limit(50),
                 TextColumn::make('createdByUser.name')
-                    ->label('Created By')
-                    ->nullable(),
+                    ->label('Created By'),
                 TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable(),
