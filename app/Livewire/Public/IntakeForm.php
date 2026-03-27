@@ -3,6 +3,7 @@
 namespace App\Livewire\Public;
 
 use App\Models\IntakeSubmission;
+use App\Services\AuditLogger;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Validate;
 use Livewire\Component;
@@ -41,6 +42,8 @@ class IntakeForm extends Component
             $this->submitted = true;
             return;
         }
+
+        AuditLogger::viewed($this->submission);
 
         // Pre-fill any existing partial data
         $this->reason_for_visit  = $this->submission->reason_for_visit ?? '';

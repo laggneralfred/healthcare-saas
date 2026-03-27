@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Concerns\BelongsToPractice;
+use App\Models\Traits\HasAuditLog;
 use App\Traits\HasAccessToken;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -10,7 +11,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class ConsentRecord extends Model
 {
-    use HasFactory, HasAccessToken, BelongsToPractice;
+    use HasFactory, HasAccessToken, BelongsToPractice, HasAuditLog;
 
     protected $fillable = [
         'practice_id', 'patient_id', 'appointment_id',

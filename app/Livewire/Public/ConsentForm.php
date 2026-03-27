@@ -3,6 +3,7 @@
 namespace App\Livewire\Public;
 
 use App\Models\ConsentRecord;
+use App\Services\AuditLogger;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Validate;
 use Livewire\Component;
@@ -55,6 +56,8 @@ class ConsentForm extends Component
             'status'           => 'complete',
             'signed_on'        => now(),
         ]);
+
+        AuditLogger::signed($this->record, ['consent_given_by' => trim($this->consent_given_by)]);
 
         $this->submitted = true;
     }

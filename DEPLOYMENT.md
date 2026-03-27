@@ -252,6 +252,209 @@ php artisan tinker --execute="echo Cache::get('test')"
 
 ---
 
+## Safe Migrations
+
+All migrations after `2026_03_26_000005_create_migrations_log_table` must extend
+`App\Database\SafeMigration` instead of `Illuminate\Database\Migrations\Migration`.
+
+```php
+use App\Database\SafeMigration;
+
+return new class extends SafeMigration
+{
+    public function safeUp(): void { ... }
+    public function safeDown(): void { ... }
+};
+```
+
+### Guards
+| Situation | What happens |
+|-----------|-------------|
+| `safeUp()` contains `dropColumn` / `renameColumn` / `Schema::drop()` and `$destructive = false` (default) | Exception before the migration runs |
+| `$destructive = true` + `APP_ENV=production` + `ALLOW_DESTRUCTIVE_MIGRATIONS` not set | Exception before the migration runs |
+| `$destructive = true` + `APP_ENV=production` + `ALLOW_DESTRUCTIVE_MIGRATIONS=true` | Migration runs; remove the env var immediately after |
+| Migration takes > 30 seconds | Warning written to STDERR; migration still completes |
+
+Every migration run is recorded in the `migrations_log` table (migration name,
+direction, started\_at, finished\_at, duration\_ms, success, error).
+
+### Running migrations in production
+
+```bash
+# Recommended: take a snapshot first, then migrate
+php artisan migrate:safe --snapshot
+
+# On failure the command prints the exact restore command, e.g.:
+#   PGPASSWORD='…' psql --host=… --username=healthcare --dbname=healthcare_saas < storage/snapshots/pre-migration-2026-04-01_120000.sql
+```
+
+---
+
+## Expand / Contract Pattern
+
+**Never rename a column in a single migration on a live database with 100+ clients.**
+A single-step rename (`renameColumn`) breaks any application code still reading the old
+name — and with zero-downtime deploys you always have two versions running simultaneously.
+
+Use the three-step expand / contract pattern instead.  The example below shows how to
+rename `patients.name` → `patients.full_name`.
+
+---
+
+### Step 1 — Expand (add new column, keep old)
+
+Deploy this migration **before** changing any application code.
+
+```php
+// database/migrations/2026_04_01_000001_patients_add_full_name.php
+return new class extends SafeMigration
+{
+    public function safeUp(): void
+    {
+        Schema::table('patients', function (Blueprint $table) {
+            $table->string('full_name')->nullable()->after('name');
+        });
+    }
+
+    public function safeDown(): void
+    {
+        Schema::table('patients', function (Blueprint $table) {
+            $table->dropColumn('full_name');
+        });
+    }
+};
+```
+
+At this point:
+- `name` exists and is populated — old app code still works.
+- `full_name` exists but is NULL — new code can start writing to it.
+
+---
+
+### Step 2 — Backfill + dual-write (deploy app code changes)
+
+A queue job backfills existing rows, and all write paths now write to **both** columns.
+
+```php
+// app/Jobs/BackfillPatientFullName.php
+class BackfillPatientFullName implements ShouldQueue
+{
+    public function handle(): void
+    {
+        Patient::withoutPracticeScope()         // cross-tenant backfill job
+            ->whereNull('full_name')
+            ->chunkById(500, function ($patients) {
+                foreach ($patients as $patient) {
+                    $patient->updateQuietly(['full_name' => $patient->name]);
+                }
+            });
+    }
+}
+```
+
+```php
+// In Patient model (or observer), write to both during transition:
+protected static function booted(): void
+{
+    static::saving(function (Patient $patient) {
+        if ($patient->isDirty('name') && ! $patient->isDirty('full_name')) {
+            $patient->full_name = $patient->name;
+        }
+        if ($patient->isDirty('full_name') && ! $patient->isDirty('name')) {
+            $patient->name = $patient->full_name;
+        }
+    });
+}
+```
+
+Dispatch the backfill job after deploying:
+```bash
+php artisan queue:work &
+php artisan tinker --execute="BackfillPatientFullName::dispatch();"
+```
+
+Verify zero NULLs before proceeding:
+```sql
+SELECT COUNT(*) FROM patients WHERE full_name IS NULL;
+-- must be 0
+```
+
+---
+
+### Step 3 — Contract (remove old column, make new one NOT NULL)
+
+Only deploy this **after** Step 2 is fully complete and verified.
+
+```php
+// database/migrations/2026_04_15_000001_patients_drop_name.php
+return new class extends SafeMigration
+{
+    protected bool $destructive = true;    // required — this drops a column
+
+    public function safeUp(): void
+    {
+        Schema::table('patients', function (Blueprint $table) {
+            $table->string('full_name')->nullable(false)->change(); // make NOT NULL
+            $table->dropColumn('name');
+        });
+    }
+
+    // No safeDown() — column data is gone; rollback would require a re-backfill
+};
+```
+
+Run in production:
+```bash
+# In .env temporarily:
+ALLOW_DESTRUCTIVE_MIGRATIONS=true
+
+php artisan migrate:safe --snapshot
+
+# After successful migration, remove from .env:
+# ALLOW_DESTRUCTIVE_MIGRATIONS=true
+```
+
+---
+
+### Expand / Contract — Quick Reference
+
+| Step | What you deploy | Old column | New column | Rollback safe? |
+|------|-----------------|-----------|-----------|----------------|
+| 1 — Expand | Migration adds `full_name` | ✅ Populated | NULL | ✅ Yes |
+| 2 — Backfill | Job + dual-write code | ✅ Populated | ✅ Populated | ✅ Yes |
+| 3 — Contract | Migration drops `name` | ❌ Gone | ✅ Populated | ⚠ Data gone |
+
+**Never** skip Step 2.  A direct rename (Step 1 + Step 3 collapsed) causes a
+downtime window equal to the time between deploy and migration completion —
+multiplied by every running process or queue worker still on the old binary.
+
+---
+
+## Audit Logging (HIPAA)
+
+The platform maintains an append-only `activity_logs` table that records every
+`viewed`, `created`, `updated`, `deleted`, `state_changed`, `signed`, and
+`exported` event against patient-related records.
+
+### Key properties
+- **Immutable** — rows have no `updated_at`; never update or soft-delete them.
+- **Sensitive-field scrubbing** — `password`, `remember_token`, Stripe fields,
+  and card details are automatically removed before any values are persisted.
+- **Public-route coverage** — intake form views and consent signings are logged
+  without a logged-in user (`user_id` is null, `user_email` is null).
+- **Admin UI** — super-admins and practice users can browse logs at
+  `/admin/activity-logs` (Security → Audit Log in the sidebar).
+
+### Maintenance
+- **Do not** run `TRUNCATE activity_logs` or `DELETE FROM activity_logs` in
+  production. Logs must be retained for HIPAA compliance.
+- Back up the `activity_logs` table separately and retain for the period
+  required by your BAA (typically 6 years).
+- Monitor table growth; add a `created_at` range partition if the row count
+  exceeds ~5 million.
+
+---
+
 ## Post-Deployment
 
 ### Monitoring & Maintenance
@@ -265,7 +468,7 @@ php artisan tinker --execute="echo Cache::get('test')"
 - [ ] Daily: Review error logs
 - [ ] Weekly: Database backups verification, security updates
 - [ ] Monthly: Performance metrics review, dependency updates
-- [ ] Quarterly: Security audit, disaster recovery test
+- [ ] Quarterly: Security audit, disaster recovery test (including audit log integrity check)
 
 ---
 

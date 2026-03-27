@@ -8,6 +8,8 @@ use App\Models\States\CheckoutSession\Open;
 use App\Models\States\CheckoutSession\Paid;
 use App\Models\States\CheckoutSession\PaymentDue;
 use App\Models\States\CheckoutSession\Voided;
+use App\Models\Traits\HasAuditLog;
+use App\Services\AuditLogger;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -16,7 +18,7 @@ use Spatie\ModelStates\HasStates;
 
 class CheckoutSession extends Model
 {
-    use HasFactory, HasStates, BelongsToPractice;
+    use HasFactory, HasStates, BelongsToPractice, HasAuditLog;
 
     protected $fillable = [
         'practice_id',
@@ -104,13 +106,16 @@ class CheckoutSession extends Model
 
     public function transitionToOpen(): void
     {
+        $from = (string) $this->state;
         if ($this->state) {
             $this->state->transitionTo(Open::class);
         }
+        AuditLogger::stateChanged($this, $from, Open::$name);
     }
 
     public function markPaid(string $tenderType): void
     {
+        $from = (string) $this->state;
         if ($this->state) {
             $this->state->transitionTo(Paid::class);
         }
@@ -119,10 +124,12 @@ class CheckoutSession extends Model
             'amount_paid'  => $this->amount_total,
             'paid_on'      => now(),
         ]);
+        AuditLogger::stateChanged($this, $from, Paid::$name, ['tender_type' => $tenderType]);
     }
 
     public function markPaymentDue(): void
     {
+        $from = (string) $this->state;
         if ($this->state) {
             $this->state->transitionTo(PaymentDue::class);
         }
@@ -131,13 +138,16 @@ class CheckoutSession extends Model
             'amount_paid' => 0,
             'paid_on'     => null,
         ]);
+        AuditLogger::stateChanged($this, $from, PaymentDue::$name);
     }
 
     public function voidSession(): void
     {
+        $from = (string) $this->state;
         if ($this->state) {
             $this->state->transitionTo(Voided::class);
         }
+        AuditLogger::stateChanged($this, $from, Voided::$name);
     }
 
     // ── Totals ─────────────────────────────────────────────────────────────────

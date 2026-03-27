@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Appointments\Pages;
 
 use App\Filament\Resources\Appointments\AppointmentResource;
+use App\Services\AuditLogger;
 use Filament\Actions\DeleteAction;
 use Filament\Resources\Pages\EditRecord;
 
@@ -15,5 +16,12 @@ class EditAppointment extends EditRecord
         return [
             DeleteAction::make(),
         ];
+    }
+
+    public function mount(int|string $record): void
+    {
+        parent::mount($record);
+
+        AuditLogger::viewed($this->getRecord());
     }
 }

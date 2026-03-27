@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Concerns\BelongsToPractice;
+use App\Models\Traits\HasAuditLog;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -10,7 +11,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Encounter extends Model
 {
-    use HasFactory, BelongsToPractice;
+    use HasFactory, BelongsToPractice, HasAuditLog;
 
     protected $fillable = [
         'practice_id',

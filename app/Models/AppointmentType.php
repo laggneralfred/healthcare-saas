@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class AppointmentType extends Model
 {
     use HasFactory, BelongsToPractice;
-    protected $fillable = ['practice_id', 'name', 'is_active', 'default_service_fee_id'];
+    protected $fillable = ['practice_id', 'name', 'duration_minutes', 'is_active', 'default_service_fee_id'];
 
     protected function casts(): array
     {
