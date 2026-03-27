@@ -124,6 +124,10 @@ class CheckoutSession extends Model
             'amount_paid'  => $this->amount_total,
             'paid_on'      => now(),
         ]);
+
+        // Create inventory movements for products sold
+        $this->createInventoryMovements();
+
         AuditLogger::stateChanged($this, $from, Paid::$name, ['tender_type' => $tenderType]);
     }
 
@@ -203,5 +207,25 @@ class CheckoutSession extends Model
     public function getIsPartiallyPaidAttribute(): bool
     {
         return $this->amount_paid > 0 && !$this->is_fully_paid;
+    }
+
+    // ── Inventory Integration ──────────────────────────────────────────────────────
+
+    public function createInventoryMovements(): void
+    {
+        // Create inventory movements for each product line item
+        $this->checkoutLines()
+            ->whereNotNull('inventory_product_id')
+            ->each(function (CheckoutLine $line) {
+                \App\Models\InventoryMovement::create([
+                    'practice_id' => $this->practice_id,
+                    'inventory_product_id' => $line->inventory_product_id,
+                    'type' => 'sale',
+                    'quantity' => -($line->quantity ?? 1),
+                    'unit_price' => $line->amount / ($line->quantity ?? 1),
+                    'reference' => "checkout-{$this->id}",
+                    'created_by' => auth()->id(),
+                ]);
+            });
     }
 }

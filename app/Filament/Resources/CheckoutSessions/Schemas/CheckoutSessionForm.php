@@ -8,6 +8,7 @@ use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Get;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 
@@ -83,6 +84,66 @@ class CheckoutSessionForm
                         : '$0.00'
                     ),
             ]),
+
+            Section::make('Add Products')
+                ->visible(fn (Get $get, $record) => $record && $record->practice && $record->practice->hasInventoryAddon())
+                ->description('Select inventory products to add to this checkout.')
+                ->schema([
+                    Repeater::make('inventoryProducts')
+                        ->schema([
+                            Select::make('inventory_product_id')
+                                ->label('Product')
+                                ->options(function (Get $get, $record) {
+                                    if (!$record || !$record->practice) {
+                                        return [];
+                                    }
+
+                                    return \App\Models\InventoryProduct::where('practice_id', $record->practice_id)
+                                        ->where('is_active', true)
+                                        ->where('stock_quantity', '>', 0)
+                                        ->pluck('name', 'id');
+                                })
+                                ->searchable()
+                                ->required()
+                                ->columnSpan(2)
+                                ->reactive(),
+
+                            TextInput::make('quantity')
+                                ->label('Qty')
+                                ->numeric()
+                                ->minValue(1)
+                                ->required()
+                                ->default(1),
+                        ])
+                        ->columns(3)
+                        ->addable()
+                        ->deletable()
+                        ->reorderable(false)
+                        ->mutateRelationshipDataBeforeCreateUsing(function (array $data, $record): array {
+                            if ($record && isset($data['inventory_product_id'])) {
+                                $product = \App\Models\InventoryProduct::find($data['inventory_product_id']);
+                                if ($product) {
+                                    $qty = $data['quantity'] ?? 1;
+                                    $data['practice_id'] = $record->practice_id;
+                                    $data['description'] = "{$product->name} (x{$qty})";
+                                    $data['amount'] = ($product->selling_price ?? 0) * $qty;
+                                }
+                            }
+                            return $data;
+                        })
+                        ->mutateRelationshipDataBeforeSaveUsing(function (array $data, $record): array {
+                            if ($record && isset($data['inventory_product_id'])) {
+                                $product = \App\Models\InventoryProduct::find($data['inventory_product_id']);
+                                if ($product) {
+                                    $qty = $data['quantity'] ?? 1;
+                                    $data['practice_id'] = $record->practice_id;
+                                    $data['description'] = "{$product->name} (x{$qty})";
+                                    $data['amount'] = ($product->selling_price ?? 0) * $qty;
+                                }
+                            }
+                            return $data;
+                        }),
+                ]),
 
         ]);
     }

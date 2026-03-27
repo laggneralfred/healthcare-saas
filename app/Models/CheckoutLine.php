@@ -17,6 +17,8 @@ class CheckoutLine extends Model
         'sequence',
         'description',
         'amount',
+        'inventory_product_id',
+        'quantity',
     ];
 
     protected function casts(): array
@@ -44,5 +46,10 @@ class CheckoutLine extends Model
     public function practice(): BelongsTo
     {
         return $this->belongsTo(Practice::class);
+    }
+
+    public function inventoryProduct(): BelongsTo
+    {
+        return $this->belongsTo(InventoryProduct::class);
     }
 }
