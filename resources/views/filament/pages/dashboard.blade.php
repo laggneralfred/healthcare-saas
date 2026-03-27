@@ -15,23 +15,32 @@
 {{-- Key Metrics: 4-col desktop, 2-col tablet, 1-col mobile --}}
 <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1.5rem;">
 
-    {{-- Appointments This Month --}}
+    {{-- Today's Appointments --}}
     <div style="background:#ffffff;border:1px solid #e2e8f0;border-radius:0.75rem;padding:1.25rem 1.5rem;">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.75rem;">
-            <p style="margin:0;font-size:0.8125rem;font-weight:500;color:#64748b;">Appointments This Month</p>
-            <span style="font-size:1.25rem;line-height:1;">📅</span>
+            <p style="margin:0;font-size:0.8125rem;font-weight:500;color:#64748b;">Today's Appointments</p>
+            <span style="font-size:1.25rem;line-height:1;">⏰</span>
         </div>
-        <p style="margin:0;font-size:2rem;font-weight:700;color:#0f172a;">{{ $appointmentsThisMonth }}</p>
-        <div style="display:flex;gap:1rem;margin-top:0.75rem;font-size:0.8125rem;">
-            <span style="color:#16a34a;">&#10003; {{ $appointmentsCompleted }} completed</span>
-            <span style="color:#d97706;">&#9201; {{ $appointmentsPending }} pending</span>
+        <p style="margin:0;font-size:2rem;font-weight:700;color:#0f172a;">{{ $appointmentsToday }}</p>
+        <p style="margin:0.75rem 0 0;font-size:0.8125rem;color:#64748b;">
+            <span style="color:#16a34a;font-weight:600;">{{ $appointmentsTodayCompleted }}</span> completed
+        </p>
+    </div>
+
+    {{-- This Week's Revenue --}}
+    <div style="background:#ffffff;border:1px solid #e2e8f0;border-radius:0.75rem;padding:1.25rem 1.5rem;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.75rem;">
+            <p style="margin:0;font-size:0.8125rem;font-weight:500;color:#64748b;">This Week's Revenue</p>
+            <span style="font-size:1.25rem;line-height:1;">💰</span>
         </div>
+        <p style="margin:0;font-size:2rem;font-weight:700;color:#0f172a;">{{ $formattedRevenueThisWeek }}</p>
+        <p style="margin:0.75rem 0 0;font-size:0.8125rem;color:#64748b;">From paid appointments</p>
     </div>
 
     {{-- Total Patients --}}
     <div style="background:#ffffff;border:1px solid #e2e8f0;border-radius:0.75rem;padding:1.25rem 1.5rem;">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.75rem;">
-            <p style="margin:0;font-size:0.8125rem;font-weight:500;color:#64748b;">Total Patients</p>
+            <p style="margin:0;font-size:0.8125rem;font-weight:500;color:#64748b;">Active Patients</p>
             <span style="font-size:1.25rem;line-height:1;">👥</span>
         </div>
         <p style="margin:0;font-size:2rem;font-weight:700;color:#0f172a;">{{ $totalPatients }}</p>
@@ -40,26 +49,17 @@
         </p>
     </div>
 
-    {{-- Revenue This Month --}}
+    {{-- This Month's Appointments --}}
     <div style="background:#ffffff;border:1px solid #e2e8f0;border-radius:0.75rem;padding:1.25rem 1.5rem;">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.75rem;">
-            <p style="margin:0;font-size:0.8125rem;font-weight:500;color:#64748b;">Revenue This Month</p>
-            <span style="font-size:1.25rem;line-height:1;">💰</span>
+            <p style="margin:0;font-size:0.8125rem;font-weight:500;color:#64748b;">This Month's Appointments</p>
+            <span style="font-size:1.25rem;line-height:1;">📅</span>
         </div>
-        <p style="margin:0;font-size:2rem;font-weight:700;color:#0f172a;">{{ $formattedRevenue }}</p>
-        <p style="margin:0.75rem 0 0;font-size:0.8125rem;color:#64748b;">
-            {{ $checkoutSessionsCompleted }} completed session(s)
-        </p>
-    </div>
-
-    {{-- Pending Revenue --}}
-    <div style="background:#ffffff;border:1px solid #e2e8f0;border-radius:0.75rem;padding:1.25rem 1.5rem;">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.75rem;">
-            <p style="margin:0;font-size:0.8125rem;font-weight:500;color:#64748b;">Pending Revenue</p>
-            <span style="font-size:1.25rem;line-height:1;">⏳</span>
+        <p style="margin:0;font-size:2rem;font-weight:700;color:#0f172a;">{{ $appointmentsThisMonth }}</p>
+        <div style="display:flex;gap:1rem;margin-top:0.75rem;font-size:0.8125rem;">
+            <span style="color:#16a34a;">✓ {{ $appointmentsCompleted }} completed</span>
+            <span style="color:#d97706;">⏳ {{ $appointmentsPending }} pending</span>
         </div>
-        <p style="margin:0;font-size:2rem;font-weight:700;color:#ea580c;">{{ $formattedPendingRevenue }}</p>
-        <p style="margin:0.75rem 0 0;font-size:0.8125rem;color:#64748b;">Awaiting payment</p>
     </div>
 
 </div>
@@ -102,7 +102,7 @@
                     <p style="margin:0.1rem 0 0;font-size:0.8125rem;color:#64748b;">{{ $data['appointments'] }} appointment(s)</p>
                 </div>
                 <span style="font-size:1.125rem;font-weight:700;color:#7c3aed;">
-                    {{ \Illuminate\Support\Number::currency($data['revenue'] / 100, 'USD') }}
+                    {{ \Illuminate\Support\Number::currency($data['revenue'], 'USD') }}
                 </span>
             </div>
         @empty

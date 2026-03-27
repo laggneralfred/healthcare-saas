@@ -33,11 +33,25 @@ class DashboardPage extends Page
             return ['practice' => null];
         }
 
-        $now = now();
+        $now = now($practice->timezone ?? 'UTC');
+        $startOfToday = $now->copy()->startOfDay();
+        $endOfToday = $now->copy()->endOfDay();
+        $startOfWeek = $now->copy()->startOfWeek();
+        $endOfWeek = $now->copy()->endOfWeek();
         $startOfMonth = $now->copy()->startOfMonth();
         $endOfMonth = $now->copy()->endOfMonth();
 
-        // Appointment metrics
+        // Today's appointments
+        $appointmentsToday = Appointment::where('practice_id', $practice->id)
+            ->whereBetween('start_datetime', [$startOfToday, $endOfToday])
+            ->count();
+
+        $appointmentsTodayCompleted = Appointment::where('practice_id', $practice->id)
+            ->where('status', 'completed')
+            ->whereBetween('start_datetime', [$startOfToday, $endOfToday])
+            ->count();
+
+        // Appointment metrics (monthly)
         $appointmentsThisMonth = Appointment::where('practice_id', $practice->id)
             ->whereBetween('start_datetime', [$startOfMonth, $endOfMonth])
             ->count();
@@ -59,7 +73,16 @@ class DashboardPage extends Page
             ->whereBetween('created_at', [$startOfMonth, $endOfMonth])
             ->count();
 
-        // Revenue metrics
+        // Revenue metrics (weekly)
+        $checkoutSessionsThisWeek = CheckoutSession::where('practice_id', $practice->id)
+            ->whereBetween('paid_on', [$startOfWeek, $endOfWeek])
+            ->get();
+
+        $revenueThisWeek = $checkoutSessionsThisWeek
+            ->filter(fn (CheckoutSession $s) => $s->state instanceof Paid)
+            ->sum('amount_total');
+
+        // Revenue metrics (monthly)
         $checkoutSessionsThisMonth = CheckoutSession::where('practice_id', $practice->id)
             ->whereBetween('created_at', [$startOfMonth, $endOfMonth])
             ->get();
@@ -102,18 +125,22 @@ class DashboardPage extends Page
 
         return [
             'practice' => $practice,
+            'appointmentsToday' => $appointmentsToday,
+            'appointmentsTodayCompleted' => $appointmentsTodayCompleted,
             'appointmentsThisMonth' => $appointmentsThisMonth,
             'appointmentsCompleted' => $appointmentsCompleted,
             'appointmentsPending' => $appointmentsPending,
             'totalPatients' => $totalPatients,
             'newPatientsThisMonth' => $newPatientsThisMonth,
+            'revenueThisWeek' => $revenueThisWeek,
             'totalRevenue' => $totalRevenue,
             'pendingRevenue' => $pendingRevenue,
             'checkoutSessionsCompleted' => $checkoutSessionsCompleted,
             'appointmentsByStatus' => $appointmentsByStatus,
             'revenueByPractitioner' => $revenueByPractitioner,
-            'formattedRevenue' => Number::currency($totalRevenue / 100, 'USD'),
-            'formattedPendingRevenue' => Number::currency($pendingRevenue / 100, 'USD'),
+            'formattedRevenueThisWeek' => Number::currency($revenueThisWeek, 'USD'),
+            'formattedRevenue' => Number::currency($totalRevenue, 'USD'),
+            'formattedPendingRevenue' => Number::currency($pendingRevenue, 'USD'),
         ];
     }
 }
