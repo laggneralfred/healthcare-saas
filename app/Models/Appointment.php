@@ -71,4 +71,9 @@ class Appointment extends Model
     {
         return $this->hasOne(ConsentRecord::class);
     }
+
+    public function encounter(): HasOne
+    {
+        return $this->hasOne(Encounter::class);
+    }
 }
