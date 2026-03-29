@@ -43,8 +43,6 @@ class AdminPanelProvider extends PanelProvider
 
     public function boot(): void
     {
-        parent::boot();
-
         FilamentView::registerRenderHook(
             PanelsRenderHook::CONTENT_START,
             function (): string {

@@ -4,7 +4,7 @@
 # Run on the server: bash /home/alfre/healthcare-saas/deploy.sh
 set -euo pipefail
 
-APP_DIR=/home/alfre/healthcare-saas
+APP_DIR=/opt/practiq
 COMPOSE="docker compose -f ${APP_DIR}/docker-compose.yml"
 APP_CONTAINER=healthcare-saas-app
 CADDY_CONTAINER=caddy
