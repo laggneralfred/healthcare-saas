@@ -1,0 +1,236 @@
+name: practiq
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: healthcare-saas-postgres
+    environment:
+      POSTGRES_DB: ${DB_DATABASE:-healthcare_saas}
+      POSTGRES_USER: ${DB_USERNAME:-app_user}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-changeme}
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME:-app_user}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - healthcare-saas
+    restart: unless-stopped
+
+  # Redis Cache & Session Store
+  redis:
+    image: redis:7-alpine
+    container_name: healthcare-saas-redis
+    command: redis-server --appendonly yes --requirepass changeme
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - healthcare-saas
+    restart: unless-stopped
+
+  # PHP-FPM Application
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: healthcare-saas-app
+    environment:
+      APP_ENV: production
+      APP_DEBUG: ${APP_DEBUG:-false}
+      APP_URL: ${APP_URL:-http://localhost}
+      APP_KEY: ${APP_KEY}
+
+      DB_CONNECTION: pgsql
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_DATABASE: ${DB_DATABASE:-healthcare_saas}
+      DB_USERNAME: ${DB_USERNAME:-app_user}
+      DB_PASSWORD: ${DB_PASSWORD:-changeme}
+
+      CACHE_STORE: redis
+      CACHE_PREFIX: ${CACHE_PREFIX:-healthcare_saas}
+
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: changeme
+
+      SESSION_DRIVER: redis
+      SESSION_LIFETIME: ${SESSION_LIFETIME:-1440}
+      SESSION_ENCRYPT: ${SESSION_ENCRYPT:-true}
+      SESSION_SECURE_COOKIES: ${SESSION_SECURE_COOKIES:-true}
+
+      QUEUE_CONNECTION: redis
+
+      MAIL_MAILER: ${MAIL_MAILER:-log}
+      MAIL_HOST: ${MAIL_HOST:-127.0.0.1}
+      MAIL_PORT: ${MAIL_PORT:-2525}
+      MAIL_USERNAME: ${MAIL_USERNAME}
+      MAIL_PASSWORD: ${MAIL_PASSWORD}
+      MAIL_FROM_ADDRESS: ${MAIL_FROM_ADDRESS:-noreply@practiqapp.com}
+      MAIL_FROM_NAME: ${MAIL_FROM_NAME:-Practiq}
+
+      # Postmark (production email)
+      POSTMARK_API_KEY: ${POSTMARK_API_KEY}
+
+      # Stripe
+      STRIPE_KEY: ${STRIPE_KEY}
+      STRIPE_SECRET: ${STRIPE_SECRET}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET}
+      STRIPE_SOLO_PRICE: ${STRIPE_SOLO_PRICE}
+      STRIPE_CLINIC_PRICE: ${STRIPE_CLINIC_PRICE}
+      STRIPE_ENTERPRISE_PRICE: ${STRIPE_ENTERPRISE_PRICE}
+
+      # S3 (file storage)
+      FILESYSTEM_DISK: ${FILESYSTEM_DISK:-local}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      AWS_DEFAULT_REGION: ${AWS_DEFAULT_REGION:-us-east-1}
+      AWS_BUCKET: ${AWS_BUCKET}
+
+      # Logging
+      LOG_CHANNEL: ${LOG_CHANNEL:-stack}
+      LOG_LEVEL: ${LOG_LEVEL:-notice}
+    volumes:
+      - app_storage:/app/storage
+      - app_bootstrap:/app/bootstrap/cache
+      - app_public:/app/public
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - healthcare-saas
+    restart: unless-stopped
+
+  # Nginx Reverse Proxy
+  nginx:
+    image: nginx:alpine
+    container_name: healthcare-saas-nginx
+    volumes:
+      - ./docker/nginx/conf.d:/etc/nginx/conf.d:ro
+      - app_public:/app/public:ro
+    depends_on:
+      - app
+    networks:
+      - healthcare-saas
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  # Queue Worker (for email notifications, etc.)
+  queue:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: healthcare-saas-queue
+    command: php artisan queue:work redis --sleep=3 --tries=3
+    environment:
+      APP_ENV: production
+      APP_DEBUG: ${APP_DEBUG:-false}
+      APP_URL: ${APP_URL:-http://localhost}
+      APP_KEY: ${APP_KEY}
+
+      DB_CONNECTION: pgsql
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_DATABASE: ${DB_DATABASE:-healthcare_saas}
+      DB_USERNAME: ${DB_USERNAME:-app_user}
+      DB_PASSWORD: ${DB_PASSWORD:-changeme}
+
+      CACHE_STORE: redis
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: changeme
+
+      QUEUE_CONNECTION: redis
+
+      MAIL_MAILER: ${MAIL_MAILER:-log}
+      MAIL_HOST: ${MAIL_HOST:-127.0.0.1}
+      MAIL_PORT: ${MAIL_PORT:-2525}
+      MAIL_USERNAME: ${MAIL_USERNAME}
+      MAIL_PASSWORD: ${MAIL_PASSWORD}
+      MAIL_FROM_ADDRESS: ${MAIL_FROM_ADDRESS:-noreply@practiqapp.com}
+      MAIL_FROM_NAME: ${MAIL_FROM_NAME:-Practiq}
+      POSTMARK_API_KEY: ${POSTMARK_API_KEY}
+
+      STRIPE_KEY: ${STRIPE_KEY}
+      STRIPE_SECRET: ${STRIPE_SECRET}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET}
+    volumes:
+      - app_storage:/app/storage
+      - app_bootstrap:/app/bootstrap/cache
+    depends_on:
+      app:
+        condition: service_started
+      redis:
+        condition: service_healthy
+    networks:
+      - healthcare-saas
+    restart: unless-stopped
+
+  # Scheduler (for scheduled tasks)
+  scheduler:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: healthcare-saas-scheduler
+    command: php artisan schedule:work
+    environment:
+      APP_ENV: production
+      APP_DEBUG: ${APP_DEBUG:-false}
+      APP_URL: ${APP_URL:-http://localhost}
+      APP_KEY: ${APP_KEY}
+
+      DB_CONNECTION: pgsql
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_DATABASE: ${DB_DATABASE:-healthcare_saas}
+      DB_USERNAME: ${DB_USERNAME:-app_user}
+      DB_PASSWORD: ${DB_PASSWORD:-changeme}
+
+      CACHE_STORE: redis
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: changeme
+
+      QUEUE_CONNECTION: redis
+    volumes:
+      - app_storage:/app/storage
+      - app_bootstrap:/app/bootstrap/cache
+    depends_on:
+      app:
+        condition: service_started
+    networks:
+      - healthcare-saas
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  app_storage:
+    driver: local
+  app_bootstrap:
+    driver: local
+  app_public:
+    driver: local
+
+networks:
+  healthcare-saas:
+    driver: bridge

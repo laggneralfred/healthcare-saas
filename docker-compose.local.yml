@@ -1,0 +1,47 @@
+version: '3.9'
+
+# Local development override for docker-compose.yml
+# Usage: docker-compose -f docker-compose.yml -f docker-compose.local.yml up
+
+services:
+  app:
+    environment:
+      APP_DEBUG: "true"
+      LOG_LEVEL: debug
+    ports:
+      - "9000:9000"
+
+  nginx:
+    environment:
+      NGINX_HOST: localhost
+    ports:
+      - "8000:80"
+    # Mount local nginx config without read-only restriction
+    volumes:
+      - .:/app
+      - ./docker/nginx/conf.d:/etc/nginx/conf.d
+      - app_storage:/app/storage
+
+  queue:
+    environment:
+      APP_DEBUG: "true"
+      LOG_LEVEL: debug
+
+  scheduler:
+    environment:
+      APP_DEBUG: "true"
+      LOG_LEVEL: debug
+
+  # Mailhog for email testing (development only)
+  mailhog:
+    image: mailhog/mailhog:latest
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+    networks:
+      - healthcare-saas
+
+# Override these in .env.local for local development
+# MAIL_MAILER=smtp
+# MAIL_HOST=mailhog
+# MAIL_PORT=1025

@@ -13,6 +13,7 @@ use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
 use Filament\Support\Facades\FilamentView;
+use Filament\View\PanelsRenderHook;
 use Filament\Widgets\AccountWidget;
 use Illuminate\Contracts\View\View;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
@@ -38,25 +39,35 @@ class AdminPanelProvider extends PanelProvider
                 return view('filament.hooks.practice-switcher', compact('isSuperAdmin', 'selectedId', 'practices'));
             },
         );
+    }
+
+    public function boot(): void
+    {
+        parent::boot();
 
         FilamentView::registerRenderHook(
-            'panels::content.start',
-            function (): string|View {
+            PanelsRenderHook::CONTENT_START,
+            function (): string {
                 $user = auth()->user();
                 if (!$user || !$user->practice_id) {
                     return '';
                 }
 
                 $practice = $user->practice;
-                if (!$practice || !$practice->trial_ends_at || $practice->trial_ends_at->isPast()) {
+                if (!$practice) {
                     return '';
                 }
 
+                // Hide for active subscribers
                 if ($practice->subscribed('default')) {
                     return '';
                 }
 
-                $daysRemaining = (int) now()->diffInDays($practice->trial_ends_at, false);
+                // Show for any non-subscriber (on trial or trial_ends_at not set)
+                $daysRemaining = ($practice->trial_ends_at && $practice->trial_ends_at->isFuture())
+                    ? (int) now()->diffInDays($practice->trial_ends_at, false)
+                    : 0;
+
                 return view('filament.hooks.trial-banner', compact('daysRemaining'))->render();
             },
         );
