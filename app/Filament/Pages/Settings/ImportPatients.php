@@ -8,17 +8,17 @@ use App\Services\CSVImportService;
 use App\Services\PracticeContext;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Repeater;
-use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
+use Filament\Forms\Form;
 use Filament\Pages\Page;
+use Filament\Schemas\Components\Section;
 use Filament\Support\Icons\Heroicon;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Log;
 use BackedEnum;
-use Illuminate\Support\Str;
 
 class ImportPatients extends Page implements HasForms
 {
@@ -43,9 +43,9 @@ class ImportPatients extends Page implements HasForms
         $this->form->fill();
     }
 
-    public function getFormSchema(): array
+    public function form(Form $form): Form
     {
-        return [
+        return $form->schema([
             Section::make('CSV File')
                 ->description('Upload a CSV file with patient data')
                 ->schema([
@@ -53,6 +53,7 @@ class ImportPatients extends Page implements HasForms
                         ->label('CSV File')
                         ->acceptedFileTypes(['text/csv', 'text/plain'])
                         ->required()
+                        ->live()
                         ->columnSpanFull()
                         ->afterStateUpdated(fn () => $this->loadCSVPreview()),
                 ])
@@ -92,7 +93,7 @@ class ImportPatients extends Page implements HasForms
                 ])
                 ->columnSpanFull()
                 ->hidden(empty($this->csvHeaders)),
-        ];
+        ]);
     }
 
     public function loadCSVPreview(): void
