@@ -65,7 +65,7 @@ class ExportDataPage extends Page
 
     public function requestExport(string $format): void
     {
-        $practice = auth()->user()?->practice();
+        $practice = auth()->user()?->practice;
 
         if (!$practice) {
             Notification::make()

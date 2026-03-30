@@ -2,27 +2,23 @@
 
 namespace App\Filament\Pages\Settings;
 
-use App\Jobs\ImportPatientsJob;
+use App\Jobs\DryRunImportJob;
+use App\Jobs\ImportSessionJob;
 use App\Models\ImportHistory;
+use App\Models\ImportSession;
 use App\Services\CSVImportService;
+use App\Services\CsvColumnMapper;
 use App\Services\PracticeContext;
-use Filament\Forms\Components\FileUpload;
-use Filament\Forms\Components\Repeater;
-use Filament\Forms\Components\Select;
-use Filament\Forms\Components\TextInput;
-use Filament\Forms\Concerns\InteractsWithForms;
-use Filament\Forms\Contracts\HasForms;
-use Filament\Forms\Form;
 use Filament\Pages\Page;
-use Filament\Schemas\Components\Section;
 use Filament\Support\Icons\Heroicon;
-use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
+use Livewire\WithFileUploads;
 use BackedEnum;
 
-class ImportPatients extends Page implements HasForms
+class ImportPatients extends Page
 {
-    use InteractsWithForms;
+    use WithFileUploads;
 
     protected static ?string $slug = 'settings/import-patients';
     protected static ?string $title = 'Import Patients';
@@ -33,261 +29,260 @@ class ImportPatients extends Page implements HasForms
 
     protected string $view = 'filament.pages.settings.import-patients';
 
-    public ?array $data = [];
-    public ?array $csvHeaders = [];
-    public ?array $previewRows = [];
-    public bool $showPreview = false;
+    // ── Wizard step ───────────────────────────────────────────────────────────
+    // upload | map | confirm | importing | complete
+    public string $step = 'upload';
 
-    public function mount(): void
+    // ── Upload step ───────────────────────────────────────────────────────────
+    public $uploadedFile = null;
+
+    // ── Map step ──────────────────────────────────────────────────────────────
+    public array $detectedHeaders = [];
+    public array $mappings = []; // [column_index => field_key]
+
+    // ── Session tracking ──────────────────────────────────────────────────────
+    public ?int $importSessionId = null;
+
+    // ── Confirm step (populated by polling) ───────────────────────────────────
+    public string $sessionStatus = 'pending';
+    public int $totalRows = 0;
+    public int $validRows = 0;
+    public int $duplicateRows = 0;
+    public int $errorRows = 0;
+    public array $previewRows = [];
+    public array $errorPreview = [];
+
+    // ── Complete step ─────────────────────────────────────────────────────────
+    public int $importedRows = 0;
+
+    // ── Validation rules (Livewire v3 requires this) ──────────────────────────
+    protected function rules(): array
     {
-        $this->form->fill();
+        return [
+            'mappings'   => 'nullable|array',
+            'mappings.*' => 'nullable|string',
+        ];
     }
 
-    public function form(Form $form): Form
-    {
-        return $form->schema([
-            Section::make('CSV File')
-                ->description('Upload a CSV file with patient data')
-                ->schema([
-                    FileUpload::make('csv_file')
-                        ->label('CSV File')
-                        ->acceptedFileTypes(['text/csv', 'text/plain'])
-                        ->required()
-                        ->live()
-                        ->columnSpanFull()
-                        ->afterStateUpdated(fn () => $this->loadCSVPreview()),
-                ])
-                ->columnSpanFull(),
+    // ─────────────────────────────────────────────────────────────────────────
+    // Lifecycle hooks
+    // ─────────────────────────────────────────────────────────────────────────
 
-            Section::make('Column Mapping')
-                ->description('Map CSV columns to patient fields')
-                ->schema([
-                    Repeater::make('column_mappings')
-                        ->label('Column Mappings')
-                        ->addable(false)
-                        ->deletable(false)
-                        ->schema([
-                            TextInput::make('csv_column')
-                                ->label('CSV Column')
-                                ->readOnly(),
-                            Select::make('patient_field')
-                                ->label('Patient Field')
-                                ->options([
-                                    '' => '(Skip)',
-                                    'first_name' => 'First Name',
-                                    'last_name' => 'Last Name',
-                                    'email' => 'Email',
-                                    'phone' => 'Phone',
-                                    'dob' => 'Date of Birth',
-                                    'gender' => 'Gender',
-                                    'address' => 'Address',
-                                    'city' => 'City',
-                                    'state' => 'State',
-                                    'postal_code' => 'Postal Code',
-                                ])
-                                ->required(),
-                        ])
-                        ->columns(2)
-                        ->columnSpanFull()
-                        ->hidden(empty($this->csvHeaders)),
-                ])
-                ->columnSpanFull()
-                ->hidden(empty($this->csvHeaders)),
-        ]);
-    }
-
-    public function loadCSVPreview(): void
+    /**
+     * Fires automatically when the user selects a file (Livewire\WithFileUploads).
+     * Reads only the header row — fast even for large files.
+     */
+    public function updatedUploadedFile(): void
     {
+        if (!$this->uploadedFile) {
+            return;
+        }
+
         try {
-            $fileData = $this->form->getState()['csv_file'] ?? null;
+            $filePath = $this->uploadedFile->getRealPath();
+            $handle   = fopen($filePath, 'r');
 
-            if (!$fileData) {
+            if (!$handle) {
+                $this->addError('uploadedFile', 'Could not open the uploaded file.');
                 return;
             }
 
-            $file = is_array($fileData) ? ($fileData[0] ?? null) : $fileData;
-
-            if (!$file || !($file instanceof UploadedFile)) {
-                return;
-            }
-
-            // Read CSV headers
-            $handle = fopen($file->getRealPath(), 'r');
             $headers = fgetcsv($handle);
             fclose($handle);
 
-            if (!$headers) {
+            if (!$headers || empty(array_filter($headers))) {
+                $this->addError('uploadedFile', 'Could not read CSV headers. Make sure the file is a valid CSV.');
                 return;
             }
 
-            $this->csvHeaders = $headers;
+            $this->detectedHeaders = array_map('trim', $headers);
 
-            // Initialize column mappings
-            $mappings = [];
-            foreach ($headers as $header) {
-                $trimmed = strtolower(trim($header));
-                $suggestedField = $this->suggestField($trimmed);
-                $mappings[] = [
-                    'csv_column' => $header,
-                    'patient_field' => $suggestedField,
-                ];
-            }
+            // Auto-suggest mappings via service
+            $mapper      = new CsvColumnMapper();
+            $suggestions = $mapper->suggest($this->detectedHeaders);
+            $this->mappings = array_map(fn($s) => $s['field'] ?? '', $suggestions);
 
-            $this->form->fill(['column_mappings' => $mappings]);
+            // Persist file to local storage so the background job can read it
+            $practiceId = PracticeContext::currentPracticeId();
+            $originalName = $this->uploadedFile->getClientOriginalName() ?? 'import.csv';
+            $storedPath = $this->uploadedFile->storeAs(
+                "imports/{$practiceId}",
+                date('Y-m-d_His_') . $originalName,
+                'local'
+            );
 
-            // Load preview rows
-            $this->loadPreviewRows($file, $headers);
-            $this->showPreview = true;
+            // Create ImportSession record
+            $session = ImportSession::create([
+                'practice_id'      => $practiceId,
+                'status'           => 'pending',
+                'file_path'        => $storedPath,
+                'original_filename'=> $originalName,
+                'detected_headers' => $this->detectedHeaders,
+                'column_mappings'  => [],
+            ]);
+
+            $this->importSessionId = $session->id;
+            $this->step = 'map';
         } catch (\Exception $e) {
-            Log::error('CSV preview loading failed', ['error' => $e->getMessage()]);
+            Log::error('ImportPatients: Upload processing failed', ['error' => $e->getMessage()]);
+            $this->addError('uploadedFile', 'Failed to process file: ' . $e->getMessage());
         }
     }
 
-    private function suggestField(string $header): string
-    {
-        $mapping = [
-            'first_name' => 'first_name',
-            'firstname' => 'first_name',
-            'first' => 'first_name',
-            'fname' => 'first_name',
-            'last_name' => 'last_name',
-            'lastname' => 'last_name',
-            'last' => 'last_name',
-            'lname' => 'last_name',
-            'surname' => 'last_name',
-            'email' => 'email',
-            'e-mail' => 'email',
-            'phone' => 'phone',
-            'telephone' => 'phone',
-            'mobile' => 'phone',
-            'dob' => 'dob',
-            'date_of_birth' => 'dob',
-            'birth_date' => 'dob',
-            'birthdate' => 'dob',
-            'gender' => 'gender',
-            'sex' => 'gender',
-            'address' => 'address',
-            'street' => 'address',
-            'city' => 'city',
-            'state' => 'state',
-            'province' => 'state',
-            'postal_code' => 'postal_code',
-            'zip' => 'postal_code',
-            'zip_code' => 'postal_code',
-            'postcode' => 'postal_code',
-        ];
+    // ─────────────────────────────────────────────────────────────────────────
+    // Step actions
+    // ─────────────────────────────────────────────────────────────────────────
 
-        return $mapping[$header] ?? '';
+    /** Called from the Map step — validates and dispatches dry-run analysis. */
+    public function analyze(): void
+    {
+        if (!in_array('first_name', $this->mappings, true) || !in_array('last_name', $this->mappings, true)) {
+            $this->addError('mappings', 'Please map at least the First Name and Last Name columns before continuing.');
+            return;
+        }
+
+        $session = ImportSession::withoutPracticeScope()->find($this->importSessionId);
+
+        if (!$session) {
+            $this->addError('mappings', 'Session expired. Please start over.');
+            return;
+        }
+
+        $session->update([
+            'column_mappings' => $this->mappings,
+            'status'          => 'analyzing',
+        ]);
+
+        DryRunImportJob::dispatch($this->importSessionId);
+
+        $this->sessionStatus = 'analyzing';
+        $this->step = 'confirm';
     }
 
-    private function loadPreviewRows(UploadedFile $file, array $headers): void
+    /** Polled every 2 s on the Confirm step to check dry-run completion. */
+    public function checkDryRun(): void
     {
-        try {
-            $handle = fopen($file->getRealPath(), 'r');
-            $previewRows = [];
-            $rowCount = 0;
+        if ($this->step !== 'confirm' || !$this->importSessionId) {
+            return;
+        }
 
-            // Skip headers
-            fgetcsv($handle);
+        $session = ImportSession::withoutPracticeScope()->find($this->importSessionId);
 
-            while (($data = fgetcsv($handle)) !== false && $rowCount < 5) {
-                if (empty(array_filter($data))) {
-                    continue;
-                }
+        if (!$session) {
+            return;
+        }
 
-                $row = [];
-                foreach ($headers as $index => $header) {
-                    $row[$header] = $data[$index] ?? '';
-                }
-                $previewRows[] = $row;
-                $rowCount++;
-            }
+        $this->sessionStatus = $session->status;
 
-            fclose($handle);
-            $this->previewRows = $previewRows;
-        } catch (\Exception $e) {
-            Log::error('Preview rows loading failed', ['error' => $e->getMessage()]);
+        if (in_array($session->status, ['ready', 'failed'])) {
+            $this->totalRows     = $session->total_rows;
+            $this->validRows     = $session->valid_rows;
+            $this->duplicateRows = $session->duplicate_rows;
+            $this->errorRows     = $session->error_rows;
+
+            $results            = $session->dry_run_results ?? [];
+            $this->previewRows  = $results['valid'] ?? [];
+            $this->errorPreview = $results['errors'] ?? [];
         }
     }
 
-    public function downloadTemplate()
+    /** Called when the user clicks "Import N Patients" on the Confirm step. */
+    public function startImport(): void
+    {
+        $session = ImportSession::withoutPracticeScope()->find($this->importSessionId);
+
+        if (!$session || $session->status !== 'ready') {
+            return;
+        }
+
+        if ($this->validRows === 0) {
+            $this->addError('import', 'No valid rows to import.');
+            return;
+        }
+
+        $session->update(['status' => 'importing']);
+        ImportSessionJob::dispatch($this->importSessionId);
+
+        $this->sessionStatus = 'importing';
+        $this->step = 'importing';
+    }
+
+    /** Polled every 2 s on the Importing step to check job completion. */
+    public function checkImport(): void
+    {
+        if ($this->step !== 'importing' || !$this->importSessionId) {
+            return;
+        }
+
+        $session = ImportSession::withoutPracticeScope()->find($this->importSessionId);
+
+        if (!$session) {
+            return;
+        }
+
+        $this->sessionStatus = $session->status;
+
+        if (in_array($session->status, ['complete', 'failed'])) {
+            $this->importedRows = $session->imported_rows;
+            $this->step = 'complete';
+        }
+    }
+
+    /** Reset the wizard back to the Upload step. */
+    public function resetImport(): void
+    {
+        $this->step            = 'upload';
+        $this->uploadedFile    = null;
+        $this->detectedHeaders = [];
+        $this->mappings        = [];
+        $this->importSessionId = null;
+        $this->sessionStatus   = 'pending';
+        $this->totalRows       = 0;
+        $this->validRows       = 0;
+        $this->duplicateRows   = 0;
+        $this->errorRows       = 0;
+        $this->importedRows    = 0;
+        $this->previewRows     = [];
+        $this->errorPreview    = [];
+        $this->resetErrorBag();
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Template download (inline — no separate controller needed)
+    // ─────────────────────────────────────────────────────────────────────────
+
+    public function downloadTemplate(): mixed
     {
         $template = CSVImportService::generateTemplate();
 
-        return response()
-            ->streamDownload(
-                fn () => print($template),
-                'patient_import_template.csv'
-            );
+        return response()->streamDownload(
+            fn() => print($template),
+            'patient_import_template.csv',
+            ['Content-Type' => 'text/csv']
+        );
     }
 
-    public function importRows(): void
+    // ─────────────────────────────────────────────────────────────────────────
+    // Helpers for the view
+    // ─────────────────────────────────────────────────────────────────────────
+
+    public function getFieldOptions(): array
     {
-        try {
-            $data = $this->form->getState();
+        return CsvColumnMapper::fieldOptions();
+    }
 
-            if (!isset($data['csv_file']) || empty($data['csv_file'])) {
-                $this->addError('csv_file', 'Please upload a CSV file');
-                return;
-            }
+    public function getRecentImports(): \Illuminate\Database\Eloquent\Collection
+    {
+        $practiceId = PracticeContext::currentPracticeId();
 
-            $file = is_array($data['csv_file']) ? ($data['csv_file'][0] ?? null) : $data['csv_file'];
-
-            if (!$file || !($file instanceof UploadedFile)) {
-                $this->addError('csv_file', 'Invalid file');
-                return;
-            }
-
-            // Build column mapping from form data
-            $columnMap = [];
-            if (isset($data['column_mappings']) && is_array($data['column_mappings'])) {
-                foreach ($data['column_mappings'] as $index => $mapping) {
-                    $patientField = $mapping['patient_field'] ?? null;
-                    if ($patientField) {
-                        $columnMap[$index] = $patientField;
-                    }
-                }
-            }
-
-            if (empty($columnMap)) {
-                $this->addError('column_mappings', 'Please map at least one column');
-                return;
-            }
-
-            // Parse the CSV file
-            $rows = CSVImportService::parseUpload($file, $columnMap);
-
-            if (empty($rows)) {
-                $this->addError('csv_file', 'No valid rows found in CSV');
-                return;
-            }
-
-            $practiceId = PracticeContext::currentPracticeId();
-
-            if (!$practiceId) {
-                $this->addError('csv_file', 'No practice selected');
-                return;
-            }
-
-            // Create import history record
-            $importHistory = ImportHistory::create([
-                'practice_id' => $practiceId,
-                'filename' => $file->getClientOriginalName(),
-                'total_rows' => count($rows),
-                'status' => 'pending',
-            ]);
-
-            // Dispatch the import job
-            ImportPatientsJob::dispatch($practiceId, $importHistory->id, $rows, $columnMap);
-
-            session()->flash('success', 'Import started. Processing ' . count($rows) . ' rows.');
-            $this->form->fill([]);
-            $this->csvHeaders = [];
-            $this->previewRows = [];
-            $this->showPreview = false;
-        } catch (\Exception $e) {
-            Log::error('ImportPatients: Import failed', ['error' => $e->getMessage()]);
-            $this->addError('csv_file', 'Import failed: ' . $e->getMessage());
+        if (!$practiceId) {
+            return collect();
         }
+
+        return ImportHistory::withoutPracticeScope()
+            ->where('practice_id', $practiceId)
+            ->orderByDesc('created_at')
+            ->limit(5)
+            ->get();
     }
 }

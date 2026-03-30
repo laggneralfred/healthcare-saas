@@ -50,3 +50,12 @@ Route::view('/privacy', 'legal.privacy')->name('privacy');
 use App\Http\Controllers\ExportController;
 Route::post('/export', [ExportController::class, 'request'])->name('export.request')->middleware(['web', 'auth']);
 Route::get('/export/download/{token}', [ExportController::class, 'download'])->name('export.download')->middleware(['web', 'auth']);
+
+// CSV import template download
+Route::get('/import/template', function () {
+    $csv = \App\Services\CSVImportService::generateTemplate();
+    return response($csv, 200, [
+        'Content-Type'        => 'text/csv',
+        'Content-Disposition' => 'attachment; filename="patient_import_template.csv"',
+    ]);
+})->name('import.template')->middleware(['web', 'auth']);

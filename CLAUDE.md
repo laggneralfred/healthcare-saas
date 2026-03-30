@@ -72,6 +72,12 @@
 - Use `public` Livewire properties, NOT `getViewData()` for reactive state.
 - `Blade::render()` in render hooks does not register Livewire components.
 - Run `php artisan optimize:clear` when Filament routes go missing.
+- **`Section` moved to `Filament\Schemas\Components\Section`** — the old `Filament\Forms\Components\Section` does not exist in v5.
+- **Custom Page form method is `form(Schema $schema): Schema`** — `getFormSchema(): array` is the v4 API and silently does nothing in v5. Import `Filament\Schemas\Schema` and return `$schema->components([...])`. (Resources use `form(Schema $schema): Schema` with `->components()` too — `Form` is not used for pages.)
+- **Always add `->live()` to `FileUpload` when using `->afterStateUpdated()`** — without it the callback never fires (Livewire won't send the update until form submission).
+- **Every form field on a custom Page needs a matching public Livewire property** — Filament v5 binds field state directly to public properties, not to a hidden bag. Add one per top-level field: `public ?array $csv_file = null;`, `public ?array $column_mappings = null;`, etc. Nested fields inside a Repeater do NOT need their own properties.
+- **Custom Pages with public properties must declare a `rules()` method** — Livewire v3 throws `MissingRulesException` without it, which causes a retry loop that manifests as a 30-second timeout. Add `protected function rules(): array { return ['csv_file' => ['nullable','array'], ...]; }`.
+- **Never call `$this->form->getState()` inside `afterStateUpdated` callbacks** — `getState()` triggers Livewire validation, which fails before `rules()` is even registered. Read public properties directly (`$this->csv_file`) instead. Livewire v3's `TemporaryUploadedFile` extends `Illuminate\Http\UploadedFile` so `instanceof` checks and type hints still work.
 
 ### Model State Machine (Spatie)
 - Use `instanceof` for state checks, NEVER `->name` property.
