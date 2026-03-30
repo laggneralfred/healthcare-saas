@@ -46,6 +46,7 @@ class TrialRegistrationTest extends TestCase
             'discipline' => 'Acupuncture',
             'phone' => '555-1234',
             'referral_source' => 'Google',
+            'terms_accepted' => true,
         ]);
 
         $this->assertDatabaseHas('practices', [
@@ -73,6 +74,7 @@ class TrialRegistrationTest extends TestCase
             'password' => 'password123',
             'password_confirmation' => 'password123',
             'discipline' => 'Massage Therapy',
+            'terms_accepted' => true,
         ]);
 
         $user = User::where('email', 'jane@example.com')->first();
@@ -96,6 +98,7 @@ class TrialRegistrationTest extends TestCase
             'password' => 'password123',
             'password_confirmation' => 'password123',
             'discipline' => 'Chiropractic',
+            'terms_accepted' => true,
         ]);
 
         // TrialWelcomeMail is Queueable, so it's queued not sent immediately
@@ -114,6 +117,7 @@ class TrialRegistrationTest extends TestCase
             'password' => 'password123',
             'password_confirmation' => 'password123',
             'discipline' => 'Physiotherapy',
+            'terms_accepted' => true,
         ]);
 
         $practice = Practice::where('name', 'Audit Test')->first();
@@ -139,6 +143,7 @@ class TrialRegistrationTest extends TestCase
             'password' => 'password123',
             'password_confirmation' => 'password123',
             'discipline' => 'Acupuncture',
+            'terms_accepted' => true,
         ]);
 
         $response->assertRedirect('/admin');
@@ -157,6 +162,7 @@ class TrialRegistrationTest extends TestCase
             'password' => 'password123',
             'password_confirmation' => 'password123',
             'discipline' => 'Acupuncture',
+            'terms_accepted' => true,
         ]);
 
         $response->assertSessionHasErrors('email');
@@ -206,6 +212,7 @@ class TrialRegistrationTest extends TestCase
             'password' => 'password123',
             'password_confirmation' => 'password123',
             'discipline' => 'Acupuncture',
+            'terms_accepted' => true,
         ]);
 
         // The second practice with same name should have a different slug
@@ -227,5 +234,36 @@ class TrialRegistrationTest extends TestCase
         ]);
 
         $response->assertSessionHasErrors('password');
+    }
+
+    public function test_registration_requires_terms_acceptance()
+    {
+        $response = $this->post('/register', [
+            'practice_name' => 'Terms Test',
+            'first_name' => 'Terms',
+            'last_name' => 'User',
+            'email' => 'terms@test.com',
+            'password' => 'password123',
+            'password_confirmation' => 'password123',
+            'discipline' => 'Acupuncture',
+            'terms_accepted' => false,  // Not accepting terms
+        ]);
+
+        $response->assertSessionHasErrors('terms_accepted');
+        $this->assertDatabaseMissing('practices', ['name' => 'Terms Test']);
+    }
+
+    public function test_terms_of_service_page_is_accessible()
+    {
+        $response = $this->get('/terms');
+        $response->assertStatus(200);
+        $response->assertViewIs('legal.terms');
+    }
+
+    public function test_privacy_policy_page_is_accessible()
+    {
+        $response = $this->get('/privacy');
+        $response->assertStatus(200);
+        $response->assertViewIs('legal.privacy');
     }
 }

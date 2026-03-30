@@ -238,6 +238,37 @@
                         @enderror
                     </div>
 
+                    <!-- Trial Notice -->
+                    <div class="bg-amber-50 border border-amber-200 rounded-lg p-4 mt-6">
+                        <p class="text-sm text-amber-900">
+                            <strong>Your Trial:</strong> 30 days of full access at no cost. After your trial expires, your data is retained for 30 days before permanent deletion. You can export your data at any time.
+                        </p>
+                    </div>
+
+                    <!-- Terms & Privacy Acceptance -->
+                    <div class="mt-6">
+                        <label class="flex items-start gap-3 cursor-pointer">
+                            <input
+                                type="checkbox"
+                                id="terms_accepted"
+                                name="terms_accepted"
+                                value="1"
+                                class="mt-1 h-4 w-4 text-[#0D7377] border-slate-300 rounded focus:ring-[#0D7377]"
+                                @checked(old('terms_accepted'))
+                                required
+                            >
+                            <span class="text-sm text-slate-700">
+                                I have read and agree to the
+                                <a href="{{ route('terms') }}" target="_blank" class="text-[#0D7377] hover:underline font-medium">Terms of Service</a>
+                                and
+                                <a href="{{ route('privacy') }}" target="_blank" class="text-[#0D7377] hover:underline font-medium">Privacy Policy</a>
+                            </span>
+                        </label>
+                        @error('terms_accepted')
+                            <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+                        @enderror
+                    </div>
+
                     <!-- Submit Button -->
                     <button
                         type="submit"

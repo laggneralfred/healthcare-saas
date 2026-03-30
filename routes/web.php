@@ -19,7 +19,7 @@ Route::get('/admin', function () {
 // Stripe webhook — exempt from CSRF, no auth required
 // Takes precedence over Cashier's own /stripe/webhook route
 Route::post('/stripe/webhook', [StripeWebhookController::class, 'handleWebhook'])
-    ->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class])
+    ->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\PreventRequestForgery::class])
     ->name('cashier.webhook');
 
 // Admin practice switcher — authenticated, no subscription check needed
@@ -41,3 +41,12 @@ Route::post('/register', [RegistrationController::class, 'store'])->name('regist
 
 // Trial expired / upgrade page — no authentication required (but logged-in users see their data)
 Route::get('/subscribe', fn() => view('subscribe'))->name('subscribe');
+
+// Legal documents — no authentication required
+Route::view('/terms', 'legal.terms')->name('terms');
+Route::view('/privacy', 'legal.privacy')->name('privacy');
+
+// Data export — authenticated, but accessible to expired trial users within grace period
+use App\Http\Controllers\ExportController;
+Route::post('/export', [ExportController::class, 'request'])->name('export.request')->middleware(['web', 'auth']);
+Route::get('/export/download/{token}', [ExportController::class, 'download'])->name('export.download')->middleware(['web', 'auth']);

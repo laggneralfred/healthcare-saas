@@ -269,6 +269,30 @@
             </div>
         </div>
 
+        @auth
+        <div style="background-color: #fef3c7; border-radius: 8px; padding: 2rem; margin-bottom: 3rem; border-left: 4px solid #f59e0b;">
+            <h3 style="color: #92400e; font-size: 1.25rem; margin-bottom: 1rem;">Before you decide — download your data</h3>
+            <p style="color: #b45309; margin-bottom: 1.5rem;">
+                Your practice data is retained for 30 days after your trial expires. Download a complete backup now to ensure you have a copy of all your information.
+            </p>
+            <form method="POST" action="{{ route('export.request') }}" style="display: inline-block;">
+                @csrf
+                <input type="hidden" name="format" value="csv">
+                <button type="submit" style="background: #f59e0b; color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 6px; font-weight: 600; cursor: pointer; transition: background 0.3s;">
+                    Download My Data (CSV)
+                </button>
+            </form>
+            <span style="color: #92400e; margin: 0 0.75rem;">or</span>
+            <form method="POST" action="{{ route('export.request') }}" style="display: inline-block;">
+                @csrf
+                <input type="hidden" name="format" value="json">
+                <button type="submit" style="background: #92400e; color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 6px; font-weight: 600; cursor: pointer; transition: background 0.3s;">
+                    Download My Data (JSON)
+                </button>
+            </form>
+        </div>
+        @endauth
+
         <div class="faq">
             <h3>Questions?</h3>
             <div class="faq-item">

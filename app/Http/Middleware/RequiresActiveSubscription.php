@@ -35,6 +35,9 @@ class RequiresActiveSubscription
             'register',
             'register.store',
             'subscribe',
+            'export.request',
+            'export.download',
+            'filament.admin.pages.export-data',
         )) {
             return $next($request);
         }

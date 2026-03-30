@@ -12,11 +12,31 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Patient extends Model
 {
     use HasFactory, BelongsToPractice, HasAuditLog;
-    protected $fillable = ['practice_id', 'name', 'email', 'phone', 'notes', 'is_patient'];
+    protected $fillable = [
+        'practice_id',
+        'name',
+        'first_name',
+        'last_name',
+        'email',
+        'phone',
+        'dob',
+        'gender',
+        'address',
+        'city',
+        'state',
+        'postal_code',
+        'notes',
+        'is_patient',
+    ];
 
     protected function casts(): array
     {
-        return ['is_patient' => 'boolean'];
+        return [
+            'is_patient' => 'boolean',
+            'dob' => 'date',
+            'created_at' => 'datetime',
+            'updated_at' => 'datetime',
+        ];
     }
 
     public function practice(): BelongsTo

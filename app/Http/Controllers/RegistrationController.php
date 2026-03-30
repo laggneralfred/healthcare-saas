@@ -31,6 +31,7 @@ class RegistrationController extends Controller
             'discipline' => 'required|in:Acupuncture,Massage Therapy,Chiropractic,Physiotherapy',
             'phone' => 'nullable|string|max:20',
             'referral_source' => 'nullable|in:Google,Facebook,Colleague,Conference,Other',
+            'terms_accepted' => 'required|accepted',
         ]);
 
         // Generate unique slug
