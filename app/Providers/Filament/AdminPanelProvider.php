@@ -77,6 +77,7 @@ class AdminPanelProvider extends PanelProvider
             ->default()
             ->id('admin')
             ->path('admin')
+            ->brandName('Practiq')
             ->login()
             ->colors([
                 'primary' => Color::Teal,
