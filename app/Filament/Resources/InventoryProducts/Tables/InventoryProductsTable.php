@@ -3,11 +3,10 @@
 namespace App\Filament\Resources\InventoryProducts\Tables;
 
 use App\Models\InventoryProduct;
+use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
-use Filament\Tables\Actions\Action;
-use Filament\Tables\Columns\BadgeColumn;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\Filter;
@@ -39,7 +38,8 @@ class InventoryProductsTable
                 TextColumn::make('selling_price')
                     ->money('USD')
                     ->sortable(),
-                BadgeColumn::make('stock_quantity')
+                TextColumn::make('stock_quantity')
+                    ->badge()
                     ->getStateUsing(fn (InventoryProduct $record) => $record->stock_quantity)
                     ->color(fn (InventoryProduct $record) => $record->isLowStock() ? 'danger' : 'success')
                     ->icon(fn (InventoryProduct $record) => $record->isLowStock() ? 'heroicon-m-exclamation-triangle' : 'heroicon-m-check-circle')
@@ -74,12 +74,12 @@ class InventoryProductsTable
                     ->label('Restock')
                     ->icon('heroicon-m-plus-circle')
                     ->form([
-                        \Filament\Forms\Components\TextInput::make('quantity')
+                        \Filament\Schemas\Components\TextInput::make('quantity')
                             ->required()
                             ->numeric()
                             ->minValue(1)
                             ->label('Quantity to Add'),
-                        \Filament\Forms\Components\Textarea::make('notes')
+                        \Filament\Schemas\Components\Textarea::make('notes')
                             ->nullable()
                             ->label('Notes'),
                     ])
@@ -97,11 +97,11 @@ class InventoryProductsTable
                     ->label('Adjust Stock')
                     ->icon('heroicon-m-adjustments-horizontal')
                     ->form([
-                        \Filament\Forms\Components\TextInput::make('quantity')
+                        \Filament\Schemas\Components\TextInput::make('quantity')
                             ->required()
                             ->numeric()
                             ->label('Quantity Adjustment (positive or negative)'),
-                        \Filament\Forms\Components\Textarea::make('notes')
+                        \Filament\Schemas\Components\Textarea::make('notes')
                             ->nullable()
                             ->label('Reason for Adjustment'),
                     ])

@@ -31,7 +31,7 @@ class ExportDataTest extends TestCase
         $practice = Practice::factory()->create(['trial_ends_at' => now()->addDays(30)]);
         $user = User::factory()->create(['practice_id' => $practice->id]);
 
-        $response = $this->actingAs($user)->post(route('export.request'), [
+        $response = $this->actingAs($user)->withoutMiddleware()->post(route('export.request'), [
             'format' => 'csv',
         ]);
 

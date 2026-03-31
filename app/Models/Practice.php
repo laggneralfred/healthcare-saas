@@ -12,7 +12,7 @@ class Practice extends Model
     use Billable, HasFactory;
 
     protected $fillable = [
-        'name', 'slug', 'timezone', 'is_active',
+        'name', 'slug', 'timezone', 'is_active', 'is_demo',
         'stripe_id', 'pm_type', 'pm_last_four', 'trial_ends_at',
         'discipline', 'referral_source',
     ];
@@ -21,6 +21,7 @@ class Practice extends Model
     {
         return [
             'is_active' => 'boolean',
+            'is_demo' => 'boolean',
             'trial_ends_at' => 'datetime',
         ];
     }

@@ -23,7 +23,7 @@ class IntakeSubmissionForm
 
                 Select::make('appointment_id')
                     ->relationship('appointment', 'id')
-                    ->getOptionLabelFromRecordUsing(fn ($r) => "#{$r->id} — {$r->start_datetime?->format('M j, Y g:ia')}")
+                    ->getOptionLabelFromRecordUsing(fn ($r) => "#{$r?->id} — {$r?->start_datetime?->format('M j, Y g:ia')}")
                     ->searchable()->nullable(),
 
                 Select::make('status')
@@ -33,7 +33,7 @@ class IntakeSubmissionForm
 
                 Placeholder::make('access_token')
                     ->label('Share link token')
-                    ->content(fn ($record) => $record ? $record->access_token : '(generated on save)'),
+                    ->content(fn ($record) => $record?->access_token ?? '(generated on save)'),
 
                 Textarea::make('reason_for_visit')->rows(2)->nullable(),
                 Textarea::make('current_concerns')->rows(2)->nullable(),

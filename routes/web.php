@@ -59,3 +59,14 @@ Route::get('/import/template', function () {
         'Content-Disposition' => 'attachment; filename="patient_import_template.csv"',
     ]);
 })->name('import.template')->middleware(['web', 'auth']);
+
+// Demo instant login — public, redirects to admin
+Route::get('/demo-login', function () {
+    $user = \App\Models\User::where('email', 'demo@practiqapp.com')->first();
+    if ($user) {
+        auth()->login($user);
+        return redirect('/admin/dashboard');
+    }
+    return redirect('/admin/login')->with('error', 'Demo account not found. Please wait for the next reset.');
+})->middleware(['web']);
+

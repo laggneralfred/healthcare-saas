@@ -24,21 +24,22 @@ class DemoSeeder extends Seeder
     public function run(): void
     {
         // ── Practice ──────────────────────────────────────────────────────────
-        $practice = Practice::firstOrCreate(
+        $practice = Practice::updateOrCreate(
             ['slug' => 'serenity-acupuncture'],
             [
                 'name'      => 'Serenity Acupuncture & Wellness',
                 'timezone'  => 'America/Los_Angeles',
                 'is_active' => true,
+                'is_demo'   => true,
             ]
         );
 
         // ── Admin user ────────────────────────────────────────────────────────
-        User::firstOrCreate(
-            ['email' => 'demo@serenity.test'],
+        User::updateOrCreate(
+            ['email' => 'demo@practiqapp.com'],
             [
                 'name'        => 'Demo Admin',
-                'password'    => Hash::make('password'),
+                'password'    => Hash::make('demo1234'),
                 'practice_id' => $practice->id,
             ]
         );

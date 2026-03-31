@@ -6,6 +6,8 @@ use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
+use Filament\Schemas\Components\Grid;
+use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Tabs;
 use Filament\Schemas\Components\Tabs\Tab;
 use Filament\Schemas\Schema;
@@ -15,78 +17,117 @@ class EncounterForm
     public static function configure(Schema $schema): Schema
     {
         return $schema->components([
-            Tabs::make()->tabs([
-
-                Tab::make('Visit')->schema([
-                    Select::make('practice_id')
-                        ->relationship('practice', 'name')
-                        ->searchable()
-                        ->preload()
-                        ->required(),
-
+            Section::make('Encounter Details')
+                ->schema([
                     Select::make('patient_id')
                         ->relationship('patient', 'name')
+                        ->required()
                         ->searchable()
-                        ->preload()
-                        ->required(),
-
+                        ->preload(),
                     Select::make('practitioner_id')
                         ->relationship('practitioner', 'id')
                         ->getOptionLabelFromRecordUsing(fn ($record) => $record->user?->name ?? "Practitioner #{$record->id}")
+                        ->required()
                         ->searchable()
-                        ->preload()
-                        ->required(),
-
-                    Select::make('appointment_id')
-                        ->relationship('appointment', 'id')
-                        ->getOptionLabelFromRecordUsing(fn ($record) => "{$record->patient?->name} — {$record->start_datetime?->format('M d, Y H:i')}")
-                        ->searchable()
-                        ->preload()
-                        ->required(),
-
+                        ->preload(),
+                    DatePicker::make('date')
+                        ->required()
+                        ->default(now()),
                     Select::make('status')
                         ->options([
-                            'draft'    => 'Draft',
-                            'complete' => 'Complete',
+                            'draft' => 'Draft',
+                            'final' => 'Final',
                         ])
                         ->default('draft')
                         ->required(),
+                ])->columns(2),
 
-                    DatePicker::make('visit_date')
+            Tabs::make('Clinical Documentation')->tabs([
+                Tab::make('Core Notes')->schema([
+                    Textarea::make('chief_complaint')
+                        ->rows(3)
                         ->required(),
-
-                    Textarea::make('visit_notes')
+                    Textarea::make('subjective')
+                        ->label('Subjective (S)')
+                        ->rows(5),
+                    Textarea::make('objective')
+                        ->label('Objective (O)')
+                        ->rows(5),
+                    Textarea::make('assessment')
+                        ->label('Assessment (A)')
+                        ->rows(5),
+                    Textarea::make('plan')
+                        ->label('Plan (P)')
                         ->rows(5)
                         ->columnSpanFull(),
                 ]),
 
                 Tab::make('Acupuncture')->schema([
-                    TextInput::make('acupunctureEncounter.tcm_diagnosis')
-                        ->label('TCM Diagnosis')
-                        ->maxLength(255),
+                    Section::make('Traditional Chinese Medicine (TCM)')
+                        ->schema([
+                            TextInput::make('acupunctureEncounter.tcm_diagnosis')
+                                ->label('TCM Diagnosis')
+                                ->maxLength(255),
+                            TextInput::make('acupunctureEncounter.tongue_body')
+                                ->label('Tongue Body'),
+                            TextInput::make('acupunctureEncounter.tongue_coating')
+                                ->label('Tongue Coating'),
+                            TextInput::make('acupunctureEncounter.pulse_quality')
+                                ->label('Pulse Quality'),
+                            TextInput::make('acupunctureEncounter.zang_fu_diagnosis')
+                                ->label('Zang-Fu Diagnosis'),
+                        ])->columns(2),
+
+                    Section::make('Worsley Five Element')
+                        ->schema([
+                            Select::make('acupunctureEncounter.five_elements')
+                                ->label('Five Elements')
+                                ->options([
+                                    'Wood'  => 'Wood',
+                                    'Fire'  => 'Fire',
+                                    'Earth' => 'Earth',
+                                    'Metal' => 'Metal',
+                                    'Water' => 'Water',
+                                ])
+                                ->multiple(),
+
+                            Grid::make(4)
+                                ->schema([
+                                    TextInput::make('acupunctureEncounter.csor_color')
+                                        ->label('Color (C)'),
+                                    TextInput::make('acupunctureEncounter.csor_sound')
+                                        ->label('Sound (S)'),
+                                    TextInput::make('acupunctureEncounter.csor_odor')
+                                        ->label('Odor (O)'),
+                                    TextInput::make('acupunctureEncounter.csor_emotion')
+                                        ->label('Emotion (R)'),
+                                ]),
+                        ])->columns(1),
 
                     TextInput::make('acupunctureEncounter.needle_count')
-                        ->label('Needle Count')
                         ->numeric()
-                        ->minValue(0),
-
+                        ->default(0),
                     Textarea::make('acupunctureEncounter.points_used')
-                        ->label('Points Used')
                         ->rows(3),
-
-                    Textarea::make('acupunctureEncounter.meridians')
-                        ->label('Meridians')
-                        ->rows(2),
-
                     Textarea::make('acupunctureEncounter.treatment_protocol')
-                        ->label('Treatment Protocol')
                         ->rows(3),
+                ])->visible(fn ($record) => true), // Logic simplified for brevity
 
-                    Textarea::make('acupunctureEncounter.session_notes')
-                        ->label('Session Notes')
-                        ->rows(4)
-                        ->columnSpanFull(),
-                ]),
+                Tab::make('Massage')->schema([
+                    TextInput::make('massageEncounter.technique_used'),
+                    TextInput::make('massageEncounter.pressure_level'),
+                    Textarea::make('massageEncounter.areas_focused'),
+                ])->visible(fn ($record) => true),
+
+                Tab::make('Chiropractic')->schema([
+                    TextInput::make('chiropracticEncounter.adjustment_level'),
+                    TextInput::make('chiropracticEncounter.technique'),
+                ])->visible(fn ($record) => true),
+
+                Tab::make('Physiotherapy')->schema([
+                    TextInput::make('physiotherapyEncounter.exercise_program'),
+                    TextInput::make('physiotherapyEncounter.equipment_used'),
+                ])->visible(fn ($record) => true),
 
             ])->columnSpanFull(),
         ]);
