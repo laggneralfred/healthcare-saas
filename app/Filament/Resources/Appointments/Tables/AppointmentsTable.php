@@ -2,14 +2,21 @@
 
 namespace App\Filament\Resources\Appointments\Tables;
 
+use App\Jobs\SendAppointmentReminderJob;
+use App\Models\CommunicationRule;
+use App\Models\MessageTemplate;
 use App\Models\States\Appointment\Checkout;
 use App\Models\States\Appointment\Closed;
 use App\Models\States\Appointment\Completed;
 use App\Models\States\Appointment\InProgress;
 use App\Models\States\Appointment\Scheduled;
+use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Forms\Components\Placeholder;
+use Filament\Forms\Components\Select;
+use Filament\Notifications\Notification;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
@@ -51,6 +58,67 @@ class AppointmentsTable
             ])
             ->recordActions([
                 EditAction::make(),
+                Action::make('send_message')
+                    ->label('Send Message')
+                    ->icon('heroicon-m-envelope')
+                    ->color('info')
+                    ->form(fn ($record) => [
+                        Select::make('message_template_id')
+                            ->label('Template')
+                            ->options(
+                                MessageTemplate::withoutPracticeScope()
+                                    ->where('practice_id', $record->practice_id)
+                                    ->active()
+                                    ->pluck('name', 'id')
+                            )
+                            ->required()
+                            ->live(),
+
+                        Placeholder::make('preview')
+                            ->label('Preview')
+                            ->content(function ($get) use ($record) {
+                                $templateId = $get('message_template_id');
+                                if (! $templateId) {
+                                    return 'Select a template to preview.';
+                                }
+                                $template = MessageTemplate::find($templateId);
+                                if (! $template) {
+                                    return '';
+                                }
+                                $record->load(['patient', 'practitioner.user', 'appointmentType', 'practice']);
+                                $vars = [
+                                    'patient_name'      => $record->patient?->name ?? '',
+                                    'appointment_date'  => $record->start_datetime->format('l, F j, Y'),
+                                    'appointment_time'  => $record->start_datetime->format('g:i A'),
+                                    'practitioner_name' => $record->practitioner?->user?->name ?? '',
+                                    'practice_name'     => $record->practice?->name ?? '',
+                                    'appointment_type'  => $record->appointmentType?->name ?? '',
+                                ];
+                                return $template->renderBody($vars);
+                            }),
+                    ])
+                    ->action(function ($record, array $data) {
+                        $template = MessageTemplate::withoutPracticeScope()->find($data['message_template_id']);
+                        if (! $template) {
+                            return;
+                        }
+
+                        $rule = CommunicationRule::withoutPracticeScope()->firstOrCreate(
+                            [
+                                'practice_id'         => $record->practice_id,
+                                'message_template_id' => $template->id,
+                                'practitioner_id'     => null,
+                                'appointment_type_id' => null,
+                            ],
+                            [
+                                'is_active'              => true,
+                                'send_at_offset_minutes' => 0,
+                            ]
+                        );
+
+                        SendAppointmentReminderJob::dispatch($record, $rule);
+                    })
+                    ->successNotificationTitle('Message queued for delivery'),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

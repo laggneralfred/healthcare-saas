@@ -68,4 +68,14 @@ class Patient extends Model
     {
         return $this->hasMany(ConsentRecord::class);
     }
+
+    public function messageLogs(): HasMany
+    {
+        return $this->hasMany(MessageLog::class);
+    }
+
+    public function communicationPreference(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(PatientCommunicationPreference::class);
+    }
 }
