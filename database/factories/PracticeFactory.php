@@ -20,7 +20,8 @@ class PracticeFactory extends Factory
             'name'      => $name,
             'slug'      => Str::slug($name),
             'timezone'  => fake()->randomElement(['America/New_York', 'America/Chicago', 'America/Los_Angeles', 'America/Denver']),
-            'is_active' => true,
+            'is_active'      => true,
+            'trial_ends_at'  => now()->addDays(30),
         ];
     }
 }
