@@ -80,6 +80,8 @@
 - **Custom Pages with public properties must declare a `rules()` method** — Livewire v3 throws `MissingRulesException` without it.
 - **Never call `$this->form->getState()` inside `afterStateUpdated` callbacks** — `getState()` triggers Livewire validation too early.
 - **`Filament\Tables\Actions\Action` does not exist in v5** — use `Filament\Actions\Action` for custom table row/toolbar actions. Only these remain under `Filament\Tables\Actions`: `EditAction`, `DeleteAction`, `ViewAction`, `BulkActionGroup`, `ForceDeleteAction`, `RestoreAction`.
+- **`Action::successNotification()` requires a `Notification` object in v5** — `->successNotification()` with no args throws a fatal error. Use `->successNotificationTitle('Done')` for the simple case, or `->successNotification(Notification::make()->title('Done')->success())` for full control.
+- **`Filament\Tables\Actions\Action` does not exist in v5** — use `Filament\Actions\Action` for custom table row/toolbar actions. Only these remain under `Filament\Tables\Actions`: `EditAction`, `DeleteAction`, `ViewAction`, `BulkActionGroup`, `ForceDeleteAction`, `RestoreAction`.
 
 ### Model State Machine (Spatie)
 - Use `instanceof` for state checks, NEVER `->name` property.
