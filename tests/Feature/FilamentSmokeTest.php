@@ -121,14 +121,7 @@ class FilamentSmokeTest extends TestCase
             'Practices' => $this->practice,
             'Practitioners' => Practitioner::factory()->create(['practice_id' => $this->practice->id]),
             'ServiceFees' => ServiceFee::factory()->create(['practice_id' => $this->practice->id]),
-            'ActivityLogs' => ActivityLog::create([
-                'practice_id' => $this->practice->id,
-                'user_id' => $this->admin->id,
-                'action' => 'test',
-                'auditable_type' => 'App\Models\Practice',
-                'auditable_id' => $this->practice->id,
-                'description' => 'Test log',
-            ]),
+            'ActivityLogs' => $this->actingAs($this->admin)->get('/') && ActivityLog::record('test', $this->practice),
             'InventoryMovements' => InventoryMovement::factory()->create([
                 'practice_id' => $this->practice->id,
                 'inventory_product_id' => InventoryProduct::factory()->create(['practice_id' => $this->practice->id])->id,

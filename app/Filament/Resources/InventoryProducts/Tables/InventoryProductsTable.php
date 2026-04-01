@@ -7,6 +7,9 @@ use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
+use Filament\Notifications\Notification;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\Filter;
@@ -27,11 +30,13 @@ class InventoryProductsTable
                 TextColumn::make('category')
                     ->badge()
                     ->searchable()
-                    ->sortable(),
+                    ->sortable()
+                    ->placeholder('—'),
                 TextColumn::make('sku')
                     ->label('SKU')
                     ->searchable()
-                    ->sortable(),
+                    ->sortable()
+                    ->placeholder('—'),
                 TextColumn::make('unit')
                     ->searchable()
                     ->sortable(),
@@ -39,11 +44,10 @@ class InventoryProductsTable
                     ->money('USD')
                     ->sortable(),
                 TextColumn::make('stock_quantity')
+                    ->label('Stock')
                     ->badge()
-                    ->getStateUsing(fn (InventoryProduct $record) => $record->stock_quantity)
                     ->color(fn (InventoryProduct $record) => $record->isLowStock() ? 'danger' : 'success')
                     ->icon(fn (InventoryProduct $record) => $record->isLowStock() ? 'heroicon-m-exclamation-triangle' : 'heroicon-m-check-circle')
-                    ->label('Stock')
                     ->sortable(),
                 IconColumn::make('is_active')
                     ->boolean()
@@ -74,15 +78,16 @@ class InventoryProductsTable
                     ->label('Restock')
                     ->icon('heroicon-m-plus-circle')
                     ->form([
-                        \Filament\Schemas\Components\TextInput::make('quantity')
+                        TextInput::make('quantity')
                             ->required()
                             ->numeric()
                             ->minValue(1)
                             ->label('Quantity to Add'),
-                        \Filament\Schemas\Components\Textarea::make('notes')
+                        Textarea::make('notes')
                             ->nullable()
                             ->label('Notes'),
                     ])
+                    ->after(fn () => redirect()->refresh())
                     ->action(function (InventoryProduct $record, array $data): void {
                         $record->movements()->create([
                             'practice_id' => $record->practice_id,
@@ -91,20 +96,24 @@ class InventoryProductsTable
                             'notes' => $data['notes'] ?? null,
                         ]);
                     })
-                    ->successNotification()
-                    ->after(fn () => redirect()->refresh()),
+                    ->successNotification(
+                        Notification::make()
+                            ->success()
+                            ->title('Inventory restocked successfully'),
+                    ),
                 Action::make('adjust')
                     ->label('Adjust Stock')
                     ->icon('heroicon-m-adjustments-horizontal')
                     ->form([
-                        \Filament\Schemas\Components\TextInput::make('quantity')
+                        TextInput::make('quantity')
                             ->required()
                             ->numeric()
                             ->label('Quantity Adjustment (positive or negative)'),
-                        \Filament\Schemas\Components\Textarea::make('notes')
+                        Textarea::make('notes')
                             ->nullable()
                             ->label('Reason for Adjustment'),
                     ])
+                    ->after(fn () => redirect()->refresh())
                     ->action(function (InventoryProduct $record, array $data): void {
                         $record->movements()->create([
                             'practice_id' => $record->practice_id,
@@ -113,8 +122,11 @@ class InventoryProductsTable
                             'notes' => $data['notes'] ?? null,
                         ]);
                     })
-                    ->successNotification()
-                    ->after(fn () => redirect()->refresh()),
+                    ->successNotification(
+                        Notification::make()
+                            ->success()
+                            ->title('Stock adjusted successfully'),
+                    ),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

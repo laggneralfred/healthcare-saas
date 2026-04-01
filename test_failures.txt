@@ -1,0 +1,432 @@
+
+   PASS  Tests\Unit\ExampleTest
+  ✓ that true is true
+
+   PASS  Tests\Feature\AcupunctureExtensionTest
+  ✓ can create acupuncture encounter with worsley fields                 2.11s  
+  ✓ can create acupuncture encounter with tcm fields                     0.08s  
+  ✓ can retrieve extension from base encounter                           0.08s  
+  ✓ acupuncture factory includes clinical fields                         0.08s  
+
+   PASS  Tests\Feature\AuditLogTest
+  ✓ record creates activity log with correct fields                      0.06s  
+  ✓ patient creation triggers created audit log                          0.06s  
+  ✓ sensitive fields are never logged                                    0.22s  
+  ✓ updated audit captures old and new values                            0.06s  
+  ✓ state changed audit captures from and to state                       0.07s  
+  ✓ super admin can access activity log index                            0.18s  
+  ✓ regular user can access activity log index                           0.12s  
+
+   PASS  Tests\Feature\CheckoutInventoryIntegrationTest
+  ✓ products not shown in checkout without addon                         0.08s  
+  ✓ checkout session can have product line items                         0.10s  
+  ✓ marking checkout paid creates inventory movements                    0.12s  
+  ✓ multiple products create multiple movements                          0.12s  
+  ✓ checkout total includes product amounts                              0.10s  
+
+   PASS  Tests\Feature\CheckoutSessionTest
+  ✓ can create checkout session                                          0.08s  
+  ✓ amount due calculated correctly                                      0.10s  
+  ✓ is fully paid attribute                                              0.18s  
+  ✓ is partially paid attribute                                          0.14s  
+  ✓ amount paid cannot exceed total                                      0.11s  
+  ✓ can mark paid                                                        0.11s  
+  ✓ can mark payment due                                                 0.11s  
+  ✓ query scope by practice                                              0.23s  
+  ✓ query scope paid                                                     0.23s  
+  ✓ sync total from lines                                                0.12s  
+
+   PASS  Tests\Feature\CsvImporterTest
+  ✓ mapper suggests exact field name                                     0.06s  
+  ✓ mapper resolves synonym                                              0.05s  
+  ✓ mapper normalises hyphen and space                                   0.05s  
+  ✓ mapper returns null for unrecognised column                          0.05s  
+  ✓ mapper field options includes skip                                   0.05s  
+  ✓ import session can be created with pending status                    0.05s  
+  ✓ dry run counts valid duplicate and error rows                        0.06s  
+  ✓ dry run detects existing practice email as duplicate                 0.06s  
+  ✓ dry run does not create patients                                     0.06s  
+  ✓ dry run sets status failed on missing file                           0.06s  
+  ✓ import session job creates patients from csv                         0.07s  
+  ✓ import session job skips duplicates                                  0.07s  
+  ✓ import session job creates import history record                     0.07s  
+  ✓ import session job isolates practices                                0.07s  
+  ✓ template download returns csv file                                   0.06s  
+
+   PASS  Tests\Feature\ExampleTest
+  ✓ the application returns a successful response                        0.07s  
+
+   FAIL  Tests\Feature\ExportDataTest
+  ✓ export request dispatches job                                        0.06s  
+  ⨯ export validates format                                              0.06s  
+  ✓ csv zip contains all expected files                                  0.08s  
+  ✓ json export contains all expected keys                               0.07s  
+  ✓ export token expires after 24 hours                                  0.21s  
+  ✓ practice a cannot download practice b export                         0.06s  
+  ⨯ expired trial can request export                                     0.05s  
+  ⨯ export past 30 day grace period is denied                            0.05s  
+  ✓ file deleted after download                                          0.07s  
+  ✓ export token status updated to downloaded after download             0.07s  
+  ✓ export page accessible from settings                                 0.10s  
+  ⨯ active subscriber can export                                         0.13s  
+
+   PASS  Tests\Feature\FilamentAuditTest
+  ✓ all index pages load                                                 0.30s  
+  ✓ all edit pages load                                                  0.22s  
+
+   FAIL  Tests\Feature\FilamentSmokeTest
+  ⨯ all resource index pages load                                        0.82s  
+  ✓ all resource edit pages load                                         0.83s  
+
+   PASS  Tests\Feature\InventoryAddonGatingTest
+  ✓ has inventory addon returns false when not subscribed                0.06s  
+  ✓ has inventory addon returns false when no addon price configured     0.06s  
+  ✓ has inventory addon returns true when addon is active                0.06s  
+
+   PASS  Tests\Feature\InventoryMovementTest
+  ✓ creating restock movement increases stock                            0.06s  
+  ✓ creating sale movement decreases stock                               0.06s  
+  ✓ movement is scoped to correct practice                               0.06s  
+  ✓ multiple movements accumulate stock                                  0.06s  
+
+   PASS  Tests\Feature\InventoryProductTest
+  ✓ practice a cannot see practice b products                            0.05s  
+  ✓ creating product sets correct default stock                          0.05s  
+  ✓ is low stock returns true when at threshold                          0.05s  
+  ✓ is low stock returns true when below threshold                       0.05s  
+  ✓ is low stock returns false when above threshold                      0.05s  
+  ✓ soft deleted products do not appear in active scope                  0.06s  
+  ✓ active scope filters inactive products                               0.06s  
+  ✓ low stock scope filters low stock products                           0.06s  
+
+   PASS  Tests\Feature\PractitionerLimitTest
+  ✓ solo practice cannot add second practitioner                         0.08s  
+  ✓ clinic practice can add up to 5 blocked on 6th                       0.12s  
+  ✓ enterprise practice has no limit                                     0.16s  
+  ✓ practice with no subscription can add practitioners                  0.06s  
+  ✓ downgrading plan enforces new limit immediately                      0.10s  
+  ✓ concurrent creation attempt is handled safely                        0.07s  
+  ✓ current limit returns correct values per plan                        0.08s  
+  ✓ current count reflects only target practice                          0.07s  
+  ✓ exception carries practice limit and current count                   0.06s  
+  ✓ isolation between practices                                          0.08s  
+
+   PASS  Tests\Feature\SafeMigrationTest
+  ✓ destructive migration is blocked when flag not set                   0.06s  
+  ✓ destructive migration blocked when flag not set in production        0.05s  
+  ✓ rename column is also blocked without flag                           0.05s  
+  ✓ flagged destructive migration blocked in production without env var  0.05s  
+  ✓ flagged destructive migration allowed in production with env var     0.05s  
+  ✓ flagged destructive migration allowed in non production without env… 0.05s  
+  ✓ migrations log is written on successful up                           0.07s  
+  ✓ migrations log captures failure                                      0.05s  
+  ✓ migrations log is written on down                                    0.07s  
+  ✓ safe migration without destructive ops runs without flag             0.08s  
+
+   PASS  Tests\Feature\TenantIsolationTest
+  ✓ practice b user cannot see practice a patients                       0.11s  
+  ✓ practice b user cannot see practice a practitioners                  0.10s  
+  ✓ practice b user cannot see practice a appointment types              0.10s  
+  ✓ practice b user cannot see practice a service fees                   0.10s  
+  ✓ practice b user cannot see practice a appointments                   0.10s  
+  ✓ practice b user cannot see practice a intake submissions             0.11s  
+  ✓ practice b user cannot see practice a consent records                0.10s  
+  ✓ practice b user cannot see practice a encounters                     0.10s  
+  ✓ practice b user cannot reach practice a acupuncture encounter via e… 0.10s  
+  ✓ practice b user cannot see practice a checkout sessions              0.10s  
+  ✓ practice b user can see own patients                                 0.10s  
+  ✓ practice b user can see own practitioners                            0.10s  
+  ✓ unauthenticated context applies no scope                             0.10s  
+  ✓ super admin scoped to practice b cannot see practice a data          0.13s  
+  ✓ super admin scoped to practice b can see practice b data             0.11s  
+  ✓ without practice scope bypasses isolation                            0.10s  
+
+   FAIL  Tests\Feature\TrialRegistrationTest
+  ✓ registration form is accessible                                      0.07s  
+  ⨯ registration requires required fields                                0.05s  
+  ⨯ registration creates practice with trial                             0.05s  
+  ⨯ registration creates user linked to practice                         0.05s  
+  ⨯ registration sends welcome email                                     0.05s  
+  ⨯ registration logs to audit log                                       0.05s  
+  ⨯ registration redirects to admin                                      0.05s  
+  ⨯ duplicate email is rejected                                          0.05s  
+  ✓ trial middleware allows trial users                                  0.05s  
+  ✓ expired trial redirects to subscribe                                 0.12s  
+  ⨯ slug is unique                                                       0.06s  
+  ⨯ password confirmation is required                                    0.05s  
+  ⨯ registration requires terms acceptance                               0.05s  
+  ✓ terms of service page is accessible                                  0.05s  
+  ✓ privacy policy page is accessible                                    0.06s  
+
+   PASS  Tests\Feature\WebhookIdempotencyTest
+  ✓ duplicate webhook event is silently ignored                          0.07s  
+  ✓ two distinct events are each processed                               0.07s  
+  ✓ guard already processed returns false for unknown event              0.05s  
+  ✓ guard already processed returns false when only failed               0.05s  
+  ✓ guard mark processed stamps timestamp                                0.05s  
+  ✓ guard mark failed stamps error and leaves processed at null          0.05s  
+  ✓ guard mark processed clears prior failure                            0.05s  
+  ✓ webhook event stores type and payload                                0.05s  
+  ────────────────────────────────────────────────────────────────────────────  
+   FAILED  Tests\Feature\ExportDataTest > export validates format               
+  Session is missing expected key [errors].
+Failed asserting that false is true.
+
+  at tests/Feature/ExportDataTest.php:58
+     54▕         $response = $this->actingAs($user)->post(route('export.request'), [
+     55▕             'format' => 'invalid',
+     56▕         ]);
+     57▕ 
+  ➜  58▕         $response->assertSessionHasErrors('format');
+     59▕     }
+     60▕ 
+     61▕     public function test_csv_zip_contains_all_expected_files()
+     62▕     {
+
+  ────────────────────────────────────────────────────────────────────────────  
+   FAILED  Tests\Feature\ExportDataTest > expired trial can request export      
+  Expected response status code [201, 301, 302, 303, 307, 308] but received 419.
+Failed asserting that false is true.
+
+  at tests/Feature/ExportDataTest.php:226
+    222▕         $response = $this->actingAs($user)->post(route('export.request'), [
+    223▕             'format' => 'csv',
+    224▕         ]);
+    225▕ 
+  ➜ 226▕         $response->assertRedirect();
+    227▕         Queue::assertPushed(ExportPracticeDataJob::class);
+    228▕     }
+    229▕ 
+    230▕     public function test_export_past_30_day_grace_period_is_denied()
+
+  ────────────────────────────────────────────────────────────────────────────  
+   FAILED  Tests\Feature\ExportDataTest > export past 30 day grace period is…   
+  Expected response status code [403] but received 419.
+Failed asserting that 419 is identical to 403.
+
+  at tests/Feature/ExportDataTest.php:239
+    235▕         $response = $this->actingAs($user)->post(route('export.request'), [
+    236▕             'format' => 'csv',
+    237▕         ]);
+    238▕ 
+  ➜ 239▕         $response->assertStatus(403);
+    240▕     }
+    241▕ 
+    242▕     public function test_file_deleted_after_download()
+    243▕     {
+
+  ────────────────────────────────────────────────────────────────────────────  
+   FAILED  Tests\Feature\ExportDataTest > active subscriber can export          
+  Expected response status code [201, 301, 302, 303, 307, 308] but received 419.
+Failed asserting that false is true.
+
+  at tests/Feature/ExportDataTest.php:323
+    319▕         $response = $this->actingAs($user)->post(route('export.request'), [
+    320▕             'format' => 'json',
+    321▕         ]);
+    322▕ 
+  ➜ 323▕         $response->assertRedirect();
+    324▕         Queue::assertPushed(ExportPracticeDataJob::class);
+    325▕     }
+    326▕ }
+    327▕
+
+  ────────────────────────────────────────────────────────────────────────────  
+   FAILED  Tests\Feature\FilamentSmokeTest > all resource in…  QueryException   
+  SQLSTATE[23502]: Not null violation: 7 ERROR:  null value in column "auditable_label" of relation "activity_logs" violates not-null constraint
+DETAIL:  Failing row contains (249, 219, 112, null, test, App\Models\Practice, 219, null, null, null, null, null, null, 2026-04-01 14:11:03). (Connection: pgsql, Host: 127.0.0.1, Port: 5432, Database: healthcare_saas, SQL: insert into "activity_logs" ("practice_id", "user_id", "action", "auditable_type", "auditable_id", "created_at") values (219, 112, test, App\Models\Practice, 219, 2026-04-01 14:11:03) returning "id")
+
+  at vendor/laravel/framework/src/Illuminate/Database/Connection.php:841
+    837▕             $exceptionType = ($isUniqueConstraintError = $this->isUniqueConstraintError($e))
+    838▕                 ? UniqueConstraintViolationException::class
+    839▕                 : QueryException::class;
+    840▕ 
+  ➜ 841▕             $exception = new $exceptionType(
+    842▕                 $this->getNameWithReadWriteType(),
+    843▕                 $query,
+    844▕                 $this->prepareBindings($bindings),
+    845▕                 $e,
+
+      [2m+19 vendor frames [22m
+  20  tests/Feature/FilamentSmokeTest.php:124
+  21  tests/Feature/FilamentSmokeTest.php:71
+
+  ────────────────────────────────────────────────────────────────────────────  
+   FAILED  Tests\Feature\TrialRegistrationTest > registration requires requi…   
+  Session is missing expected key [errors].
+Failed asserting that false is true.
+
+  at tests/Feature/TrialRegistrationTest.php:27
+     23▕     public function test_registration_requires_required_fields()
+     24▕     {
+     25▕         $response = $this->post('/register', []);
+     26▕ 
+  ➜  27▕         $response->assertSessionHasErrors([
+     28▕             'practice_name',
+     29▕             'first_name',
+     30▕             'last_name',
+     31▕             'email',
+
+  ────────────────────────────────────────────────────────────────────────────  
+   FAILED  Tests\Feature\TrialRegistrationTest > registration creates practi…   
+  Failed asserting that a row in the table [practices] matches the attributes {
+    "name": "Test Acupuncture",
+    "discipline": "Acupuncture",
+    "referral_source": "Google"
+}.
+
+The table is empty.
+
+  at tests/Feature/TrialRegistrationTest.php:52
+     48▕             'referral_source' => 'Google',
+     49▕             'terms_accepted' => true,
+     50▕         ]);
+     51▕ 
+  ➜  52▕         $this->assertDatabaseHas('practices', [
+     53▕             'name' => 'Test Acupuncture',
+     54▕             'discipline' => 'Acupuncture',
+     55▕             'referral_source' => 'Google',
+     56▕         ]);
+
+  ────────────────────────────────────────────────────────────────────────────  
+   FAILED  Tests\Feature\TrialRegistrationTest > registration creates user l…   
+  Failed asserting that null is not null.
+
+  at tests/Feature/TrialRegistrationTest.php:81
+     77▕             'terms_accepted' => true,
+     78▕         ]);
+     79▕ 
+     80▕         $user = User::where('email', 'jane@example.com')->first();
+  ➜  81▕         $this->assertNotNull($user);
+     82▕         $this->assertEquals('Jane Smith', $user->name);
+     83▕         $this->assertNotNull($user->practice_id);
+     84▕ 
+     85▕         $practice = Practice::find($user->practice_id);
+
+  1   tests/Feature/TrialRegistrationTest.php:81
+
+  ────────────────────────────────────────────────────────────────────────────  
+   FAILED  Tests\Feature\TrialRegistrationTest > registration sends welcome…    
+  The expected [App\Mail\TrialWelcomeMail] mailable was not queued.
+Failed asserting that false is true.
+
+  at vendor/laravel/framework/src/Illuminate/Support/Testing/Fakes/MailFake.php:215
+    211▕ 
+    212▕             return;
+    213▕         }
+    214▕ 
+  ➜ 215▕         PHPUnit::assertTrue(
+    216▕             $this->queued($mailable, $callback)->count() > 0,
+    217▕             "The expected [{$mailable}] mailable was not queued."
+    218▕         );
+    219▕     }
+
+      [2m+2 vendor frames [22m
+  3   tests/Feature/TrialRegistrationTest.php:105
+
+  ────────────────────────────────────────────────────────────────────────────  
+   FAILED  Tests\Feature\TrialRegistrationTest > registratio…  ErrorException   
+  Attempt to read property "id" on null
+
+  at tests/Feature/TrialRegistrationTest.php:126
+    122▕ 
+    123▕         $practice = Practice::where('name', 'Audit Test')->first();
+    124▕         $this->assertDatabaseHas('activity_logs', [
+    125▕             'auditable_type' => 'App\\Models\\Practice',
+  ➜ 126▕             'auditable_id' => $practice->id,
+    127▕         ]);
+    128▕ 
+    129▕         $user = User::where('email', 'audit@test.com')->first();
+    130▕         $this->assertDatabaseHas('activity_logs', [
+
+  ────────────────────────────────────────────────────────────────────────────  
+   FAILED  Tests\Feature\TrialRegistrationTest > registration redirects to a…   
+  Expected response status code [201, 301, 302, 303, 307, 308] but received 419.
+Failed asserting that false is true.
+
+  at tests/Feature/TrialRegistrationTest.php:149
+    145▕             'discipline' => 'Acupuncture',
+    146▕             'terms_accepted' => true,
+    147▕         ]);
+    148▕ 
+  ➜ 149▕         $response->assertRedirect('/admin');
+    150▕         $this->assertAuthenticatedAs(User::where('email', 'redirect@test.com')->first());
+    151▕     }
+    152▕ 
+    153▕     public function test_duplicate_email_is_rejected()
+
+  ────────────────────────────────────────────────────────────────────────────  
+   FAILED  Tests\Feature\TrialRegistrationTest > duplicate email is rejected    
+  Session is missing expected key [errors].
+Failed asserting that false is true.
+
+  at tests/Feature/TrialRegistrationTest.php:168
+    164▕             'discipline' => 'Acupuncture',
+    165▕             'terms_accepted' => true,
+    166▕         ]);
+    167▕ 
+  ➜ 168▕         $response->assertSessionHasErrors('email');
+    169▕         $this->assertCount(1, User::where('email', 'duplicate@test.com')->get());
+    170▕     }
+    171▕ 
+    172▕     public function test_trial_middleware_allows_trial_users()
+
+  ────────────────────────────────────────────────────────────────────────────  
+   FAILED  Tests\Feature\TrialRegistrationTest > slug is unique                 
+  Failed asserting that a row in the table [practices] matches the attributes {
+    "slug": "test-practice-2"
+}.
+
+Found: [
+    {
+        "slug": "test-practice"
+    }
+].
+
+  at tests/Feature/TrialRegistrationTest.php:219
+    215▕             'terms_accepted' => true,
+    216▕         ]);
+    217▕ 
+    218▕         // The second practice with same name should have a different slug
+  ➜ 219▕         $this->assertDatabaseHas('practices', ['slug' => 'test-practice-2']);
+    220▕         // Verify we have two practices with the same name but different slugs
+    221▕         $this->assertCount(2, Practice::where('name', 'Test Practice')->get());
+    222▕     }
+    223▕
+
+  ────────────────────────────────────────────────────────────────────────────  
+   FAILED  Tests\Feature\TrialRegistrationTest > password confirmation is re…   
+  Session is missing expected key [errors].
+Failed asserting that false is true.
+
+  at tests/Feature/TrialRegistrationTest.php:236
+    232▕             'password_confirmation' => 'differentpassword',
+    233▕             'discipline' => 'Acupuncture',
+    234▕         ]);
+    235▕ 
+  ➜ 236▕         $response->assertSessionHasErrors('password');
+    237▕     }
+    238▕ 
+    239▕     public function test_registration_requires_terms_acceptance()
+    240▕     {
+
+  ────────────────────────────────────────────────────────────────────────────  
+   FAILED  Tests\Feature\TrialRegistrationTest > registration requires terms…   
+  Session is missing expected key [errors].
+Failed asserting that false is true.
+
+  at tests/Feature/TrialRegistrationTest.php:252
+    248▕             'discipline' => 'Acupuncture',
+    249▕             'terms_accepted' => false,  // Not accepting terms
+    250▕         ]);
+    251▕ 
+  ➜ 252▕         $response->assertSessionHasErrors('terms_accepted');
+    253▕         $this->assertDatabaseMissing('practices', ['name' => 'Terms Test']);
+    254▕     }
+    255▕ 
+    256▕     public function test_terms_of_service_page_is_accessible()
+
+
+  Tests:    15 failed, 118 passed (381 assertions)
+  Duration: 14.60s
+

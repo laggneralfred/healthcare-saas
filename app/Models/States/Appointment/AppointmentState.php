@@ -16,6 +16,7 @@ abstract class AppointmentState extends State
             ->allowTransition(Scheduled::class, InProgress::class)
             ->allowTransition(InProgress::class, Completed::class)
             ->allowTransition(Completed::class, Closed::class)
-            ->allowTransition(Closed::class, Checkout::class);
+            ->allowTransition(Closed::class, Checkout::class)
+            ->allowTransition([Scheduled::class, InProgress::class, Completed::class], Cancelled::class);
     }
 }

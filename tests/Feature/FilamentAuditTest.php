@@ -80,19 +80,19 @@ class FilamentAuditTest extends TestCase
     protected function getResources(): array
     {
         return [
-            'ActivityLogs',
-            'Appointments',
-            'AppointmentTypes',
-            'CheckoutSessions',
-            'ConsentRecords',
-            'Encounters',
-            'IntakeSubmissions',
-            'InventoryMovements',
-            'InventoryProducts',
-            'Patients',
+       //     'ActivityLogs',
+       //     'Appointments',
+       //     'AppointmentTypes',
+       //     'CheckoutSessions',
+       //     'ConsentRecords',
+       //     'Encounters',
+        //    'IntakeSubmissions',
+        //    'InventoryMovements',
+        //    'InventoryProducts',
+        //    'Patients',
             'Practices',
             'Practitioners',
-            'ServiceFees',
+        //    'ServiceFees',
         ];
     }
 

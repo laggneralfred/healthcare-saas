@@ -11,6 +11,11 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->validateCsrfTokens(except: [
+            '/register',
+            '/export',
+        ]);
+
         $middleware->alias([
             'demo.mode' => \App\Http\Middleware\DemoModeMiddleware::class,
         ]);

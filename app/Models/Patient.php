@@ -54,6 +54,16 @@ class Patient extends Model
         return $this->hasMany(IntakeSubmission::class);
     }
 
+    public function encounters(): HasMany
+    {
+        return $this->hasMany(Encounter::class);
+    }
+
+    public function checkoutSessions(): HasMany
+    {
+        return $this->hasMany(CheckoutSession::class);
+    }
+
     public function consentRecords(): HasMany
     {
         return $this->hasMany(ConsentRecord::class);
