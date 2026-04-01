@@ -14,6 +14,15 @@ class AcupunctureEncounter extends Model
     protected $fillable = [
         'encounter_id',
         'tcm_diagnosis',
+        'tongue_body',
+        'tongue_coating',
+        'pulse_quality',
+        'zang_fu_diagnosis',
+        'five_elements',
+        'csor_color',
+        'csor_sound',
+        'csor_odor',
+        'csor_emotion',
         'points_used',
         'meridians',
         'treatment_protocol',
@@ -25,6 +34,7 @@ class AcupunctureEncounter extends Model
     {
         return [
             'needle_count' => 'integer',
+            'five_elements' => 'array',
         ];
     }
 

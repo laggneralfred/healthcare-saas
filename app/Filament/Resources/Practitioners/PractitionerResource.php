@@ -32,6 +32,13 @@ class PractitionerResource extends Resource
         return PractitionersTable::configure($table);
     }
 
+    public static function getWidgets(): array
+    {
+        return [
+            Widgets\PractitionerStats::class,
+        ];
+    }
+
     public static function getRelations(): array
     {
         return [
@@ -44,6 +51,7 @@ class PractitionerResource extends Resource
         return [
             'index' => ListPractitioners::route('/'),
             'create' => CreatePractitioner::route('/create'),
+            'view' => Pages\ViewPractitioner::route('/{record}'),
             'edit' => EditPractitioner::route('/{record}/edit'),
         ];
     }

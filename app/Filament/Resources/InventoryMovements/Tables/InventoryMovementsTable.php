@@ -2,7 +2,6 @@
 
 namespace App\Filament\Resources\InventoryMovements\Tables;
 
-use Filament\Tables\Columns\BadgeColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
@@ -19,19 +18,22 @@ class InventoryMovementsTable
                     ->label('Product')
                     ->searchable()
                     ->sortable(),
-                BadgeColumn::make('type')
-                    ->colors([
-                        'primary' => 'restock',
-                        'danger' => 'sale',
-                        'warning' => 'adjustment',
-                        'secondary' => 'return',
-                    ])
-                    ->icons([
-                        'heroicon-m-arrow-up-circle' => 'restock',
-                        'heroicon-m-arrow-down-circle' => 'sale',
-                        'heroicon-m-adjustments-horizontal' => 'adjustment',
-                        'heroicon-m-arrow-uturn-left' => 'return',
-                    ]),
+                TextColumn::make('type')
+                    ->badge()
+                    ->color(fn (string $state): string => match ($state) {
+                        'restock' => 'primary',
+                        'sale' => 'danger',
+                        'adjustment' => 'warning',
+                        'return' => 'secondary',
+                        default => 'gray',
+                    })
+                    ->icon(fn (string $state): string => match ($state) {
+                        'restock' => 'heroicon-m-arrow-up-circle',
+                        'sale' => 'heroicon-m-arrow-down-circle',
+                        'adjustment' => 'heroicon-m-adjustments-horizontal',
+                        'return' => 'heroicon-m-arrow-uturn-left',
+                        default => null,
+                    }),
                 TextColumn::make('quantity')
                     ->numeric()
                     ->sortable()

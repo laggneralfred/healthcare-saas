@@ -24,6 +24,7 @@ class PractitionerFactory extends Factory
                 'Acupuncture', 'TCM', 'Cupping Therapy', 'Herbal Medicine',
                 'Swedish Massage', 'Deep Tissue', 'Sports Massage', 'Trigger Point',
             ]),
+            'bio' => fake()->paragraph(),
             'is_active' => true,
         ];
     }
