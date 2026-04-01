@@ -79,6 +79,7 @@
 - **Every form field on a custom Page needs a matching public Livewire property** — Filament v5 binds field state directly to public properties.
 - **Custom Pages with public properties must declare a `rules()` method** — Livewire v3 throws `MissingRulesException` without it.
 - **Never call `$this->form->getState()` inside `afterStateUpdated` callbacks** — `getState()` triggers Livewire validation too early.
+- **`Filament\Tables\Actions\Action` does not exist in v5** — use `Filament\Actions\Action` for custom table row/toolbar actions. Only these remain under `Filament\Tables\Actions`: `EditAction`, `DeleteAction`, `ViewAction`, `BulkActionGroup`, `ForceDeleteAction`, `RestoreAction`.
 
 ### Model State Machine (Spatie)
 - Use `instanceof` for state checks, NEVER `->name` property.
