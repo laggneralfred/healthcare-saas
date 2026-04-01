@@ -10,7 +10,7 @@
 
 **Architecture:** Single-database multi-tenancy with application-level `practice_id` scoping via `BelongsToPractice` trait on all models. State machine pattern for appointments and checkouts. Queued jobs for CSV imports and low-stock alerts.
 
-**Key Rules:** Never break multi-tenancy (all queries are scoped). Never use Alpine in Docker (causes 75-minute builds). Never call `parent::boot()` in AdminPanelProvider (Filament has no boot method). Never mount `.:/app` in Docker volumes (overwrites vendor). Never use `.nullable()` on Filament TextColumn (causes hidden errors — use `.placeholder()` instead).
+**Key Rules:** Never break multi-tenancy (all queries are scoped). Never use Alpine in Docker (causes 75-minute builds). Never call `parent::boot()` in AdminPanelProvider (Filament has no boot method). Never mount `.:/app` in Docker volumes (overwrites vendor). Never use `.nullable()` on Filament TextColumn (causes hidden errors — use `.placeholder()` instead). DemoModeMiddleware blocks POST/PUT/PATCH/DELETE **and** GET /create + /edit — always block both write methods and write pages.
 
 **Quick Start:** `php artisan serve` → http://localhost:8000/admin | Email: `admin@healthcare.test` | Password: `password` | See CLAUDE.md for full dev/deployment workflow.
 
@@ -81,6 +81,7 @@
 - **Never call `$this->form->getState()` inside `afterStateUpdated` callbacks** — `getState()` triggers Livewire validation too early.
 - **`Filament\Tables\Actions\Action` does not exist in v5** — use `Filament\Actions\Action` for custom table row/toolbar actions. Only these remain under `Filament\Tables\Actions`: `EditAction`, `DeleteAction`, `ViewAction`, `BulkActionGroup`, `ForceDeleteAction`, `RestoreAction`.
 - **`Action::successNotification()` requires a `Notification` object in v5** — `->successNotification()` with no args throws a fatal error. Use `->successNotificationTitle('Done')` for the simple case, or `->successNotification(Notification::make()->title('Done')->success())` for full control.
+- **`Filament\Forms\Components\Grid` moved to `Filament\Schemas\Components\Grid` in v5** — the old namespace does not exist.
 - **`Filament\Tables\Actions\Action` does not exist in v5** — use `Filament\Actions\Action` for custom table row/toolbar actions. Only these remain under `Filament\Tables\Actions`: `EditAction`, `DeleteAction`, `ViewAction`, `BulkActionGroup`, `ForceDeleteAction`, `RestoreAction`.
 
 ### Model State Machine (Spatie)
