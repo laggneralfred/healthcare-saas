@@ -158,14 +158,16 @@ git push origin master     # triggers GitHub Actions auto-deploy
 - ✅ Demo system: DemoModeMiddleware, DemoSeeder, ResetDemoDataJob, ResetDemoCommand, /demo-login route
 - ✅ demo.practiqapp.com live with SSL
 - ✅ GitHub Actions CI/CD pipeline
+- ✅ Communications & Messaging System — Sprint 1 (email reminders, templates, rules, log, Filament UI)
 
 ### Test Coverage
-- **133/133 tests passing (100%)**
+- **147/147 tests passing (100%)**
 - Integration tests for checkout, subscriptions, trial, registration
 - CSV import tests
 - Data export tests (CSRF excluded for testing)
 - Filament smoke tests (Index/Edit pages for all resources)
 - PracticeFactory sets `trial_ends_at = +30 days` so test practices pass RequiresActiveSubscription middleware
+- Communications: template rendering, rule timing, send job (success/fail/opt-out/no-email), dispatch windowing, duplicate prevention, multi-tenancy isolation
 
 ### Pending Production Fixes (applied via docker cp — not yet in git)
 - **DemoModeMiddleware** — GET /create and /edit block deployed manually; needs permanent rebuild via GitHub Actions to survive container restarts
@@ -189,15 +191,17 @@ git push origin master     # triggers GitHub Actions auto-deploy
 | **CSV Importer** | ✅ Complete | Column mapper, preview, queued processing |
 | **Data Export** | ✅ Complete | CSV ZIP & JSON formats, token-based downloads |
 | **Demo System** | ✅ Complete | Reset job/command, demo-login, middleware |
+| **Communications — Sprint 1** | ✅ Complete | MessageTemplate, CommunicationRule (flexible timing), MessageLog, PatientCommunicationPreference, DispatchAppointmentRemindersJob (every 15 min), SendAppointmentReminderJob (opt-out aware), AppointmentReminderMail (branded HTML), Filament resources, manual send action, patient prefs UI |
 
 ---
 
 ## Immediate Next Steps
 
-1. **Deploy DemoModeMiddleware fix permanently** — Merge dev → master, push to trigger GitHub Actions rebuild; docker cp fix will not survive a container restart
-2. **Run full Filament v5 namespace audit** — Scan entire codebase for any remaining v4 namespaces before they surface on production
-3. **Test complete demo walkthrough** — After rebuild, verify all demo pages load, write actions are blocked, and reset works
-4. **Set up email service** — Configure Mailgun or Postmark for transactional email (welcome, intake notifications)
+1. **Deploy to production** — Merge dev → master, push to trigger GitHub Actions; this permanently deploys DemoModeMiddleware fix, all Filament v5 namespace fixes, and the Communications sprint
+2. **Configure Mailgun on production** — Set `MAIL_MAILER=mailgun`, `MAILGUN_DOMAIN`, `MAILGUN_SECRET` in `/opt/practiq/.env` on the server
+3. **Run `php artisan demo:reset`** on production to seed default communication templates for the demo practice
+4. **Communications Sprint 2** — Mailgun webhook for delivery/bounce status updates, SMS via Twilio, opt-out landing page
+5. **Discipline-based feature visibility** — Hide acupuncture fields for non-acupuncture practitioners
 
 ---
 
