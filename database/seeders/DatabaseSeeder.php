@@ -95,6 +95,9 @@ class DatabaseSeeder extends Seeder
             // 4. Seed Infrastructure (Plans)
             $this->seedSubscriptionPlans();
 
+            // 5. Default communication templates and rules
+            (new DefaultMessageTemplatesSeeder())->seedForPractice($practice);
+
             $this->command->info('Clinic seeded: 5 Practitioners (including Admin), 50 Patients, and a mess of Financial States.');
 
         } catch (\Throwable $e) {

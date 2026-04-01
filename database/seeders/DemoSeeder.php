@@ -428,6 +428,9 @@ class DemoSeeder extends Seeder
         // Seed inventory products (if add-on is included)
         $this->call(InventoryProductSeeder::class);
 
+        // Seed default communication templates and rules
+        (new DefaultMessageTemplatesSeeder())->seedForPractice($practice);
+
         $this->command->info('Demo data seeded successfully.');
         $this->command->info('  Practice : Serenity Acupuncture & Wellness');
         $this->command->info('  Timezone : America/Los_Angeles');

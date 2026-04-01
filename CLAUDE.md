@@ -79,10 +79,14 @@
 - **Every form field on a custom Page needs a matching public Livewire property** — Filament v5 binds field state directly to public properties.
 - **Custom Pages with public properties must declare a `rules()` method** — Livewire v3 throws `MissingRulesException` without it.
 - **Never call `$this->form->getState()` inside `afterStateUpdated` callbacks** — `getState()` triggers Livewire validation too early.
-- **`Filament\Tables\Actions\Action` does not exist in v5** — use `Filament\Actions\Action` for custom table row/toolbar actions. Only these remain under `Filament\Tables\Actions`: `EditAction`, `DeleteAction`, `ViewAction`, `BulkActionGroup`, `ForceDeleteAction`, `RestoreAction`.
-- **`Action::successNotification()` requires a `Notification` object in v5** — `->successNotification()` with no args throws a fatal error. Use `->successNotificationTitle('Done')` for the simple case, or `->successNotification(Notification::make()->title('Done')->success())` for full control.
-- **`Filament\Forms\Components\Grid` moved to `Filament\Schemas\Components\Grid` in v5** — the old namespace does not exist.
-- **`Filament\Tables\Actions\Action` does not exist in v5** — use `Filament\Actions\Action` for custom table row/toolbar actions. Only these remain under `Filament\Tables\Actions`: `EditAction`, `DeleteAction`, `ViewAction`, `BulkActionGroup`, `ForceDeleteAction`, `RestoreAction`.
+- **`Filament\Forms\Components\Grid` moved to `Filament\Schemas\Components\Grid` in v5** — the old namespace does not exist. Search with: `grep -rn 'use Filament\\Forms\\Components\\Grid' app/`
+- **`Filament\Actions\Action::successNotification()` requires a `Notification` object argument in v5** — calling it with no args throws a fatal error. Use `->successNotificationTitle('message')` instead.
+- **`Filament\Tables\Actions\Action` does not exist in v5** — use `Filament\Actions\Action` for custom actions. Only `EditAction`, `DeleteAction`, `ViewAction`, `BulkActionGroup`, `ForceDeleteAction`, `RestoreAction` remain under `Filament\Tables\Actions`.
+
+### Demo Mode
+- **DemoModeMiddleware must block BOTH write HTTP methods AND write GET pages** — blocking only POST/PUT/PATCH/DELETE is not enough; users can still navigate to `/create` and `/edit` URLs directly.
+- The GET `/create`/`/edit` block must be **outside and before** the write-method check. If it is nested inside the write-method `if`, it will never run on GET requests.
+- Pattern: check `is_demo`, then early-return for login/logout, then check `$isWriteMethod || $isWritePage`, then redirect to dashboard with notification.
 
 ### Model State Machine (Spatie)
 - Use `instanceof` for state checks, NEVER `->name` property.
@@ -151,15 +155,21 @@ git push origin master     # triggers GitHub Actions auto-deploy
 - ✅ Trial countdown banner (warning colors)
 - ✅ CSV patient importer with column mapper
 - ✅ Data export (CSV ZIP and JSON formats)
-- ✅ Demo system (automated reset, demo-login)
+- ✅ Demo system: DemoModeMiddleware, DemoSeeder, ResetDemoDataJob, ResetDemoCommand, /demo-login route
+- ✅ demo.practiqapp.com live with SSL
 - ✅ GitHub Actions CI/CD pipeline
 
 ### Test Coverage
-- **133 tests passing (100%)**
+- **133/133 tests passing (100%)**
 - Integration tests for checkout, subscriptions, trial, registration
 - CSV import tests
 - Data export tests (CSRF excluded for testing)
 - Filament smoke tests (Index/Edit pages for all resources)
+- PracticeFactory sets `trial_ends_at = +30 days` so test practices pass RequiresActiveSubscription middleware
+
+### Pending Production Fixes (applied via docker cp — not yet in git)
+- **DemoModeMiddleware** — GET /create and /edit block deployed manually; needs permanent rebuild via GitHub Actions to survive container restarts
+- **InventoryProductForm** — Grid namespace fixed on disk; needs rebuild to confirm clean
 
 ---
 
@@ -184,9 +194,10 @@ git push origin master     # triggers GitHub Actions auto-deploy
 
 ## Immediate Next Steps
 
-1. **Deploy Demo to production** — Push to master to trigger deployment
-2. **Verify Demo reset** — Run `php artisan demo:reset` on production to populate serenity acupuncture data
-3. **Discipline-based feature visibility** — Hide acupuncture fields for massage therapists
+1. **Deploy DemoModeMiddleware fix permanently** — Merge dev → master, push to trigger GitHub Actions rebuild; docker cp fix will not survive a container restart
+2. **Run full Filament v5 namespace audit** — Scan entire codebase for any remaining v4 namespaces before they surface on production
+3. **Test complete demo walkthrough** — After rebuild, verify all demo pages load, write actions are blocked, and reset works
+4. **Set up email service** — Configure Mailgun or Postmark for transactional email (welcome, intake notifications)
 
 ---
 

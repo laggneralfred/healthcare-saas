@@ -1,6 +1,7 @@
 <?php
 
 use App\Jobs\CheckLowStockJob;
+use App\Jobs\DispatchAppointmentRemindersJob;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schedule;
@@ -15,3 +16,9 @@ Schedule::job(new CheckLowStockJob())
     ->at('08:00')
     ->name('check-low-stock')
     ->description('Check inventory for low stock and send notifications');
+
+// Dispatch appointment reminders every 15 minutes
+Schedule::job(new DispatchAppointmentRemindersJob())
+    ->everyFifteenMinutes()
+    ->name('dispatch-appointment-reminders')
+    ->withoutOverlapping();

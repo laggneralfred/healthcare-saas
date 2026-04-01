@@ -1,0 +1,59 @@
+<?php
+
+namespace App\Filament\Resources\MessageTemplates\Schemas;
+
+use App\Models\MessageTemplate;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
+use Filament\Schemas\Components\Section;
+use Filament\Schemas\Schema;
+
+class MessageTemplateForm
+{
+    public static function configure(Schema $schema): Schema
+    {
+        return $schema
+            ->components([
+                Section::make('Template Details')
+                    ->schema([
+                        TextInput::make('name')
+                            ->required()
+                            ->maxLength(255),
+
+                        Select::make('channel')
+                            ->options(['email' => 'Email', 'sms' => 'SMS'])
+                            ->default('email')
+                            ->required()
+                            ->live(),
+
+                        Select::make('trigger_event')
+                            ->options(MessageTemplate::triggerEventLabels())
+                            ->required(),
+
+                        TextInput::make('subject')
+                            ->label('Subject line')
+                            ->maxLength(255)
+                            ->visible(fn ($get) => $get('channel') === 'email')
+                            ->helperText('Available variables: {{patient_name}}, {{appointment_date}}, {{appointment_time}}, {{practitioner_name}}, {{practice_name}}, {{appointment_type}}'),
+
+                        Textarea::make('body')
+                            ->required()
+                            ->rows(10)
+                            ->helperText('Available variables: {{patient_name}}, {{appointment_date}}, {{appointment_time}}, {{practitioner_name}}, {{practice_name}}, {{appointment_type}}'),
+                    ]),
+
+                Section::make('Settings')
+                    ->schema([
+                        Toggle::make('is_active')
+                            ->default(true)
+                            ->label('Active'),
+
+                        Toggle::make('is_default')
+                            ->label('Default template')
+                            ->helperText('Default templates cannot be deleted'),
+                    ]),
+            ]);
+    }
+}
