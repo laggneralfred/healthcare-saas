@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\CheckoutSessions\Schemas;
 
 use App\Models\States\CheckoutSession\Open;
+use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
@@ -20,12 +21,8 @@ class CheckoutSessionForm
         return $schema->components([
 
             Section::make('Session Details')->schema([
-                Select::make('practice_id')
-                    ->relationship('practice', 'name')
-                    ->searchable()
-                    ->preload()
-                    ->required()
-                    ->disabledOn('edit'),
+                Hidden::make('practice_id')
+                    ->default(fn () => auth()->user()->practice_id),
 
                 Select::make('appointment_id')
                     ->relationship('appointment', 'id')

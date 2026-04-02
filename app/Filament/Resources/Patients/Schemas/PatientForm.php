@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Patients\Schemas;
 
+use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -17,11 +18,8 @@ class PatientForm
             ->components([
                 Section::make('Patient Details')
                     ->schema([
-                        Select::make('practice_id')
-                            ->relationship('practice', 'name')
-                            ->searchable()
-                            ->preload()
-                            ->required(),
+                        Hidden::make('practice_id')
+                            ->default(fn () => auth()->user()->practice_id),
                         TextInput::make('name')
                             ->required()
                             ->maxLength(255),
