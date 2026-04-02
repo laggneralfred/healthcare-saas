@@ -127,10 +127,12 @@ class CSVImportService
             'phone',
             'dob',
             'gender',
-            'address',
+            'address_line_1',
+            'address_line_2',
             'city',
             'state',
             'postal_code',
+            'country',
         ];
 
         return implode(',', $headers) . "\n";

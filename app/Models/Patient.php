@@ -17,14 +17,24 @@ class Patient extends Model
         'name',
         'first_name',
         'last_name',
+        'middle_name',
+        'preferred_name',
         'email',
         'phone',
         'dob',
         'gender',
-        'address',
+        'pronouns',
+        'address_line_1',
+        'address_line_2',
         'city',
         'state',
         'postal_code',
+        'country',
+        'emergency_contact_name',
+        'emergency_contact_phone',
+        'emergency_contact_relationship',
+        'occupation',
+        'referred_by',
         'notes',
         'is_patient',
     ];
@@ -33,10 +43,24 @@ class Patient extends Model
     {
         return [
             'is_patient' => 'boolean',
-            'dob' => 'date',
+            'dob'        => 'date',
             'created_at' => 'datetime',
             'updated_at' => 'datetime',
         ];
+    }
+
+    protected static function booted(): void
+    {
+        static::saving(function (Patient $patient) {
+            if ($patient->first_name || $patient->last_name) {
+                $patient->name = trim("{$patient->first_name} {$patient->last_name}");
+            }
+        });
+    }
+
+    public function getFullNameAttribute(): string
+    {
+        return trim("{$this->first_name} {$this->last_name}");
     }
 
     public function practice(): BelongsTo

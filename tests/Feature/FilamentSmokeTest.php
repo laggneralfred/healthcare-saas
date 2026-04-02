@@ -20,6 +20,7 @@ use App\Models\Practitioner;
 use App\Models\ServiceFee;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Schema;
 use Tests\TestCase;
 
 class FilamentSmokeTest extends TestCase
@@ -105,6 +106,43 @@ class FilamentSmokeTest extends TestCase
             }
 
             $response->assertSuccessful("Edit page for {$resourceName} failed to load at {$url}");
+        }
+    }
+
+    public function test_communications_tables_exist(): void
+    {
+        $tables = [
+            'message_templates',
+            'communication_rules',
+            'message_logs',
+            'patient_communication_preferences',
+        ];
+
+        foreach ($tables as $table) {
+            $this->assertTrue(
+                Schema::hasTable($table),
+                "Table '{$table}' does not exist — run php artisan migrate"
+            );
+        }
+    }
+
+    public function test_create_pages_load(): void
+    {
+        $createUrls = [
+            '/admin/patients/create',
+            '/admin/practitioners/create',
+            '/admin/inventory-products/create',
+            '/admin/appointments/create',
+        ];
+
+        foreach ($createUrls as $url) {
+            $response = $this->actingAs($this->admin)->get($url);
+
+            if ($response->status() !== 200) {
+                dump("Failed: Create page {$url} returned {$response->status()}");
+            }
+
+            $response->assertSuccessful("Create page {$url} failed to load");
         }
     }
 

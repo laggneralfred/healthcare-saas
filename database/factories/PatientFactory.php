@@ -17,7 +17,9 @@ class PatientFactory extends Factory
     {
         return [
             'practice_id' => Practice::factory(),
-            'name'        => fake()->name(),
+            'first_name'  => fake()->firstName(),
+            'last_name'   => fake()->lastName(),
+            'name'        => fake()->name(), // overwritten by Patient::saving() event
             'email'       => fake()->unique()->safeEmail(),
             'phone'       => fake()->phoneNumber(),
             'notes'       => fake()->optional(0.3)->sentence(),

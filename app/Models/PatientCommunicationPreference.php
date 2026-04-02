@@ -29,6 +29,18 @@ class PatientCommunicationPreference extends Model
         ];
     }
 
+    protected static function booted(): void
+    {
+        static::creating(function (PatientCommunicationPreference $pref) {
+            if (empty($pref->practice_id) && $pref->patient_id) {
+                $patient = \App\Models\Patient::withoutPracticeScope()->find($pref->patient_id);
+                if ($patient) {
+                    $pref->practice_id = $patient->practice_id;
+                }
+            }
+        });
+    }
+
     public function practice(): BelongsTo
     {
         return $this->belongsTo(Practice::class);

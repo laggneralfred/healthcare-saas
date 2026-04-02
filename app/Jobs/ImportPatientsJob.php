@@ -50,12 +50,12 @@ class ImportPatientsJob implements ShouldQueue
                         $lastName = $rowData['last_name'] ?? null;
                         $email = $rowData['email'] ?? null;
                         $phone = $rowData['phone'] ?? null;
-                        $dob = $rowData['dob'] ?? null;
+                        $dob = $rowData['dob'] ?? $rowData['date_of_birth'] ?? null;
                         $gender = $rowData['gender'] ?? null;
-                        $address = $rowData['address'] ?? null;
+                        $address = $rowData['address_line_1'] ?? $rowData['address'] ?? null;
                         $city = $rowData['city'] ?? null;
                         $state = $rowData['state'] ?? null;
-                        $postalCode = $rowData['postal_code'] ?? null;
+                        $postalCode = $rowData['postal_code'] ?? $rowData['zip'] ?? null;
 
                         // Validate required fields: first_name and last_name
                         if (!$firstName || !$lastName) {
@@ -96,11 +96,15 @@ class ImportPatientsJob implements ShouldQueue
                             $phoneParsed = CSVImportService::formatPhone($phone);
                         }
 
-                        // Sanitize gender
-                        $genderLower = $gender ? strtolower(trim($gender)) : null;
-                        if ($genderLower && !in_array($genderLower, ['male', 'female', 'other', 'prefer_not_to_say'])) {
-                            $genderLower = null;
-                        }
+                        // Normalize gender to canonical display values
+                        $genderMap = [
+                            'male' => 'Male', 'm' => 'Male',
+                            'female' => 'Female', 'f' => 'Female',
+                            'non-binary' => 'Non-binary', 'nonbinary' => 'Non-binary', 'non_binary' => 'Non-binary',
+                            'prefer_not_to_say' => 'Prefer not to say', 'prefer not to say' => 'Prefer not to say',
+                            'other' => 'Other',
+                        ];
+                        $genderLower = $gender ? ($genderMap[strtolower(trim($gender))] ?? null) : null;
 
                         // Create patient
                         Patient::withoutPracticeScope()->create([
@@ -112,10 +116,10 @@ class ImportPatientsJob implements ShouldQueue
                             'phone' => $phoneParsed,
                             'dob' => $dobParsed,
                             'gender' => $genderLower,
-                            'address' => $address ?: null,
-                            'city' => $city ?: null,
-                            'state' => $state ?: null,
-                            'postal_code' => $postalCode ?: null,
+                            'address_line_1' => $address ?: null,
+                            'city'           => $city ?: null,
+                            'state'          => $state ?: null,
+                            'postal_code'    => $postalCode ?: null,
                             'is_patient' => true,
                         ]);
 

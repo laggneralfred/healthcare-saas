@@ -64,7 +64,8 @@ class AuditLogTest extends TestCase
 
         $patient = Patient::factory()->create([
             'practice_id' => $this->practice->id,
-            'name'        => 'Alice Audit',
+            'first_name'  => 'Alice',
+            'last_name'   => 'Audit',
         ]);
 
         $this->assertDatabaseHas('activity_logs', [

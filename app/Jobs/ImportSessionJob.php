@@ -94,28 +94,35 @@ class ImportSessionJob implements ShouldQueue
                         $seenInFile[$emailLower] = true;
                     }
 
-                    $dobParsed    = ($row['dob'] ?? null) ? CSVImportService::parseDate($row['dob']) : null;
-                    $phoneParsed  = ($row['phone'] ?? null) ? CSVImportService::formatPhone($row['phone']) : null;
-                    $genderLower  = isset($row['gender']) ? strtolower(trim($row['gender'])) : null;
-
-                    if ($genderLower && !in_array($genderLower, ['male', 'female', 'other', 'prefer_not_to_say'])) {
-                        $genderLower = null;
-                    }
+                    $dobParsed   = ($row['dob'] ?? $row['date_of_birth'] ?? null)
+                        ? CSVImportService::parseDate($row['dob'] ?? $row['date_of_birth'])
+                        : null;
+                    $phoneParsed = ($row['phone'] ?? null) ? CSVImportService::formatPhone($row['phone']) : null;
+                    $genderMap   = [
+                        'male' => 'Male', 'm' => 'Male',
+                        'female' => 'Female', 'f' => 'Female',
+                        'non-binary' => 'Non-binary', 'nonbinary' => 'Non-binary', 'non_binary' => 'Non-binary',
+                        'prefer_not_to_say' => 'Prefer not to say', 'prefer not to say' => 'Prefer not to say',
+                        'other' => 'Other',
+                    ];
+                    $genderLower = isset($row['gender'])
+                        ? ($genderMap[strtolower(trim($row['gender']))] ?? null)
+                        : null;
 
                     Patient::withoutPracticeScope()->create([
-                        'practice_id' => $practiceId,
-                        'first_name'  => $firstName,
-                        'last_name'   => $lastName,
-                        'name'        => "{$firstName} {$lastName}",
-                        'email'       => $email ?: null,
-                        'phone'       => $phoneParsed,
-                        'dob'         => $dobParsed,
-                        'gender'      => $genderLower,
-                        'address'     => ($row['address'] ?? null) ?: null,
-                        'city'        => ($row['city'] ?? null) ?: null,
-                        'state'       => ($row['state'] ?? null) ?: null,
-                        'postal_code' => ($row['postal_code'] ?? null) ?: null,
-                        'is_patient'  => true,
+                        'practice_id'   => $practiceId,
+                        'first_name'    => $firstName,
+                        'last_name'     => $lastName,
+                        'name'          => "{$firstName} {$lastName}",
+                        'email'         => $email ?: null,
+                        'phone'         => $phoneParsed,
+                        'dob'           => $dobParsed,
+                        'gender'        => $genderLower,
+                        'address_line_1' => ($row['address_line_1'] ?? $row['address'] ?? null) ?: null,
+                        'city'          => ($row['city'] ?? null) ?: null,
+                        'state'         => ($row['state'] ?? null) ?: null,
+                        'postal_code'   => ($row['postal_code'] ?? $row['zip'] ?? null) ?: null,
+                        'is_patient'    => true,
                     ]);
 
                     $imported++;

@@ -238,7 +238,7 @@ class CsvImporterTest extends TestCase
         $this->assertNotNull($alice);
         $this->assertEquals('Alice', $alice->first_name);
         $this->assertEquals('Smith', $alice->last_name);
-        $this->assertEquals('female', $alice->gender);
+        $this->assertEquals('Female', $alice->gender);
         $this->assertEquals('1985-06-15', $alice->dob->format('Y-m-d'));
 
         $session->refresh();
