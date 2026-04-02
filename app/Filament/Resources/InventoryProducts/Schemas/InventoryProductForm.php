@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\InventoryProducts\Schemas;
 
+use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
@@ -15,6 +16,9 @@ class InventoryProductForm
     {
         return $schema
             ->components([
+                Hidden::make('practice_id')
+                    ->default(fn () => auth()->user()->practice_id),
+
                 Grid::make(2)
                     ->schema([
                         TextInput::make('name')

@@ -20,6 +20,9 @@ class CommunicationRuleForm
     {
         return $schema
             ->components([
+                Hidden::make('practice_id')
+                    ->default(fn () => auth()->user()->practice_id),
+
                 Section::make('Template & Scope')
                     ->schema([
                         Select::make('message_template_id')

@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\MessageTemplates\Schemas;
 
 use App\Models\MessageTemplate;
+use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -16,6 +17,9 @@ class MessageTemplateForm
     {
         return $schema
             ->components([
+                Hidden::make('practice_id')
+                    ->default(fn () => auth()->user()->practice_id),
+
                 Section::make('Template Details')
                     ->schema([
                         TextInput::make('name')

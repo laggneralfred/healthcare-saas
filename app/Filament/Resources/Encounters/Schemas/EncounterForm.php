@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Encounters\Schemas;
 
 use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -17,6 +18,9 @@ class EncounterForm
     public static function configure(Schema $schema): Schema
     {
         return $schema->components([
+            Hidden::make('practice_id')
+                ->default(fn () => auth()->user()->practice_id),
+
             Section::make('Encounter Details')
                 ->schema([
                     Select::make('patient_id')
