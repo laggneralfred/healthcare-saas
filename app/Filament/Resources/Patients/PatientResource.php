@@ -39,6 +39,7 @@ class PatientResource extends Resource
             RelationManagers\AppointmentsRelationManager::class,
             RelationManagers\EncountersRelationManager::class,
             RelationManagers\CheckoutSessionsRelationManager::class,
+            RelationManagers\IntakeSubmissionsRelationManager::class,
         ];
     }
 

@@ -5,6 +5,7 @@ namespace App\Filament\Resources\IntakeSubmissions;
 use App\Filament\Resources\IntakeSubmissions\Pages\CreateIntakeSubmission;
 use App\Filament\Resources\IntakeSubmissions\Pages\EditIntakeSubmission;
 use App\Filament\Resources\IntakeSubmissions\Pages\ListIntakeSubmissions;
+use App\Filament\Resources\IntakeSubmissions\Pages\ViewIntakeSubmission;
 use App\Filament\Resources\IntakeSubmissions\Schemas\IntakeSubmissionForm;
 use App\Filament\Resources\IntakeSubmissions\Tables\IntakeSubmissionsTable;
 use App\Filament\Traits\BelongsToPractice;
@@ -34,17 +35,16 @@ class IntakeSubmissionResource extends Resource
 
     public static function getRelations(): array
     {
-        return [
-            //
-        ];
+        return [];
     }
 
     public static function getPages(): array
     {
         return [
-            'index' => ListIntakeSubmissions::route('/'),
+            'index'  => ListIntakeSubmissions::route('/'),
             'create' => CreateIntakeSubmission::route('/create'),
-            'edit' => EditIntakeSubmission::route('/{record}/edit'),
+            'view'   => ViewIntakeSubmission::route('/{record}'),
+            'edit'   => EditIntakeSubmission::route('/{record}/edit'),
         ];
     }
 }
