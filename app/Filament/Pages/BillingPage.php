@@ -5,7 +5,6 @@ namespace App\Filament\Pages;
 use App\Models\SubscriptionPlan;
 use BackedEnum;
 use Filament\Actions\Action;
-use Filament\Forms\Components\Radio;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Filament\Support\Icons\Heroicon;
@@ -205,22 +204,9 @@ class BillingPage extends Page
         $subscription = $practice->subscription('default');
 
         if ($subscription && in_array($subscription->stripe_status, ['active', 'trialing'])) {
-            try {
-                $subscription->swap($plan->stripe_price_id);
-
-                // Refresh reactive state so the UI reflects the new plan immediately
-                $this->loadSubscriptionState();
-
-                Notification::make()
-                    ->title('Plan updated')
-                    ->body("Switched to {$plan->name}.")
-                    ->success()
-                    ->send();
-
-                return null;
-            } catch (\Stripe\Exception\InvalidRequestException $e) {
-                $subscription->delete();
-            }
+            // Existing subscriber — send to Stripe Customer Portal to change plan
+            // without re-entering payment details
+            return redirect($practice->billingPortalUrl(route('filament.admin.pages.billing')));
         }
 
         $checkout = $practice->newSubscription('default', $plan->stripe_price_id)
@@ -237,72 +223,11 @@ class BillingPage extends Page
     protected function getHeaderActions(): array
     {
         return [
-            Action::make('changePlan')
-                ->label('Change Plan')
-                ->icon('heroicon-o-arrow-path')
-                ->color('primary')
-                ->visible(fn () => (bool) $this->getPractice())
-                ->form(fn () => [
-                    Radio::make('plan_key')
-                        ->label('Select Plan')
-                        ->options(
-                            SubscriptionPlan::where('is_active', true)
-                                ->orderBy('price_monthly')
-                                ->pluck('name', 'key')
-                                ->toArray()
-                        )
-                        ->descriptions(
-                            SubscriptionPlan::where('is_active', true)
-                                ->orderBy('price_monthly')
-                                ->get()
-                                ->mapWithKeys(fn ($plan) => [
-                                    $plan->key => $plan->monthlyDollars() . '/mo · ' . $plan->practitionerLimit() . ' practitioners',
-                                ])
-                                ->toArray()
-                        )
-                        ->required()
-                        ->default(fn () => $this->getCurrentPlan()?->key),
-                ])
-                ->modalHeading('Change Subscription Plan')
-                ->modalDescription('Select the plan that best fits your practice.')
-                ->action(function (array $data): void {
-                    $practice = $this->getPractice();
-                    $plan     = SubscriptionPlan::where('key', $data['plan_key'])->firstOrFail();
-
-                    if (! $plan->stripe_price_id) {
-                        Notification::make()
-                            ->title('Plan not available')
-                            ->body('This plan has not been configured in Stripe yet.')
-                            ->warning()
-                            ->send();
-
-                        return;
-                    }
-
-                    $subscription = $practice->subscription('default');
-
-                    if ($subscription) {
-                        $subscription->swap($plan->stripe_price_id);
-                        $this->loadSubscriptionState();
-                        Notification::make()
-                            ->title('Plan updated')
-                            ->body("Switched to {$plan->name}.")
-                            ->success()
-                            ->send();
-                    } else {
-                        Notification::make()
-                            ->title('No active subscription')
-                            ->body('Subscribe via a plan below or the Stripe billing portal.')
-                            ->warning()
-                            ->send();
-                    }
-                }),
-
-            Action::make('billingPortal')
-                ->label('Stripe Billing Portal')
-                ->icon('heroicon-o-arrow-top-right-on-square')
+            Action::make('manageBilling')
+                ->label('Manage Billing')
+                ->icon('heroicon-o-credit-card')
                 ->color('gray')
-                ->visible(fn () => (bool) $this->getPractice()?->stripe_id)
+                ->visible(fn () => $this->hasActiveSubscription && (bool) $this->getPractice()?->stripe_id)
                 ->url(function (): ?string {
                     try {
                         return $this->getPractice()
