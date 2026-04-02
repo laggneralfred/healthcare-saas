@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\ConsentRecords\Schemas;
 
+use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
@@ -14,9 +15,8 @@ class ConsentRecordForm
     {
         return $schema
             ->components([
-                Select::make('practice_id')
-                    ->relationship('practice', 'name')
-                    ->searchable()->preload()->required(),
+                Hidden::make('practice_id')
+                    ->default(fn () => auth()->user()->practice_id),
 
                 Select::make('patient_id')
                     ->relationship('patient', 'name')

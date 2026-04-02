@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\InventoryMovements\Schemas;
 
+use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
 use Filament\Schemas\Schema;
@@ -12,9 +13,8 @@ class InventoryMovementForm
     {
         return $schema
             ->components([
-                TextInput::make('practice_id')
-                    ->required()
-                    ->numeric(),
+                Hidden::make('practice_id')
+                    ->default(fn () => auth()->user()->practice_id),
                 TextInput::make('inventory_product_id')
                     ->required(),
                 TextInput::make('type')

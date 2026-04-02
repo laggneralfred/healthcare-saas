@@ -8,6 +8,7 @@ use App\Models\States\Appointment\Completed;
 use App\Models\States\Appointment\InProgress;
 use App\Models\States\Appointment\Scheduled;
 use Filament\Forms\Components\DateTimePicker;
+use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\Toggle;
@@ -19,11 +20,8 @@ class AppointmentForm
     {
         return $schema
             ->components([
-                Select::make('practice_id')
-                    ->relationship('practice', 'name')
-                    ->searchable()
-                    ->preload()
-                    ->required(),
+                Hidden::make('practice_id')
+                    ->default(fn () => auth()->user()->practice_id),
 
                 Select::make('patient_id')
                     ->relationship('patient', 'name')
