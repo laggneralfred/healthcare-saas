@@ -9,7 +9,6 @@ use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
-use Filament\Notifications\Notification;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\Filter;
@@ -96,11 +95,7 @@ class InventoryProductsTable
                             'notes' => $data['notes'] ?? null,
                         ]);
                     })
-                    ->successNotification(
-                        Notification::make()
-                            ->success()
-                            ->title('Inventory restocked successfully'),
-                    ),
+                    ->successNotificationTitle('Inventory restocked successfully'),
                 Action::make('adjust')
                     ->label('Adjust Stock')
                     ->icon('heroicon-m-adjustments-horizontal')
@@ -122,11 +117,7 @@ class InventoryProductsTable
                             'notes' => $data['notes'] ?? null,
                         ]);
                     })
-                    ->successNotification(
-                        Notification::make()
-                            ->success()
-                            ->title('Stock adjusted successfully'),
-                    ),
+                    ->successNotificationTitle('Stock adjusted successfully'),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

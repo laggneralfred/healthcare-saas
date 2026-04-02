@@ -6,11 +6,14 @@ use App\Models\ActivityLog;
 use App\Models\Appointment;
 use App\Models\AppointmentType;
 use App\Models\CheckoutSession;
+use App\Models\CommunicationRule;
 use App\Models\ConsentRecord;
 use App\Models\Encounter;
 use App\Models\IntakeSubmission;
 use App\Models\InventoryMovement;
 use App\Models\InventoryProduct;
+use App\Models\MessageLog;
+use App\Models\MessageTemplate;
 use App\Models\Patient;
 use App\Models\Practice;
 use App\Models\Practitioner;
@@ -62,6 +65,9 @@ class FilamentSmokeTest extends TestCase
             'ServiceFees',
             'ActivityLogs',
             'InventoryMovements',
+            'MessageTemplates',
+            'CommunicationRules',
+            'MessageLogs',
         ];
     }
 
@@ -84,8 +90,8 @@ class FilamentSmokeTest extends TestCase
     public function test_all_resource_edit_pages_load(): void
     {
         foreach ($this->getResources() as $resourceName) {
-            // Skip Edit page test for resources known to only have an Index
-            if (in_array($resourceName, ['ActivityLogs', 'InventoryMovements'])) {
+            // Skip Edit page test for resources known to only have an Index or be read-only
+            if (in_array($resourceName, ['ActivityLogs', 'InventoryMovements', 'MessageLogs'])) {
                 continue;
             }
 
@@ -99,6 +105,25 @@ class FilamentSmokeTest extends TestCase
             }
 
             $response->assertSuccessful("Edit page for {$resourceName} failed to load at {$url}");
+        }
+    }
+
+    public function test_custom_pages_load(): void
+    {
+        $pages = [
+            '/admin/export-data',
+            '/admin/settings/import-patients',
+            '/admin/communications-dashboard',
+        ];
+
+        foreach ($pages as $url) {
+            $response = $this->actingAs($this->admin)->get($url);
+
+            if ($response->status() !== 200) {
+                dump("Failed: Custom page {$url} returned {$response->status()}");
+            }
+
+            $response->assertSuccessful("Custom page {$url} failed to load");
         }
     }
 
@@ -125,6 +150,43 @@ class FilamentSmokeTest extends TestCase
             'InventoryMovements' => InventoryMovement::factory()->create([
                 'practice_id' => $this->practice->id,
                 'inventory_product_id' => InventoryProduct::factory()->create(['practice_id' => $this->practice->id])->id,
+            ]),
+            'MessageTemplates' => MessageTemplate::withoutPracticeScope()->create([
+                'practice_id'   => $this->practice->id,
+                'name'          => 'Test Template',
+                'channel'       => 'email',
+                'trigger_event' => 'reminder_24h',
+                'subject'       => 'Test Subject',
+                'body'          => 'Test body',
+                'is_active'     => true,
+                'is_default'    => false,
+            ]),
+            'CommunicationRules' => (function () {
+                $template = MessageTemplate::withoutPracticeScope()->create([
+                    'practice_id'   => $this->practice->id,
+                    'name'          => 'Rule Template',
+                    'channel'       => 'email',
+                    'trigger_event' => 'reminder_24h',
+                    'subject'       => 'Subject',
+                    'body'          => 'Body',
+                    'is_active'     => true,
+                    'is_default'    => false,
+                ]);
+                return CommunicationRule::withoutPracticeScope()->create([
+                    'practice_id'            => $this->practice->id,
+                    'message_template_id'    => $template->id,
+                    'trigger_event'          => 'reminder_24h',
+                    'send_at_offset_minutes' => -1440,
+                    'is_active'              => true,
+                ]);
+            })(),
+            'MessageLogs' => MessageLog::withoutPracticeScope()->create([
+                'practice_id' => $this->practice->id,
+                'patient_id'  => Patient::factory()->create(['practice_id' => $this->practice->id])->id,
+                'channel'     => 'email',
+                'recipient'   => 'test@example.com',
+                'body'        => 'Test',
+                'status'      => 'sent',
             ]),
         };
     }
