@@ -18,10 +18,12 @@ class AppointmentTypeForm
 
                 TextInput::make('name')
                     ->required()
-                    ->maxLength(255),
+                    ->maxLength(255)
+                    ->disabledOn('view'),
 
                 Toggle::make('is_active')
-                    ->default(true),
+                    ->default(true)
+                    ->disabledOn('view'),
             ]);
     }
 }

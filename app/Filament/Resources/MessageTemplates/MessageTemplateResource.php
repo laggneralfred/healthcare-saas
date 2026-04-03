@@ -5,6 +5,7 @@ namespace App\Filament\Resources\MessageTemplates;
 use App\Filament\Resources\MessageTemplates\Pages\CreateMessageTemplate;
 use App\Filament\Resources\MessageTemplates\Pages\EditMessageTemplate;
 use App\Filament\Resources\MessageTemplates\Pages\ListMessageTemplates;
+use App\Filament\Resources\MessageTemplates\Pages\ViewMessageTemplate;
 use App\Filament\Resources\MessageTemplates\Schemas\MessageTemplateForm;
 use App\Filament\Resources\MessageTemplates\Tables\MessageTemplatesTable;
 use App\Filament\Traits\BelongsToPractice;
@@ -39,6 +40,7 @@ class MessageTemplateResource extends Resource
         return [
             'index'  => ListMessageTemplates::route('/'),
             'create' => CreateMessageTemplate::route('/create'),
+            'view'   => ViewMessageTemplate::route('/{record}'),
             'edit'   => EditMessageTemplate::route('/{record}/edit'),
         ];
     }

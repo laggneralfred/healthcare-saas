@@ -17,10 +17,12 @@ class ServiceFeeForm
 
             TextInput::make('name')
                 ->required()
-                ->maxLength(255),
+                ->maxLength(255)
+                ->disabledOn('view'),
 
             TextInput::make('short_description')
-                ->maxLength(255),
+                ->maxLength(255)
+                ->disabledOn('view'),
 
             TextInput::make('default_price')
                 ->label('Default Price ($)')
@@ -28,11 +30,13 @@ class ServiceFeeForm
                 ->minValue(0)
                 ->step(0.01)
                 ->required()
-                ->default(0),
+                ->default(0)
+                ->disabledOn('view'),
 
             Toggle::make('is_active')
                 ->label('Active')
-                ->default(true),
+                ->default(true)
+                ->disabledOn('view'),
         ]);
     }
 }

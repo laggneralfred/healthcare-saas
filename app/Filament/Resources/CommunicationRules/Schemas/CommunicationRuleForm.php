@@ -29,7 +29,8 @@ class CommunicationRuleForm
                             ->label('Message Template')
                             ->options(fn () => MessageTemplate::active()->pluck('name', 'id'))
                             ->searchable()
-                            ->required(),
+                            ->required()
+                            ->disabledOn('view'),
 
                         Select::make('practitioner_id')
                             ->label('Practitioner')
@@ -38,13 +39,15 @@ class CommunicationRuleForm
                                 ->pluck('user.name', 'id')
                                 ->filter())
                             ->placeholder('All practitioners')
-                            ->searchable(),
+                            ->searchable()
+                            ->disabledOn('view'),
 
                         Select::make('appointment_type_id')
                             ->label('Appointment Type')
                             ->options(fn () => AppointmentType::pluck('name', 'id'))
                             ->placeholder('All types')
-                            ->searchable(),
+                            ->searchable()
+                            ->disabledOn('view'),
                     ]),
 
                 Section::make('Timing')
@@ -63,7 +66,8 @@ class CommunicationRuleForm
                                 if ($state === 'at_booking') {
                                     $set('send_at_offset_minutes', 0);
                                 }
-                            }),
+                            })
+                            ->disabledOn('view'),
 
                         Grid::make(2)
                             ->schema([
@@ -73,7 +77,8 @@ class CommunicationRuleForm
                                     ->minValue(1)
                                     ->default(24)
                                     ->live()
-                                    ->afterStateUpdated(fn ($state, $set, $get) => self::updateOffset($set, $get)),
+                                    ->afterStateUpdated(fn ($state, $set, $get) => self::updateOffset($set, $get))
+                                    ->disabledOn('view'),
 
                                 Select::make('timing_unit')
                                     ->label('Unit')
@@ -85,7 +90,8 @@ class CommunicationRuleForm
                                     ])
                                     ->default('hours')
                                     ->live()
-                                    ->afterStateUpdated(fn ($state, $set, $get) => self::updateOffset($set, $get)),
+                                    ->afterStateUpdated(fn ($state, $set, $get) => self::updateOffset($set, $get))
+                                    ->disabledOn('view'),
                             ])
                             ->visible(fn ($get) => $get('timing_direction') !== 'at_booking'),
 
@@ -116,7 +122,8 @@ class CommunicationRuleForm
                     ->schema([
                         Toggle::make('is_active')
                             ->default(true)
-                            ->label('Active'),
+                            ->label('Active')
+                            ->disabledOn('view'),
                     ]),
             ]);
     }

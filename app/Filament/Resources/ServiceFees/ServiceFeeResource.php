@@ -5,6 +5,7 @@ namespace App\Filament\Resources\ServiceFees;
 use App\Filament\Resources\ServiceFees\Pages\CreateServiceFee;
 use App\Filament\Resources\ServiceFees\Pages\EditServiceFee;
 use App\Filament\Resources\ServiceFees\Pages\ListServiceFees;
+use App\Filament\Resources\ServiceFees\Pages\ViewServiceFee;
 use App\Filament\Resources\ServiceFees\Schemas\ServiceFeeForm;
 use App\Filament\Resources\ServiceFees\Tables\ServiceFeesTable;
 use App\Filament\Traits\BelongsToPractice;
@@ -42,6 +43,7 @@ class ServiceFeeResource extends Resource
         return [
             'index'  => ListServiceFees::route('/'),
             'create' => CreateServiceFee::route('/create'),
+            'view'   => ViewServiceFee::route('/{record}'),
             'edit'   => EditServiceFee::route('/{record}/edit'),
         ];
     }

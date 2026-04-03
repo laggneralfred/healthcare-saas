@@ -24,39 +24,46 @@ class MessageTemplateForm
                     ->schema([
                         TextInput::make('name')
                             ->required()
-                            ->maxLength(255),
+                            ->maxLength(255)
+                            ->disabledOn('view'),
 
                         Select::make('channel')
                             ->options(['email' => 'Email', 'sms' => 'SMS'])
                             ->default('email')
                             ->required()
-                            ->live(),
+                            ->live()
+                            ->disabledOn('view'),
 
                         Select::make('trigger_event')
                             ->options(MessageTemplate::triggerEventLabels())
-                            ->required(),
+                            ->required()
+                            ->disabledOn('view'),
 
                         TextInput::make('subject')
                             ->label('Subject line')
                             ->maxLength(255)
                             ->visible(fn ($get) => $get('channel') === 'email')
-                            ->helperText('Available variables: {{patient_name}}, {{appointment_date}}, {{appointment_time}}, {{practitioner_name}}, {{practice_name}}, {{appointment_type}}'),
+                            ->helperText('Available variables: {{patient_name}}, {{appointment_date}}, {{appointment_time}}, {{practitioner_name}}, {{practice_name}}, {{appointment_type}}')
+                            ->disabledOn('view'),
 
                         Textarea::make('body')
                             ->required()
                             ->rows(10)
-                            ->helperText('Available variables: {{patient_name}}, {{appointment_date}}, {{appointment_time}}, {{practitioner_name}}, {{practice_name}}, {{appointment_type}}'),
+                            ->helperText('Available variables: {{patient_name}}, {{appointment_date}}, {{appointment_time}}, {{practitioner_name}}, {{practice_name}}, {{appointment_type}}')
+                            ->disabledOn('view'),
                     ]),
 
                 Section::make('Settings')
                     ->schema([
                         Toggle::make('is_active')
                             ->default(true)
-                            ->label('Active'),
+                            ->label('Active')
+                            ->disabledOn('view'),
 
                         Toggle::make('is_default')
                             ->label('Default template')
-                            ->helperText('Default templates cannot be deleted'),
+                            ->helperText('Default templates cannot be deleted')
+                            ->disabledOn('view'),
                     ]),
             ]);
     }

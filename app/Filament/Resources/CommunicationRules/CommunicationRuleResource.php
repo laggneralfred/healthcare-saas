@@ -5,6 +5,7 @@ namespace App\Filament\Resources\CommunicationRules;
 use App\Filament\Resources\CommunicationRules\Pages\CreateCommunicationRule;
 use App\Filament\Resources\CommunicationRules\Pages\EditCommunicationRule;
 use App\Filament\Resources\CommunicationRules\Pages\ListCommunicationRules;
+use App\Filament\Resources\CommunicationRules\Pages\ViewCommunicationRule;
 use App\Filament\Resources\CommunicationRules\Schemas\CommunicationRuleForm;
 use App\Filament\Resources\CommunicationRules\Tables\CommunicationRulesTable;
 use App\Filament\Traits\BelongsToPractice;
@@ -39,6 +40,7 @@ class CommunicationRuleResource extends Resource
         return [
             'index'  => ListCommunicationRules::route('/'),
             'create' => CreateCommunicationRule::route('/create'),
+            'view'   => ViewCommunicationRule::route('/{record}'),
             'edit'   => EditCommunicationRule::route('/{record}/edit'),
         ];
     }
