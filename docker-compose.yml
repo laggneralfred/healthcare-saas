@@ -147,7 +147,7 @@ services:
     container_name: healthcare-saas-queue
     command: php artisan queue:work redis --sleep=3 --tries=3
     healthcheck:
-      test: ["CMD", "pgrep", "-f", "queue:work"]
+      test: ["CMD", "sh", "-c", "kill -0 1"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -204,7 +204,7 @@ services:
     container_name: healthcare-saas-scheduler
     command: php artisan schedule:work
     healthcheck:
-      test: ["CMD", "pgrep", "-f", "schedule:work"]
+      test: ["CMD", "sh", "-c", "kill -0 1"]
       interval: 30s
       timeout: 10s
       retries: 3
