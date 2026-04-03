@@ -76,6 +76,7 @@ class InventoryProductsTable
                 Action::make('restock')
                     ->label('Restock')
                     ->icon('heroicon-m-plus-circle')
+                    ->hidden(fn () => auth()->user()?->isDemo())
                     ->form([
                         TextInput::make('quantity')
                             ->required()
@@ -99,6 +100,7 @@ class InventoryProductsTable
                 Action::make('adjust')
                     ->label('Adjust Stock')
                     ->icon('heroicon-m-adjustments-horizontal')
+                    ->hidden(fn () => auth()->user()?->isDemo())
                     ->form([
                         TextInput::make('quantity')
                             ->required()

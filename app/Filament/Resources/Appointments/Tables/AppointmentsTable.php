@@ -62,6 +62,7 @@ class AppointmentsTable
                     ->label('Send Message')
                     ->icon('heroicon-m-envelope')
                     ->color('info')
+                    ->hidden(fn () => auth()->user()?->isDemo())
                     ->form(fn ($record) => [
                         Select::make('message_template_id')
                             ->label('Template')

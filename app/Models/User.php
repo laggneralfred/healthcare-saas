@@ -37,4 +37,11 @@ class User extends Authenticatable implements FilamentUser
     {
         return $this->belongsTo(Practice::class);
     }
+
+    public function isDemo(): bool
+    {
+        return $this->relationLoaded('practice')
+            ? $this->practice?->is_demo ?? false
+            : $this->practice()->value('is_demo') ?? false;
+    }
 }

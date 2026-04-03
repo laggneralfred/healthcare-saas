@@ -14,6 +14,8 @@ use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
 use Filament\Support\Facades\FilamentView;
 use Filament\View\PanelsRenderHook;
+use Filament\Actions\Action as FilamentAction;
+use Filament\Actions\BulkActionGroup;
 use Filament\Widgets\AccountWidget;
 use Illuminate\Contracts\View\View;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
@@ -51,6 +53,11 @@ class AdminPanelProvider extends PanelProvider
                     return '';
                 }
 
+                // No trial banner for demo users
+                if ($user->isDemo()) {
+                    return '';
+                }
+
                 $practice = $user->practice;
                 if (!$practice) {
                     return '';
@@ -69,6 +76,18 @@ class AdminPanelProvider extends PanelProvider
                 return view('filament.hooks.trial-banner', compact('daysRemaining'))->render();
             },
         );
+
+        $isDemo = fn () => auth()->check() && auth()->user()->isDemo();
+
+        FilamentAction::configureUsing(function (FilamentAction $action) use ($isDemo): void {
+            if (in_array($action->getName(), ['create', 'edit', 'delete'])) {
+                $action->hidden(fn () => $isDemo());
+            }
+        });
+
+        BulkActionGroup::configureUsing(function (BulkActionGroup $action) use ($isDemo): void {
+            $action->hidden(fn () => $isDemo());
+        });
     }
 
     public function panel(Panel $panel): Panel

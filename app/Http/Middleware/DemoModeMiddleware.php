@@ -21,8 +21,12 @@ class DemoModeMiddleware
                 (str_contains($request->path(), '/create') ||
                  preg_match('/\/[\w-]+\/edit/', $request->path()) ||
                  str_contains($request->path(), '/edit'))) {
-                return redirect('/admin/dashboard')->with('warning',
-                    'This is a read-only demo. Sign up for a free trial to make changes.');
+                Notification::make()
+                    ->title('Read-only demo')
+                    ->body('This is a preview — create and edit actions are disabled.')
+                    ->warning()
+                    ->send();
+                return redirect('/admin/dashboard');
             }
 
             // Block all write methods
