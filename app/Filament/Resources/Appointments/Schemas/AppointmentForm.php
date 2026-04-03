@@ -27,20 +27,23 @@ class AppointmentForm
                     ->relationship('patient', 'name')
                     ->searchable()
                     ->preload()
-                    ->required(),
+                    ->required()
+                    ->disabledOn('view'),
 
                 Select::make('practitioner_id')
                     ->relationship('practitioner', 'id')
                     ->getOptionLabelFromRecordUsing(fn ($record) => $record->user?->name ?? "Practitioner #{$record->id}")
                     ->searchable()
                     ->preload()
-                    ->required(),
+                    ->required()
+                    ->disabledOn('view'),
 
                 Select::make('appointment_type_id')
                     ->relationship('appointmentType', 'name')
                     ->searchable()
                     ->preload()
-                    ->required(),
+                    ->required()
+                    ->disabledOn('view'),
 
                 Select::make('status')
                     ->options([
@@ -51,21 +54,26 @@ class AppointmentForm
                         Checkout::$name   => 'Checkout',
                     ])
                     ->default(Scheduled::$name)
-                    ->required(),
+                    ->required()
+                    ->disabledOn('view'),
 
                 DateTimePicker::make('start_datetime')
-                    ->required(),
+                    ->required()
+                    ->disabledOn('view'),
 
                 DateTimePicker::make('end_datetime')
                     ->required()
-                    ->after('start_datetime'),
+                    ->after('start_datetime')
+                    ->disabledOn('view'),
 
                 Toggle::make('needs_follow_up')
-                    ->default(false),
+                    ->default(false)
+                    ->disabledOn('view'),
 
                 Textarea::make('notes')
                     ->rows(3)
-                    ->nullable(),
+                    ->nullable()
+                    ->disabledOn('view'),
             ]);
     }
 }

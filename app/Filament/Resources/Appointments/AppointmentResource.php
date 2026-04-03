@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Appointments;
 use App\Filament\Resources\Appointments\Pages\CreateAppointment;
 use App\Filament\Resources\Appointments\Pages\EditAppointment;
 use App\Filament\Resources\Appointments\Pages\ListAppointments;
+use App\Filament\Resources\Appointments\Pages\ViewAppointment;
 use App\Filament\Resources\Appointments\Schemas\AppointmentForm;
 use App\Filament\Resources\Appointments\Tables\AppointmentsTable;
 use App\Filament\Traits\BelongsToPractice;
@@ -44,6 +45,7 @@ class AppointmentResource extends Resource
         return [
             'index' => ListAppointments::route('/'),
             'create' => CreateAppointment::route('/create'),
+            'view' => ViewAppointment::route('/{record}'),
             'edit' => EditAppointment::route('/{record}/edit'),
         ];
     }
