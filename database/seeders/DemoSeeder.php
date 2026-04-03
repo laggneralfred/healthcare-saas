@@ -105,21 +105,21 @@ class DemoSeeder extends Seeder
 
         // ── 15 Patients (realistic demographics) ──────────────────────────────
         $patientData = [
-            ['name' => 'James Patterson', 'email' => 'james.patterson@email.com', 'phone' => '(415) 555-0110'],
-            ['name' => 'Lisa Cohen', 'email' => 'lisa.cohen@email.com', 'phone' => '(415) 555-0111'],
-            ['name' => 'Michael Rodriguez', 'email' => 'michael.r@email.com', 'phone' => '(415) 555-0112'],
-            ['name' => 'Emma Williams', 'email' => 'emma.w@email.com', 'phone' => '(415) 555-0113'],
-            ['name' => 'David Park', 'email' => 'dpark@email.com', 'phone' => '(415) 555-0114'],
-            ['name' => 'Sarah Thompson', 'email' => 'sthompson@email.com', 'phone' => '(415) 555-0115'],
-            ['name' => 'Robert Martinez', 'email' => 'rmartinez@email.com', 'phone' => '(415) 555-0116'],
-            ['name' => 'Jennifer Lee', 'email' => 'jlee@email.com', 'phone' => '(415) 555-0117'],
-            ['name' => 'Christopher Johnson', 'email' => 'cjohnson@email.com', 'phone' => '(415) 555-0118'],
-            ['name' => 'Maria Gonzalez', 'email' => 'mgonzalez@email.com', 'phone' => '(415) 555-0119'],
-            ['name' => 'Daniel Anderson', 'email' => 'danderson@email.com', 'phone' => '(415) 555-0120'],
-            ['name' => 'Michelle Brown', 'email' => 'mbrown@email.com', 'phone' => '(415) 555-0121'],
-            ['name' => 'Kevin Taylor', 'email' => 'ktaylor@email.com', 'phone' => '(415) 555-0122'],
-            ['name' => 'Patricia White', 'email' => 'pwhite@email.com', 'phone' => '(415) 555-0123'],
-            ['name' => 'Brian Miller', 'email' => 'bmiller@email.com', 'phone' => '(415) 555-0124'],
+            ['name' => 'James Patterson', 'email' => 'james.patterson@email.com', 'phone' => '(415) 555-0110', 'dob' => '1979-03-15', 'address_line_1' => '742 Presidio Ave', 'city' => 'San Francisco', 'state' => 'CA', 'postal_code' => '94115', 'emergency_contact_name' => 'Margaret Patterson'],
+            ['name' => 'Lisa Cohen', 'email' => 'lisa.cohen@email.com', 'phone' => '(415) 555-0111', 'dob' => '1992-07-22', 'address_line_1' => '1456 Ocean Ave', 'city' => 'San Francisco', 'state' => 'CA', 'postal_code' => '94112', 'emergency_contact_name' => 'Rachel Cohen'],
+            ['name' => 'Michael Rodriguez', 'email' => 'michael.r@email.com', 'phone' => '(415) 555-0112', 'dob' => '1968-11-08', 'address_line_1' => '987 Valencia St', 'city' => 'San Francisco', 'state' => 'CA', 'postal_code' => '94103', 'emergency_contact_name' => 'Carlos Rodriguez'],
+            ['name' => 'Emma Williams', 'email' => 'emma.w@email.com', 'phone' => '(415) 555-0113', 'dob' => '1995-05-30', 'address_line_1' => '2234 Fillmore St', 'city' => 'San Francisco', 'state' => 'CA', 'postal_code' => '94115', 'emergency_contact_name' => 'Susan Williams'],
+            ['name' => 'David Park', 'email' => 'dpark@email.com', 'phone' => '(415) 555-0114', 'dob' => '1975-02-14', 'address_line_1' => '5678 Irving St', 'city' => 'San Francisco', 'state' => 'CA', 'postal_code' => '94122', 'emergency_contact_name' => 'Min Park'],
+            ['name' => 'Sarah Thompson', 'email' => 'sthompson@email.com', 'phone' => '(415) 555-0115', 'dob' => '1960-09-25', 'address_line_1' => '1123 Lyon St', 'city' => 'San Francisco', 'state' => 'CA', 'postal_code' => '94109', 'emergency_contact_name' => 'James Thompson'],
+            ['name' => 'Robert Martinez', 'email' => 'rmartinez@email.com', 'phone' => '(415) 555-0116', 'dob' => '1972-12-03', 'address_line_1' => '3456 Mission St', 'city' => 'San Francisco', 'state' => 'CA', 'postal_code' => '94110', 'emergency_contact_name' => 'Elena Martinez'],
+            ['name' => 'Jennifer Lee', 'email' => 'jlee@email.com', 'phone' => '(415) 555-0117', 'dob' => '1988-06-18', 'address_line_1' => '789 Market St Apt 401', 'city' => 'San Francisco', 'state' => 'CA', 'postal_code' => '94102', 'emergency_contact_name' => 'David Lee'],
+            ['name' => 'Christopher Johnson', 'email' => 'cjohnson@email.com', 'phone' => '(415) 555-0118', 'dob' => '1982-04-10', 'address_line_1' => '4567 Geary Blvd', 'city' => 'San Francisco', 'state' => 'CA', 'postal_code' => '94118', 'emergency_contact_name' => 'Patricia Johnson'],
+            ['name' => 'Maria Gonzalez', 'email' => 'mgonzalez@email.com', 'phone' => '(415) 555-0119', 'dob' => '1990-01-27', 'address_line_1' => '2890 16th St', 'city' => 'San Francisco', 'state' => 'CA', 'postal_code' => '94103', 'emergency_contact_name' => 'Jorge Gonzalez'],
+            ['name' => 'Daniel Anderson', 'email' => 'danderson@email.com', 'phone' => '(415) 555-0120', 'dob' => '1956-08-12', 'address_line_1' => '5555 California St', 'city' => 'San Francisco', 'state' => 'CA', 'postal_code' => '94118', 'emergency_contact_name' => 'Thomas Anderson'],
+            ['name' => 'Michelle Brown', 'email' => 'mbrown@email.com', 'phone' => '(415) 555-0121', 'dob' => '1987-10-19', 'address_line_1' => '1234 Haight St', 'city' => 'San Francisco', 'state' => 'CA', 'postal_code' => '94117', 'emergency_contact_name' => 'William Brown'],
+            ['name' => 'Kevin Taylor', 'email' => 'ktaylor@email.com', 'phone' => '(415) 555-0122', 'dob' => '1970-07-06', 'address_line_1' => '6789 Castro St', 'city' => 'San Francisco', 'state' => 'CA', 'postal_code' => '94114', 'emergency_contact_name' => 'Anne Taylor'],
+            ['name' => 'Patricia White', 'email' => 'pwhite@email.com', 'phone' => '(415) 555-0123', 'dob' => '1951-11-21', 'address_line_1' => '3333 Washington St', 'city' => 'San Francisco', 'state' => 'CA', 'postal_code' => '94115', 'emergency_contact_name' => 'Richard White'],
+            ['name' => 'Brian Miller', 'email' => 'bmiller@email.com', 'phone' => '(415) 555-0124', 'dob' => '1998-02-09', 'address_line_1' => '7777 Lombard St', 'city' => 'San Francisco', 'state' => 'CA', 'postal_code' => '94123', 'emergency_contact_name' => 'Karen Miller'],
         ];
 
         $patients = [];
@@ -171,6 +171,97 @@ class DemoSeeder extends Seeder
             'Migraines',
             'Joint pain and inflammation',
             'Stress-related tension',
+        ];
+
+        // Five Elements mapping for TCM clinical data
+        $fiveElements = [
+            'Wood' => ['color' => 'Green/Blue', 'sound' => 'Shouting', 'odor' => 'Rancid', 'emotion' => 'Anger'],
+            'Fire' => ['color' => 'Red', 'sound' => 'Laughing', 'odor' => 'Scorched', 'emotion' => 'Joy'],
+            'Earth' => ['color' => 'Yellow', 'sound' => 'Singing', 'odor' => 'Fragrant', 'emotion' => 'Worry'],
+            'Metal' => ['color' => 'White', 'sound' => 'Weeping', 'odor' => 'Rotten', 'emotion' => 'Grief'],
+            'Water' => ['color' => 'Black', 'sound' => 'Groaning', 'odor' => 'Putrid', 'emotion' => 'Fear'],
+        ];
+
+        $tongueBodyVariations = ['Pale', 'Red', 'Purple', 'Slightly red sides', 'Pale with teeth marks', 'Swollen', 'Thin', 'Thick'];
+        $tongueCoatingVariations = ['Thin white', 'Thick yellow', 'Thin yellow', 'No coating', 'Greasy white', 'Thin greasy', 'Yellow greasy'];
+        $pulseQualityVariations = ['Wiry', 'Slippery', 'Thin', 'Deep weak', 'Rapid thin', 'Wiry slippery', 'Floating weak', 'Deep wiry'];
+        $elementArray = array_keys($fiveElements);
+
+        // TCM Part B variations for intake submissions
+        $tcmResponsesToVariations = [
+            0 => [ // Variation 1: Low energy, stress
+                'tcm' => [
+                    'energy_level'         => 'low',
+                    'energy_time_pattern'  => 'afternoon',
+                    'temperature_preference' => 'cold',
+                    'appetite'             => 'normal',
+                    'digestion_issues'     => ['bloating', 'constipation'],
+                    'bowel_frequency'      => 'less_than_daily',
+                    'thirst'               => 'low',
+                    'beverage_preference'  => 'hot',
+                    'sleep_issues'         => ['staying_asleep', 'night_sweats'],
+                    'dream_frequency'      => 'sometimes',
+                    'emotional_tendencies' => ['stress', 'anxiety'],
+                    'emotional_impact'     => 'significantly',
+                    'previous_acupuncture' => false,
+                    'needle_comfort'       => 'nervous',
+                ]
+            ],
+            1 => [ // Variation 2: Sleep and anxiety
+                'tcm' => [
+                    'energy_level'         => 'low',
+                    'energy_time_pattern'  => 'morning',
+                    'temperature_preference' => 'hot',
+                    'appetite'             => 'poor',
+                    'digestion_issues'     => ['none'],
+                    'bowel_frequency'      => 'once_daily',
+                    'thirst'               => 'high',
+                    'beverage_preference'  => 'cold',
+                    'sleep_issues'         => ['falling_asleep', 'vivid_dreams', 'early_waking'],
+                    'dream_frequency'      => 'often',
+                    'emotional_tendencies' => ['anxiety', 'worry'],
+                    'emotional_impact'     => 'significantly',
+                    'previous_acupuncture' => true,
+                    'previous_acupuncture_experience' => 'positive',
+                    'needle_comfort'       => 'comfortable',
+                ]
+            ],
+            2 => [ // Variation 3: Migraines, good exercise
+                'tcm' => [
+                    'energy_level'         => 'moderate',
+                    'energy_time_pattern'  => 'no_pattern',
+                    'temperature_preference' => 'neutral',
+                    'appetite'             => 'normal',
+                    'digestion_issues'     => ['nausea'],
+                    'bowel_frequency'      => 'once_daily',
+                    'thirst'               => 'normal',
+                    'beverage_preference'  => 'room',
+                    'sleep_issues'         => ['none'],
+                    'dream_frequency'      => 'sometimes',
+                    'emotional_tendencies' => ['stress', 'anger'],
+                    'emotional_impact'     => 'somewhat',
+                    'previous_acupuncture' => false,
+                    'needle_comfort'       => 'comfortable',
+                ]
+            ],
+            3 => [ // Variation 4: Balanced with mild issues
+                'tcm' => [
+                    'energy_level'         => 'normal',
+                    'energy_time_pattern'  => 'evening',
+                    'temperature_preference' => 'warm',
+                    'appetite'             => 'good',
+                    'digestion_issues'     => ['occasional_bloating'],
+                    'bowel_frequency'      => 'once_daily',
+                    'thirst'               => 'moderate',
+                    'beverage_preference'  => 'warm',
+                    'sleep_issues'         => ['occasional_waking'],
+                    'dream_frequency'      => 'rarely',
+                    'emotional_tendencies' => ['occasional_stress'],
+                    'emotional_impact'     => 'mildly',
+                    'previous_acupuncture' => false,
+                    'needle_comfort'       => 'comfortable',
+                ]
+            ],
         ];
 
         // ── CREATE APPOINTMENTS ──────────────────────────────────────────────────
@@ -227,9 +318,34 @@ class DemoSeeder extends Seeder
             $selectedPoints = is_array($selectedPoints) ? $selectedPoints : [$selectedPoints];
             $pointsList = implode(', ', array_map(fn($key) => $acupuncturePoints[$key], $selectedPoints));
 
+            $selectedElement = $elementArray[$i % count($elementArray)];
+            $elementData = $fiveElements[$selectedElement];
+            $zangFuExpanded = match($tczDiagnoses[$i % count($tczDiagnoses)]) {
+                'Qi deficiency in Spleen and Stomach' => 'Qi deficiency in Spleen and Stomach with Spleen Yang weakness',
+                'Liver Qi stagnation' => 'Liver Qi stagnation with Heart Blood deficiency',
+                'Blood deficiency with Spleen weakness' => 'Blood deficiency with Spleen weakness and poor transport',
+                'Kidney Yang deficiency' => 'Kidney Yang deficiency with poor Ming Men fire',
+                'Heart and Spleen disharmony' => 'Heart and Spleen disharmony with anxiety',
+                'Damp-heat in Spleen and Liver' => 'Damp-heat in Spleen and Liver with Qi stagnation',
+                'Yin deficiency with empty heat' => 'Yin deficiency with empty heat and insomnia',
+                'Cold obstruction in the meridians' => 'Cold obstruction in the meridians with poor circulation',
+                'Liver Yang rising' => 'Liver Yang rising with Liver Blood deficiency',
+                'Phlegm obstruction in the chest' => 'Phlegm obstruction in the chest with Qi stagnation',
+                default => 'Qi and Blood disharmony',
+            };
+
             AcupunctureEncounter::create([
                 'encounter_id'    => $encounter->id,
                 'tcm_diagnosis'   => $tczDiagnoses[$i % count($tczDiagnoses)],
+                'tongue_body'     => $tongueBodyVariations[$i % count($tongueBodyVariations)],
+                'tongue_coating'  => $tongueCoatingVariations[$i % count($tongueCoatingVariations)],
+                'pulse_quality'   => $pulseQualityVariations[$i % count($pulseQualityVariations)],
+                'zang_fu_diagnosis' => $zangFuExpanded,
+                'five_elements'   => json_encode([$selectedElement]),
+                'csor_color'      => $elementData['color'],
+                'csor_sound'      => $elementData['sound'],
+                'csor_odor'       => $elementData['odor'],
+                'csor_emotion'    => $elementData['emotion'],
                 'points_used'     => $pointsList,
                 'meridians'       => 'Multiple',
                 'treatment_protocol' => 'Standard bilateral acupuncture protocol',
@@ -244,6 +360,7 @@ class DemoSeeder extends Seeder
                 'appointment_id' => $appointment->id,
                 'status'         => 'complete',
                 'submitted_on'   => $appointmentStart->copy()->subDay(),
+                'discipline_responses' => $tcmResponsesToVariations[$i % 4],
             ]);
 
             ConsentRecord::create([
@@ -329,9 +446,21 @@ class DemoSeeder extends Seeder
                     ]),
                 ]);
 
+                $selectedElement = $elementArray[$i % count($elementArray)];
+                $elementData = $fiveElements[$selectedElement];
+
                 AcupunctureEncounter::create([
                     'encounter_id'      => $encounter->id,
                     'tcm_diagnosis'     => $tczDiagnoses[0],
+                    'tongue_body'       => $tongueBodyVariations[$i % count($tongueBodyVariations)],
+                    'tongue_coating'    => $tongueCoatingVariations[$i % count($tongueCoatingVariations)],
+                    'pulse_quality'     => $pulseQualityVariations[$i % count($pulseQualityVariations)],
+                    'zang_fu_diagnosis' => 'Qi deficiency in Spleen and Stomach with Spleen Yang weakness',
+                    'five_elements'     => json_encode([$selectedElement]),
+                    'csor_color'        => $elementData['color'],
+                    'csor_sound'        => $elementData['sound'],
+                    'csor_odor'         => $elementData['odor'],
+                    'csor_emotion'      => $elementData['emotion'],
                     'points_used'       => implode(', ', ['LI4', 'ST36', 'SP6']),
                     'meridians'         => 'Multiple',
                     'treatment_protocol' => 'Standard bilateral acupuncture protocol',
@@ -370,6 +499,7 @@ class DemoSeeder extends Seeder
                 'appointment_id' => $appointment->id,
                 'status'         => $status === 'scheduled' ? 'pending' : 'complete',
                 'submitted_on'   => $status === 'scheduled' ? null : $appointmentStart->copy()->subHours(2),
+                'discipline_responses' => $status !== 'scheduled' ? $tcmResponsesToVariations[$i % 4] : null,
             ]);
 
             ConsentRecord::create([
@@ -412,6 +542,7 @@ class DemoSeeder extends Seeder
                 'appointment_id' => $appointment->id,
                 'status'         => 'pending',
                 'submitted_on'   => null,
+                'discipline_responses' => $tcmResponsesToVariations[$i % 4],
             ]);
 
             ConsentRecord::create([
