@@ -4,7 +4,7 @@
 
 **Practiq** is a multi-tenant practice management SaaS platform for solo health practitioners (acupuncturists, massage therapists, chiropractors, physiotherapists). Built by Alfred, a retired health practitioner, it competes with Jane App and SimplePractice.
 
-**Current Status (April 2026):** MVP launched and stabilized. All 133 tests passing. Demo environment ready with automated reset. Multi-tenant practice management, online booking, patient forms, clinical documentation, Stripe payments, and data export are fully functional.
+**Current Status (April 2026):** MVP launched and stabilized. All 175 tests passing. Demo environment ready with automated reset. Multi-tenant practice management, online booking, patient forms, clinical documentation, Stripe payments, and data export are fully functional. View pages and enriched demo data live.
 
 **Core Stack:** Laravel 13 + Filament v5 admin UI + Livewire v3 reactive components + PostgreSQL + Docker (Debian) + DigitalOcean. Production deployed via GitHub Actions CI/CD.
 
@@ -159,19 +159,21 @@ git push origin master     # triggers GitHub Actions auto-deploy
 - ✅ demo.practiqapp.com live with SSL
 - ✅ GitHub Actions CI/CD pipeline
 - ✅ Communications & Messaging System — Sprint 1 (email reminders, templates, rules, log, Filament UI)
+- ✅ View Pages for all resources (CheckoutSessions, ConsentRecords, Practices, AppointmentTypes, ServiceFees, CommunicationRules, MessageTemplates, Appointments, Practitioners, Encounters, Patients, IntakeSubmissions)
+- ✅ Enriched DemoSeeder with patient demographics, TCM clinical fields, intake questionnaire data
 
 ### Test Coverage
-- **147/147 tests passing (100%)**
+- **175/175 tests passing (100%)**
 - Integration tests for checkout, subscriptions, trial, registration
 - CSV import tests
 - Data export tests (CSRF excluded for testing)
-- Filament smoke tests (Index/Edit pages for all resources)
+- Filament smoke tests (Index/Edit/View pages for all resources)
 - PracticeFactory sets `trial_ends_at = +30 days` so test practices pass RequiresActiveSubscription middleware
 - Communications: template rendering, rule timing, send job (success/fail/opt-out/no-email), dispatch windowing, duplicate prevention, multi-tenancy isolation
 
-### Pending Production Fixes (applied via docker cp — not yet in git)
-- **DemoModeMiddleware** — GET /create and /edit block deployed manually; needs permanent rebuild via GitHub Actions to survive container restarts
-- **InventoryProductForm** — Grid namespace fixed on disk; needs rebuild to confirm clean
+### Recently Deployed (April 2026)
+- **View Pages** — All 12 resources have read-only view pages extending ViewRecord with gray back button
+- **DemoSeeder Enrichment** — 15 patients with full Bay Area demographics (DOB, address, emergency contact); 40 AcupunctureEncounter records with complete TCM clinical data (tongue, pulse, 5-element CSOR); 40 IntakeSubmission records with 4 variations of TCM Part B questionnaire data
 
 ---
 
@@ -190,18 +192,18 @@ git push origin master     # triggers GitHub Actions auto-deploy
 | **Inventory Add-on** | ✅ Complete | Products, categories, low-stock alerts |
 | **CSV Importer** | ✅ Complete | Column mapper, preview, queued processing |
 | **Data Export** | ✅ Complete | CSV ZIP & JSON formats, token-based downloads |
-| **Demo System** | ✅ Complete | Reset job/command, demo-login, middleware |
+| **Demo System** | ✅ Complete | Reset job/command, demo-login, middleware, enriched DemoSeeder |
 | **Communications — Sprint 1** | ✅ Complete | MessageTemplate, CommunicationRule (flexible timing), MessageLog, PatientCommunicationPreference, DispatchAppointmentRemindersJob (every 15 min), SendAppointmentReminderJob (opt-out aware), AppointmentReminderMail (branded HTML), Filament resources, manual send action, patient prefs UI |
+| **View Pages — All Resources** | ✅ Complete | ViewRecord-based read-only pages for all 12 resources with gray back button, disabled form fields on view context |
 
 ---
 
 ## Immediate Next Steps
 
-1. **Deploy to production** — Merge dev → master, push to trigger GitHub Actions; this permanently deploys DemoModeMiddleware fix, all Filament v5 namespace fixes, and the Communications sprint
-2. **Configure Mailgun on production** — Set `MAIL_MAILER=mailgun`, `MAILGUN_DOMAIN`, `MAILGUN_SECRET` in `/opt/practiq/.env` on the server
-3. **Run `php artisan demo:reset`** on production to seed default communication templates for the demo practice
-4. **Communications Sprint 2** — Mailgun webhook for delivery/bounce status updates, SMS via Twilio, opt-out landing page
-5. **Discipline-based feature visibility** — Hide acupuncture fields for non-acupuncture practitioners
+1. **Configure Mailgun on production** — Set `MAIL_MAILER=mailgun`, `MAILGUN_DOMAIN`, `MAILGUN_SECRET` in `/opt/practiq/.env` on the server, then `php artisan demo:reset` to load default templates
+2. **Communications Sprint 2** — Mailgun webhook for delivery/bounce status updates, SMS via Twilio, opt-out landing page
+3. **Discipline-based feature visibility** — Hide acupuncture fields for non-acupuncture practitioners (massage, chiropractic, etc.)
+4. **Patient data export refinement** — Include export of all demographic fields, TCM clinicals, and intake responses
 
 ---
 
@@ -209,8 +211,8 @@ git push origin master     # triggers GitHub Actions auto-deploy
 
 ```bash
 # Demo Management
-php artisan demo:reset           # Reset demo data to Serenity Acupuncture baseline
-php artisan test                # Run all 133 tests
+php artisan demo:reset           # Reset demo data to Serenity Acupuncture baseline with enriched patient/clinical data
+php artisan test                # Run all 175 tests
 
 # Database
 php artisan migrate              # Apply pending migrations
