@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Encounters;
 use App\Filament\Resources\Encounters\Pages\CreateEncounter;
 use App\Filament\Resources\Encounters\Pages\EditEncounter;
 use App\Filament\Resources\Encounters\Pages\ListEncounters;
+use App\Filament\Resources\Encounters\Pages\ViewEncounter;
 use App\Filament\Resources\Encounters\Schemas\EncounterForm;
 use App\Filament\Resources\Encounters\Tables\EncountersTable;
 use App\Filament\Traits\BelongsToPractice;
@@ -42,6 +43,7 @@ class EncounterResource extends Resource
         return [
             'index'  => ListEncounters::route('/'),
             'create' => CreateEncounter::route('/create'),
+            'view'   => ViewEncounter::route('/{record}'),
             'edit'   => EditEncounter::route('/{record}/edit'),
         ];
     }

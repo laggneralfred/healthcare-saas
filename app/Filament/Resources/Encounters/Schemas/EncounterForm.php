@@ -27,43 +27,52 @@ class EncounterForm
                         ->relationship('patient', 'name')
                         ->required()
                         ->searchable()
-                        ->preload(),
+                        ->preload()
+                        ->disabledOn('view'),
                     Select::make('practitioner_id')
                         ->relationship('practitioner', 'id')
                         ->getOptionLabelFromRecordUsing(fn ($record) => $record->user?->name ?? "Practitioner #{$record->id}")
                         ->required()
                         ->searchable()
-                        ->preload(),
+                        ->preload()
+                        ->disabledOn('view'),
                     DatePicker::make('date')
                         ->required()
-                        ->default(now()),
+                        ->default(now())
+                        ->disabledOn('view'),
                     Select::make('status')
                         ->options([
                             'draft' => 'Draft',
                             'final' => 'Final',
                         ])
                         ->default('draft')
-                        ->required(),
+                        ->required()
+                        ->disabledOn('view'),
                 ])->columns(2),
 
             Tabs::make('Clinical Documentation')->tabs([
                 Tab::make('Core Notes')->schema([
                     Textarea::make('chief_complaint')
                         ->rows(3)
-                        ->required(),
+                        ->required()
+                        ->disabledOn('view'),
                     Textarea::make('subjective')
                         ->label('Subjective (S)')
-                        ->rows(5),
+                        ->rows(5)
+                        ->disabledOn('view'),
                     Textarea::make('objective')
                         ->label('Objective (O)')
-                        ->rows(5),
+                        ->rows(5)
+                        ->disabledOn('view'),
                     Textarea::make('assessment')
                         ->label('Assessment (A)')
-                        ->rows(5),
+                        ->rows(5)
+                        ->disabledOn('view'),
                     Textarea::make('plan')
                         ->label('Plan (P)')
                         ->rows(5)
-                        ->columnSpanFull(),
+                        ->columnSpanFull()
+                        ->disabledOn('view'),
                 ]),
 
                 Tab::make('Acupuncture')->schema([
@@ -71,15 +80,20 @@ class EncounterForm
                         ->schema([
                             TextInput::make('acupunctureEncounter.tcm_diagnosis')
                                 ->label('TCM Diagnosis')
-                                ->maxLength(255),
+                                ->maxLength(255)
+                                ->disabledOn('view'),
                             TextInput::make('acupunctureEncounter.tongue_body')
-                                ->label('Tongue Body'),
+                                ->label('Tongue Body')
+                                ->disabledOn('view'),
                             TextInput::make('acupunctureEncounter.tongue_coating')
-                                ->label('Tongue Coating'),
+                                ->label('Tongue Coating')
+                                ->disabledOn('view'),
                             TextInput::make('acupunctureEncounter.pulse_quality')
-                                ->label('Pulse Quality'),
+                                ->label('Pulse Quality')
+                                ->disabledOn('view'),
                             TextInput::make('acupunctureEncounter.zang_fu_diagnosis')
-                                ->label('Zang-Fu Diagnosis'),
+                                ->label('Zang-Fu Diagnosis')
+                                ->disabledOn('view'),
                         ])->columns(2),
 
                     Section::make('Worsley Five Element')
@@ -93,44 +107,59 @@ class EncounterForm
                                     'Metal' => 'Metal',
                                     'Water' => 'Water',
                                 ])
-                                ->multiple(),
+                                ->multiple()
+                                ->disabledOn('view'),
 
                             Grid::make(4)
                                 ->schema([
                                     TextInput::make('acupunctureEncounter.csor_color')
-                                        ->label('Color (C)'),
+                                        ->label('Color (C)')
+                                        ->disabledOn('view'),
                                     TextInput::make('acupunctureEncounter.csor_sound')
-                                        ->label('Sound (S)'),
+                                        ->label('Sound (S)')
+                                        ->disabledOn('view'),
                                     TextInput::make('acupunctureEncounter.csor_odor')
-                                        ->label('Odor (O)'),
+                                        ->label('Odor (O)')
+                                        ->disabledOn('view'),
                                     TextInput::make('acupunctureEncounter.csor_emotion')
-                                        ->label('Emotion (R)'),
+                                        ->label('Emotion (R)')
+                                        ->disabledOn('view'),
                                 ]),
                         ])->columns(1),
 
                     TextInput::make('acupunctureEncounter.needle_count')
                         ->numeric()
-                        ->default(0),
+                        ->default(0)
+                        ->disabledOn('view'),
                     Textarea::make('acupunctureEncounter.points_used')
-                        ->rows(3),
+                        ->rows(3)
+                        ->disabledOn('view'),
                     Textarea::make('acupunctureEncounter.treatment_protocol')
-                        ->rows(3),
+                        ->rows(3)
+                        ->disabledOn('view'),
                 ])->visible(fn ($record) => true), // Logic simplified for brevity
 
                 Tab::make('Massage')->schema([
-                    TextInput::make('massageEncounter.technique_used'),
-                    TextInput::make('massageEncounter.pressure_level'),
-                    Textarea::make('massageEncounter.areas_focused'),
+                    TextInput::make('massageEncounter.technique_used')
+                        ->disabledOn('view'),
+                    TextInput::make('massageEncounter.pressure_level')
+                        ->disabledOn('view'),
+                    Textarea::make('massageEncounter.areas_focused')
+                        ->disabledOn('view'),
                 ])->visible(fn ($record) => true),
 
                 Tab::make('Chiropractic')->schema([
-                    TextInput::make('chiropracticEncounter.adjustment_level'),
-                    TextInput::make('chiropracticEncounter.technique'),
+                    TextInput::make('chiropracticEncounter.adjustment_level')
+                        ->disabledOn('view'),
+                    TextInput::make('chiropracticEncounter.technique')
+                        ->disabledOn('view'),
                 ])->visible(fn ($record) => true),
 
                 Tab::make('Physiotherapy')->schema([
-                    TextInput::make('physiotherapyEncounter.exercise_program'),
-                    TextInput::make('physiotherapyEncounter.equipment_used'),
+                    TextInput::make('physiotherapyEncounter.exercise_program')
+                        ->disabledOn('view'),
+                    TextInput::make('physiotherapyEncounter.equipment_used')
+                        ->disabledOn('view'),
                 ])->visible(fn ($record) => true),
 
             ])->columnSpanFull(),
