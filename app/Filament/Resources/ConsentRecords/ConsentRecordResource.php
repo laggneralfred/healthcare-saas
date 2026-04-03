@@ -5,6 +5,7 @@ namespace App\Filament\Resources\ConsentRecords;
 use App\Filament\Resources\ConsentRecords\Pages\CreateConsentRecord;
 use App\Filament\Resources\ConsentRecords\Pages\EditConsentRecord;
 use App\Filament\Resources\ConsentRecords\Pages\ListConsentRecords;
+use App\Filament\Resources\ConsentRecords\Pages\ViewConsentRecord;
 use App\Filament\Resources\ConsentRecords\Schemas\ConsentRecordForm;
 use App\Filament\Resources\ConsentRecords\Tables\ConsentRecordsTable;
 use App\Filament\Traits\BelongsToPractice;
@@ -44,6 +45,7 @@ class ConsentRecordResource extends Resource
         return [
             'index' => ListConsentRecords::route('/'),
             'create' => CreateConsentRecord::route('/create'),
+            'view' => ViewConsentRecord::route('/{record}'),
             'edit' => EditConsentRecord::route('/{record}/edit'),
         ];
     }

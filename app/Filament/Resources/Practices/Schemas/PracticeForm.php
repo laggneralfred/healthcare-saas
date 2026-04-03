@@ -15,18 +15,21 @@ class PracticeForm
             ->components([
                 TextInput::make('name')
                     ->required()
-                    ->maxLength(255),
+                    ->maxLength(255)
+                    ->disabledOn('view'),
 
                 TextInput::make('slug')
                     ->required()
                     ->unique(ignoreRecord: true)
                     ->maxLength(100)
-                    ->helperText('URL-safe identifier, e.g. "green-valley-acupuncture"'),
+                    ->helperText('URL-safe identifier, e.g. "green-valley-acupuncture"')
+                    ->disabledOn('view'),
 
                 TextInput::make('timezone')
                     ->required()
                     ->default('UTC')
-                    ->maxLength(50),
+                    ->maxLength(50)
+                    ->disabledOn('view'),
 
                 Select::make('discipline')
                     ->label('Primary Discipline')
@@ -38,10 +41,12 @@ class PracticeForm
                         'general'       => 'General',
                     ])
                     ->default('acupuncture')
-                    ->helperText('Sets the default intake form type for new submissions.'),
+                    ->helperText('Sets the default intake form type for new submissions.')
+                    ->disabledOn('view'),
 
                 Toggle::make('is_active')
-                    ->default(true),
+                    ->default(true)
+                    ->disabledOn('view'),
             ]);
     }
 }

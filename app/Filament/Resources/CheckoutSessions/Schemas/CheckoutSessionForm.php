@@ -32,21 +32,25 @@ class CheckoutSessionForm
                     ->searchable()
                     ->preload()
                     ->required()
-                    ->disabledOn('edit'),
+                    ->disabledOn('edit')
+                    ->disabledOn('view'),
 
                 TextInput::make('charge_label')
                     ->required()
                     ->maxLength(255)
-                    ->default('Visit Charges'),
+                    ->default('Visit Charges')
+                    ->disabledOn('view'),
 
                 Textarea::make('notes')
                     ->rows(2)
-                    ->nullable(),
+                    ->nullable()
+                    ->disabledOn('view'),
             ])->columns(2),
 
             Section::make('Line Items')->schema([
                 Repeater::make('checkoutLines')
                     ->relationship()
+                    ->disabledOn('view')
                     ->schema([
                         TextInput::make('description')
                             ->required()
@@ -88,6 +92,7 @@ class CheckoutSessionForm
                 ->description('Select inventory products to add to this checkout.')
                 ->schema([
                     Repeater::make('inventoryProducts')
+                        ->disabledOn('view')
                         ->schema([
                             Select::make('inventory_product_id')
                                 ->label('Product')

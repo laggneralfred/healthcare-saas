@@ -5,6 +5,7 @@ namespace App\Filament\Resources\CheckoutSessions;
 use App\Filament\Resources\CheckoutSessions\Pages\CreateCheckoutSession;
 use App\Filament\Resources\CheckoutSessions\Pages\EditCheckoutSession;
 use App\Filament\Resources\CheckoutSessions\Pages\ListCheckoutSessions;
+use App\Filament\Resources\CheckoutSessions\Pages\ViewCheckoutSession;
 use App\Filament\Resources\CheckoutSessions\Schemas\CheckoutSessionForm;
 use App\Filament\Resources\CheckoutSessions\Tables\CheckoutSessionsTable;
 use App\Filament\Traits\BelongsToPractice;
@@ -42,6 +43,7 @@ class CheckoutSessionResource extends Resource
         return [
             'index'  => ListCheckoutSessions::route('/'),
             'create' => CreateCheckoutSession::route('/create'),
+            'view'   => ViewCheckoutSession::route('/{record}'),
             'edit'   => EditCheckoutSession::route('/{record}/edit'),
         ];
     }

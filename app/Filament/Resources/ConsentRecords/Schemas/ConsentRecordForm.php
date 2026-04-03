@@ -20,17 +20,20 @@ class ConsentRecordForm
 
                 Select::make('patient_id')
                     ->relationship('patient', 'name')
-                    ->searchable()->preload()->required(),
+                    ->searchable()->preload()->required()
+                    ->disabledOn('view'),
 
                 Select::make('appointment_id')
                     ->relationship('appointment', 'id')
                     ->getOptionLabelFromRecordUsing(fn ($r) => "#{$r->id} — {$r->start_datetime?->format('M j, Y g:ia')}")
-                    ->searchable()->nullable(),
+                    ->searchable()->nullable()
+                    ->disabledOn('view'),
 
                 Select::make('status')
                     ->options(['missing' => 'Missing', 'complete' => 'Complete'])
                     ->default('missing')
-                    ->required(),
+                    ->required()
+                    ->disabledOn('view'),
 
                 Placeholder::make('access_token')
                     ->label('Share link token')
@@ -39,10 +42,11 @@ class ConsentRecordForm
                 TextInput::make('consent_given_by')
                     ->label('Consent given by')
                     ->maxLength(255)
-                    ->nullable(),
+                    ->nullable()
+                    ->disabledOn('view'),
 
-                Textarea::make('consent_summary')->rows(3)->nullable(),
-                Textarea::make('notes')->rows(2)->nullable(),
+                Textarea::make('consent_summary')->rows(3)->nullable()->disabledOn('view'),
+                Textarea::make('notes')->rows(2)->nullable()->disabledOn('view'),
             ]);
     }
 }

@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Practices;
 use App\Filament\Resources\Practices\Pages\CreatePractice;
 use App\Filament\Resources\Practices\Pages\EditPractice;
 use App\Filament\Resources\Practices\Pages\ListPractices;
+use App\Filament\Resources\Practices\Pages\ViewPractice;
 use App\Filament\Resources\Practices\Schemas\PracticeForm;
 use App\Filament\Resources\Practices\Tables\PracticesTable;
 use App\Models\Practice;
@@ -42,6 +43,7 @@ class PracticeResource extends Resource
         return [
             'index' => ListPractices::route('/'),
             'create' => CreatePractice::route('/create'),
+            'view' => ViewPractice::route('/{record}'),
             'edit' => EditPractice::route('/{record}/edit'),
         ];
     }
