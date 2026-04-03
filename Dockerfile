@@ -82,10 +82,6 @@ RUN usermod -u 1000 www-data && groupmod -g 1000 www-data
 # Set working directory
 WORKDIR /app
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-    CMD curl -f http://localhost:9000/fpm-status || exit 1
-
 # Expose FPM port (internal, used by Nginx)
 EXPOSE 9000
 

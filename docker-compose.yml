@@ -113,6 +113,12 @@ services:
     networks:
       - healthcare-saas
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "php-fpm", "-t"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
   # Nginx Reverse Proxy
   nginx:
@@ -127,10 +133,11 @@ services:
       - healthcare-saas
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health"]
-      interval: 10s
-      timeout: 5s
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1/health"]
+      interval: 30s
+      timeout: 10s
       retries: 3
+      start_period: 20s
 
   # Queue Worker (for email notifications, etc.)
   queue:
@@ -139,6 +146,12 @@ services:
       dockerfile: Dockerfile
     container_name: healthcare-saas-queue
     command: php artisan queue:work redis --sleep=3 --tries=3
+    healthcheck:
+      test: ["CMD", "pgrep", "-f", "queue:work"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
     environment:
       APP_ENV: production
       APP_DEBUG: ${APP_DEBUG:-false}
@@ -190,6 +203,12 @@ services:
       dockerfile: Dockerfile
     container_name: healthcare-saas-scheduler
     command: php artisan schedule:work
+    healthcheck:
+      test: ["CMD", "pgrep", "-f", "schedule:work"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
     environment:
       APP_ENV: production
       APP_DEBUG: ${APP_DEBUG:-false}
