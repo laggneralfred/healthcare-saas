@@ -47,13 +47,17 @@ class EncountersRelationManager extends RelationManager
             ])
             ->recordActions([
                 EditAction::make(),
-                DissociateAction::make(),
-                DeleteAction::make(),
+                DissociateAction::make()
+                    ->hidden(fn () => auth()->user()?->isDemo()),
+                DeleteAction::make()
+                    ->hidden(fn () => auth()->user()?->isDemo()),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
-                    DissociateBulkAction::make(),
-                    DeleteBulkAction::make(),
+                    DissociateBulkAction::make()
+                        ->hidden(fn () => auth()->user()?->isDemo()),
+                    DeleteBulkAction::make()
+                        ->hidden(fn () => auth()->user()?->isDemo()),
                 ]),
             ]);
     }

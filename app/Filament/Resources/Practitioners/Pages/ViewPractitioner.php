@@ -10,6 +10,17 @@ class ViewPractitioner extends ViewRecord
 {
     protected static string $resource = PractitionerResource::class;
 
+    protected function getHeaderActions(): array
+    {
+        return [
+            \Filament\Actions\Action::make('back')
+                ->label('Back')
+                ->icon('heroicon-o-arrow-left')
+                ->url(fn () => static::getResource()::getUrl('index'))
+                ->color('gray'),
+        ];
+    }
+
     protected function getHeaderWidgets(): array
     {
         return [
