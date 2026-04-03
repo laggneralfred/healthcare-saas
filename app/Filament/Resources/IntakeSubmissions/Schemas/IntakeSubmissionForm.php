@@ -24,10 +24,6 @@ class IntakeSubmissionForm
             Hidden::make('practice_id')
                 ->default(fn () => auth()->user()->practice_id),
 
-            // Discipline auto-set from practice — drives Step 6 visibility
-            Hidden::make('discipline')
-                ->default(fn () => auth()->user()->practice?->discipline ?? 'acupuncture'),
-
             Grid::make(2)->schema([
                 Select::make('patient_id')
                     ->relationship('patient', 'name')
@@ -50,6 +46,19 @@ class IntakeSubmissionForm
 
                 Step::make('Why are you here today?')
                     ->schema([
+                        Select::make('discipline')
+                            ->label('Type of treatment')
+                            ->options([
+                                'acupuncture'   => 'Acupuncture / TCM',
+                                'massage'       => 'Massage Therapy',
+                                'chiropractic'  => 'Chiropractic',
+                                'physiotherapy' => 'Physiotherapy',
+                            ])
+                            ->default(fn () => auth()->user()->practice?->discipline ?? 'acupuncture')
+                            ->required()
+                            ->live()
+                            ->columnSpanFull(),
+
                         Textarea::make('chief_complaint')
                             ->label('Chief Complaint')
                             ->helperText('Describe your main reason for seeking treatment.')
@@ -280,7 +289,7 @@ class IntakeSubmissionForm
                         // ── ACUPUNCTURE / TCM ─────────────────────────────────────
 
                         Section::make('Acupuncture & TCM Assessment')
-                            ->visible(fn ($get) => $get('/discipline') === 'acupuncture')
+                            ->visible(fn ($get) => $get('discipline') === 'acupuncture')
                             ->statePath('discipline_responses.tcm')
                             ->schema([
 
@@ -486,7 +495,7 @@ class IntakeSubmissionForm
                         // ── MASSAGE THERAPY ───────────────────────────────────────
 
                         Section::make('Massage Therapy Preferences')
-                            ->visible(fn ($get) => $get('/discipline') === 'massage')
+                            ->visible(fn ($get) => $get('discipline') === 'massage')
                             ->statePath('discipline_responses.massage')
                             ->schema([
 
@@ -602,7 +611,7 @@ class IntakeSubmissionForm
                         // ── CHIROPRACTIC ──────────────────────────────────────────
 
                         Section::make('Chiropractic Assessment')
-                            ->visible(fn ($get) => $get('/discipline') === 'chiropractic')
+                            ->visible(fn ($get) => $get('discipline') === 'chiropractic')
                             ->statePath('discipline_responses.chiro')
                             ->schema([
 
@@ -726,7 +735,7 @@ class IntakeSubmissionForm
                         // ── PHYSIOTHERAPY ─────────────────────────────────────────
 
                         Section::make('Physiotherapy Assessment')
-                            ->visible(fn ($get) => $get('/discipline') === 'physiotherapy')
+                            ->visible(fn ($get) => $get('discipline') === 'physiotherapy')
                             ->statePath('discipline_responses.physio')
                             ->schema([
 
