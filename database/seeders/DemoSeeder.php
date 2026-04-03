@@ -27,10 +27,11 @@ class DemoSeeder extends Seeder
         $practice = Practice::updateOrCreate(
             ['slug' => 'serenity-acupuncture'],
             [
-                'name'      => 'Serenity Acupuncture & Wellness',
-                'timezone'  => 'America/Los_Angeles',
-                'is_active' => true,
-                'is_demo'   => true,
+                'name'       => 'Serenity Acupuncture & Wellness',
+                'timezone'   => 'America/Los_Angeles',
+                'is_active'  => true,
+                'is_demo'    => true,
+                'discipline' => 'acupuncture',
             ]
         );
 
@@ -424,6 +425,142 @@ class DemoSeeder extends Seeder
 
             $appointmentCount++;
         }
+
+        // ── Featured intake submissions with full TCM health history ─────────────
+
+        // Patient 1 — James Patterson — chronic lower back pain
+        IntakeSubmission::create([
+            'practice_id'    => $practice->id,
+            'patient_id'     => $patients[0]->id,
+            'status'         => 'complete',
+            'discipline'     => 'acupuncture',
+            'submitted_on'   => $now->copy()->subDays(3),
+            'chief_complaint' => 'Chronic lower back pain, worse with prolonged sitting. Some radiation into the left buttock.',
+            'onset_duration' => '8 months',
+            'onset_type'     => 'gradual',
+            'aggravating_factors' => 'Sitting at a desk for more than 30 minutes, cold weather, stress.',
+            'relieving_factors'   => 'Heat, gentle walking, lying down.',
+            'pain_scale'     => 6,
+            'previous_episodes' => true,
+            'previous_episodes_description' => 'Had similar pain 3 years ago after moving house. Resolved on its own after 6 weeks.',
+            'exercise_frequency' => 'rarely',
+            'sleep_quality'  => 'fair',
+            'sleep_hours'    => 6,
+            'stress_level'   => 'high',
+            'treatment_goals' => 'Reduce pain to a manageable level so I can work a full day without discomfort. Improve flexibility.',
+            'consent_given'  => true,
+            'consent_signed_by' => 'James Patterson',
+            'consent_signed_at' => $now->copy()->subDays(3),
+            'discipline_responses' => [
+                'tcm' => [
+                    'energy_level'         => 'low',
+                    'energy_time_pattern'  => 'afternoon',
+                    'temperature_preference' => 'cold',
+                    'appetite'             => 'normal',
+                    'digestion_issues'     => ['bloating', 'constipation'],
+                    'bowel_frequency'      => 'less_than_daily',
+                    'thirst'               => 'low',
+                    'beverage_preference'  => 'hot',
+                    'sleep_issues'         => ['staying_asleep', 'night_sweats'],
+                    'dream_frequency'      => 'sometimes',
+                    'emotional_tendencies' => ['stress', 'anxiety'],
+                    'emotional_impact'     => 'significantly',
+                    'previous_acupuncture' => false,
+                    'needle_comfort'       => 'nervous',
+                ],
+            ],
+        ]);
+
+        // Patient 2 — Lisa Cohen — insomnia and anxiety
+        IntakeSubmission::create([
+            'practice_id'    => $practice->id,
+            'patient_id'     => $patients[1]->id,
+            'status'         => 'complete',
+            'discipline'     => 'acupuncture',
+            'submitted_on'   => $now->copy()->subDays(7),
+            'chief_complaint' => 'Difficulty sleeping and persistent anxiety. Racing thoughts at night, trouble unwinding after work.',
+            'onset_duration' => '4 months',
+            'onset_type'     => 'gradual',
+            'aggravating_factors' => 'Work deadlines, screen time before bed, caffeine.',
+            'relieving_factors'   => 'Meditation (sometimes), weekends when workload is lighter.',
+            'pain_scale'     => 3,
+            'previous_episodes' => false,
+            'exercise_frequency' => '1-2x_week',
+            'sleep_quality'  => 'poor',
+            'sleep_hours'    => 5,
+            'stress_level'   => 'very_high',
+            'diet_description' => 'Tends to skip breakfast. High coffee intake (3-4 cups/day). Light dinner.',
+            'treatment_goals' => 'Fall asleep more easily and stay asleep through the night. Feel less anxious during the day.',
+            'success_indicators' => 'Sleeping 7 hours without waking. Feeling calm before work presentations.',
+            'consent_given'  => true,
+            'consent_signed_by' => 'Lisa Cohen',
+            'consent_signed_at' => $now->copy()->subDays(7),
+            'discipline_responses' => [
+                'tcm' => [
+                    'energy_level'         => 'low',
+                    'energy_time_pattern'  => 'morning',
+                    'temperature_preference' => 'hot',
+                    'appetite'             => 'poor',
+                    'digestion_issues'     => ['none'],
+                    'bowel_frequency'      => 'once_daily',
+                    'thirst'               => 'high',
+                    'beverage_preference'  => 'cold',
+                    'sleep_issues'         => ['falling_asleep', 'vivid_dreams', 'early_waking'],
+                    'dream_frequency'      => 'often',
+                    'emotional_tendencies' => ['anxiety', 'worry'],
+                    'emotional_impact'     => 'significantly',
+                    'previous_acupuncture' => true,
+                    'previous_acupuncture_experience' => 'positive',
+                    'needle_comfort'       => 'comfortable',
+                ],
+            ],
+        ]);
+
+        // Patient 3 — Michael Rodriguez — recurring migraines
+        IntakeSubmission::create([
+            'practice_id'    => $practice->id,
+            'patient_id'     => $patients[2]->id,
+            'status'         => 'complete',
+            'discipline'     => 'acupuncture',
+            'submitted_on'   => $now->copy()->subDays(14),
+            'chief_complaint' => 'Recurring migraines 2-3 times per month. Throbbing pain, usually right-sided. Accompanied by nausea and light sensitivity.',
+            'onset_duration' => '2 years',
+            'onset_type'     => 'recurring',
+            'aggravating_factors' => 'Bright lights, loud noise, red wine, hormonal fluctuations, skipping meals.',
+            'relieving_factors'   => 'Dark quiet room, cold compress, sleep.',
+            'pain_scale'     => 8,
+            'previous_episodes' => true,
+            'previous_episodes_description' => 'Migraines started after a period of intense workplace stress 2 years ago. Have been cyclical since.',
+            'exercise_frequency' => '3-4x_week',
+            'sleep_quality'  => 'good',
+            'sleep_hours'    => 7,
+            'stress_level'   => 'moderate',
+            'smoking_status' => 'never',
+            'alcohol_use'    => 'social',
+            'treatment_goals' => 'Reduce migraine frequency to once a month or less. Shorten duration when they do occur.',
+            'success_indicators' => 'Going two months with fewer than 2 migraines. Being able to work through mild headaches without medication.',
+            'consent_given'  => true,
+            'consent_signed_by' => 'Michael Rodriguez',
+            'consent_signed_at' => $now->copy()->subDays(14),
+            'discipline_responses' => [
+                'tcm' => [
+                    'energy_level'         => 'moderate',
+                    'energy_time_pattern'  => 'no_pattern',
+                    'temperature_preference' => 'neutral',
+                    'appetite'             => 'normal',
+                    'digestion_issues'     => ['nausea'],
+                    'bowel_frequency'      => 'once_daily',
+                    'thirst'               => 'normal',
+                    'beverage_preference'  => 'room',
+                    'sleep_issues'         => ['none'],
+                    'dream_frequency'      => 'sometimes',
+                    'emotional_tendencies' => ['stress', 'anger'],
+                    'emotional_impact'     => 'somewhat',
+                    'previous_acupuncture' => false,
+                    'needle_comfort'       => 'comfortable',
+                ],
+            ],
+        ]);
 
         // Seed inventory products (if add-on is included)
         $this->call(InventoryProductSeeder::class);

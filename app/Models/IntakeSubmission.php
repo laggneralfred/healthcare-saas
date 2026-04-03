@@ -131,6 +131,23 @@ class IntakeSubmission extends Model
         return data_get($this->discipline_responses, $key);
     }
 
+    /**
+     * Return a structured summary of discipline-specific responses for display.
+     * @return array{label: string, key: string, data: array}
+     */
+    public function getDisciplineSection(): array
+    {
+        $responses = $this->discipline_responses ?? [];
+
+        return match ($this->discipline) {
+            'acupuncture'  => ['label' => 'TCM Assessment',            'key' => 'tcm',     'data' => $responses['tcm']     ?? []],
+            'massage'      => ['label' => 'Massage Preferences',       'key' => 'massage', 'data' => $responses['massage'] ?? []],
+            'chiropractic' => ['label' => 'Chiropractic Assessment',   'key' => 'chiro',   'data' => $responses['chiro']   ?? []],
+            'physiotherapy' => ['label' => 'Physiotherapy Assessment', 'key' => 'physio',  'data' => $responses['physio']  ?? []],
+            default         => ['label' => 'Additional Information',   'key' => 'other',   'data' => $responses],
+        };
+    }
+
     // ── Scopes ────────────────────────────────────────────────────────────────
 
     public function scopeForDiscipline(Builder $query, string $discipline): Builder

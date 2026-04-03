@@ -229,6 +229,200 @@ class ViewIntakeSubmission extends ViewRecord
                         ->content(fn ($record) => $record->success_indicators ?: '—'),
                 ]),
 
+            // ── Discipline-specific responses ─────────────────────────────────────
+            Section::make(fn ($record) => $record->getDisciplineSection()['label'])
+                ->visible(fn ($record) => !empty($record->getDisciplineSection()['data']))
+                ->schema([
+                    Placeholder::make('discipline_section_content')
+                        ->hiddenLabel()
+                        ->columnSpanFull()
+                        ->content(function ($record) {
+                            $section = $record->getDisciplineSection();
+                            $data    = $section['data'];
+                            $key     = $section['key'];
+
+                            if (empty($data)) {
+                                return '—';
+                            }
+
+                            return match ($key) {
+                                'tcm'     => static::formatTcmSection($data),
+                                'massage' => static::formatMassageSection($data),
+                                'chiro'   => static::formatChiroSection($data),
+                                'physio'  => static::formatPhysioSection($data),
+                                default   => implode("\n", array_map(
+                                    fn ($k, $v) => ucwords(str_replace('_', ' ', $k)) . ': ' . (is_array($v) ? implode(', ', $v) : $v),
+                                    array_keys($data), $data
+                                )),
+                            };
+                        }),
+                ]),
+
         ]);
+    }
+
+    // ── Discipline section formatters ──────────────────────────────────────────
+
+    private static function formatTcmSection(array $data): string
+    {
+        $lines = [];
+
+        $labels = [
+            'energy_level'          => 'Energy Level',
+            'energy_time_pattern'   => 'Energy Lowest',
+            'temperature_preference' => 'Temperature Preference',
+            'appetite'              => 'Appetite',
+            'digestion_issues'      => 'Digestive Issues',
+            'bowel_frequency'       => 'Bowel Movements',
+            'thirst'                => 'Thirst',
+            'beverage_preference'   => 'Beverage Preference',
+            'sleep_issues'          => 'Sleep Concerns',
+            'dream_frequency'       => 'Dream Frequency',
+            'emotional_tendencies'  => 'Emotional Tendencies',
+            'emotional_impact'      => 'Emotional Impact on Health',
+            'menstrual_applicable'  => 'Menstrual Questions Apply',
+            'cycle_length'          => 'Cycle Length',
+            'period_duration'       => 'Period Duration',
+            'flow'                  => 'Flow',
+            'period_pain'           => 'Period Pain',
+            'clots'                 => 'Blood Clots',
+            'pms_symptoms'          => 'PMS Symptoms',
+            'previous_acupuncture'  => 'Previous Acupuncture',
+            'previous_acupuncture_experience' => 'Acupuncture Experience',
+            'needle_comfort'        => 'Needle Comfort',
+        ];
+
+        foreach ($labels as $fieldKey => $label) {
+            if (! isset($data[$fieldKey])) {
+                continue;
+            }
+            $value = $data[$fieldKey];
+            if (is_array($value)) {
+                $value = implode(', ', $value);
+            } elseif (is_bool($value)) {
+                $value = $value ? 'Yes' : 'No';
+            }
+            if (filled($value)) {
+                $lines[] = "{$label}: {$value}";
+            }
+        }
+
+        return implode("\n", $lines) ?: '—';
+    }
+
+    private static function formatMassageSection(array $data): string
+    {
+        $lines = [];
+
+        $labels = [
+            'focus_areas'              => 'Focus Areas',
+            'areas_to_avoid'           => 'Areas to Avoid',
+            'pressure_preference'      => 'Pressure Preference',
+            'previous_massage'         => 'Previous Massage',
+            'massage_types'            => 'Massage Types Experienced',
+            'previous_massage_reaction' => 'Reaction to Previous Massage',
+            'skin_conditions'          => 'Skin Conditions',
+            'recent_injuries'          => 'Recent Injuries',
+            'varicose_veins'           => 'Varicose Veins',
+            'osteoporosis'             => 'Osteoporosis',
+            'draping_comfort'          => 'Draping Preference',
+            'session_goals'            => 'Session Goals',
+        ];
+
+        foreach ($labels as $fieldKey => $label) {
+            if (! isset($data[$fieldKey])) {
+                continue;
+            }
+            $value = $data[$fieldKey];
+            if (is_array($value)) {
+                $value = implode(', ', $value);
+            } elseif (is_bool($value)) {
+                $value = $value ? 'Yes' : 'No';
+            }
+            if (filled($value)) {
+                $lines[] = "{$label}: {$value}";
+            }
+        }
+
+        return implode("\n", $lines) ?: '—';
+    }
+
+    private static function formatChiroSection(array $data): string
+    {
+        $lines = [];
+
+        $labels = [
+            'pain_locations'         => 'Pain Locations',
+            'pain_character'         => 'Pain Character',
+            'pain_radiation'         => 'Pain Radiates',
+            'radiation_description'  => 'Radiation Location',
+            'onset_mechanism'        => 'Onset Mechanism',
+            'accident_date'          => 'Date of Accident',
+            'workers_comp'           => 'Workers Compensation',
+            'mva_claim'              => 'MVA Claim',
+            'neurological_symptoms'  => 'Neurological Symptoms',
+            'symptom_location'       => 'Symptom Location',
+            'previous_imaging'       => 'Previous Imaging',
+            'imaging_findings'       => 'Imaging Findings',
+            'previous_chiropractic'  => 'Previous Chiropractic Care',
+            'previous_chiro_outcome' => 'Previous Care Outcome',
+            'adjustment_consent'     => 'Adjustment Comfort',
+        ];
+
+        foreach ($labels as $fieldKey => $label) {
+            if (! isset($data[$fieldKey])) {
+                continue;
+            }
+            $value = $data[$fieldKey];
+            if (is_array($value)) {
+                $value = implode(', ', $value);
+            } elseif (is_bool($value)) {
+                $value = $value ? 'Yes' : 'No';
+            }
+            if (filled($value)) {
+                $lines[] = "{$label}: {$value}";
+            }
+        }
+
+        return implode("\n", $lines) ?: '—';
+    }
+
+    private static function formatPhysioSection(array $data): string
+    {
+        $lines = [];
+
+        $labels = [
+            'functional_limitations'    => 'Functional Limitations',
+            'work_status'               => 'Work Status',
+            'work_demands'              => 'Work Demands',
+            'recreational_impact'       => 'Recreational Impact',
+            'morning_stiffness'         => 'Morning Stiffness',
+            'morning_stiffness_duration' => 'Stiffness Duration',
+            'activity_effect'           => 'Effect of Activity',
+            'rest_effect'               => 'Effect of Rest',
+            'previous_physio'           => 'Previous Physiotherapy',
+            'previous_physio_outcome'   => 'Previous Physio Outcome',
+            'physician_referral'        => 'Physician Referral',
+            'referring_physician'       => 'Referring Physician',
+            'functional_goals'          => 'Functional Goals',
+            'timeline_expectation'      => 'Recovery Timeline',
+        ];
+
+        foreach ($labels as $fieldKey => $label) {
+            if (! isset($data[$fieldKey])) {
+                continue;
+            }
+            $value = $data[$fieldKey];
+            if (is_array($value)) {
+                $value = implode(', ', $value);
+            } elseif (is_bool($value)) {
+                $value = $value ? 'Yes' : 'No';
+            }
+            if (filled($value)) {
+                $lines[] = "{$label}: {$value}";
+            }
+        }
+
+        return implode("\n", $lines) ?: '—';
     }
 }

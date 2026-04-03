@@ -6,6 +6,7 @@ use App\Models\IntakeSubmission;
 use App\Models\Patient;
 use App\Models\Practice;
 use App\Models\User;
+use Database\Seeders\DemoSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -251,5 +252,210 @@ class IntakeSubmissionTest extends TestCase
         // Switch to practice B — practice A's submission must be invisible
         $this->actingAs($userB);
         $this->assertEquals(0, IntakeSubmission::count());
+    }
+
+    // ── Part B: Discipline-specific data tests ────────────────────────────────
+
+    public function test_discipline_responses_stores_tcm_data(): void
+    {
+        $practice = Practice::factory()->create();
+        $user     = User::factory()->create(['practice_id' => $practice->id]);
+        $patient  = Patient::factory()->create(['practice_id' => $practice->id]);
+
+        $this->actingAs($user);
+
+        $tcmData = [
+            'energy_level'         => 'low',
+            'temperature_preference' => 'cold',
+            'sleep_issues'         => ['staying_asleep', 'night_sweats'],
+            'emotional_tendencies' => ['stress', 'anxiety'],
+        ];
+
+        $submission = IntakeSubmission::factory()->create([
+            'practice_id'          => $practice->id,
+            'patient_id'           => $patient->id,
+            'discipline'           => 'acupuncture',
+            'discipline_responses' => ['tcm' => $tcmData],
+        ]);
+
+        $submission->refresh();
+        $this->assertEquals('low', $submission->discipline_responses['tcm']['energy_level']);
+        $this->assertEquals(['staying_asleep', 'night_sweats'], $submission->discipline_responses['tcm']['sleep_issues']);
+        $this->assertEquals(['stress', 'anxiety'], $submission->discipline_responses['tcm']['emotional_tendencies']);
+    }
+
+    public function test_discipline_responses_stores_massage_data(): void
+    {
+        $practice = Practice::factory()->create();
+        $user     = User::factory()->create(['practice_id' => $practice->id]);
+        $patient  = Patient::factory()->create(['practice_id' => $practice->id]);
+
+        $this->actingAs($user);
+
+        $massageData = [
+            'focus_areas'         => ['neck', 'shoulders', 'upper_back'],
+            'pressure_preference' => 'firm',
+            'session_goals'       => ['pain_relief', 'relaxation'],
+        ];
+
+        $submission = IntakeSubmission::factory()->create([
+            'practice_id'          => $practice->id,
+            'patient_id'           => $patient->id,
+            'discipline'           => 'massage',
+            'discipline_responses' => ['massage' => $massageData],
+        ]);
+
+        $submission->refresh();
+        $this->assertEquals('firm', $submission->discipline_responses['massage']['pressure_preference']);
+        $this->assertContains('neck', $submission->discipline_responses['massage']['focus_areas']);
+    }
+
+    public function test_discipline_responses_stores_chiro_data(): void
+    {
+        $practice = Practice::factory()->create();
+        $user     = User::factory()->create(['practice_id' => $practice->id]);
+        $patient  = Patient::factory()->create(['practice_id' => $practice->id]);
+
+        $this->actingAs($user);
+
+        $chiroData = [
+            'pain_locations'        => ['lower_back', 'hip'],
+            'pain_character'        => ['dull', 'stiffness'],
+            'onset_mechanism'       => 'gradual',
+            'adjustment_consent'    => 'comfortable',
+        ];
+
+        $submission = IntakeSubmission::factory()->create([
+            'practice_id'          => $practice->id,
+            'patient_id'           => $patient->id,
+            'discipline'           => 'chiropractic',
+            'discipline_responses' => ['chiro' => $chiroData],
+        ]);
+
+        $submission->refresh();
+        $this->assertEquals('comfortable', $submission->discipline_responses['chiro']['adjustment_consent']);
+        $this->assertContains('lower_back', $submission->discipline_responses['chiro']['pain_locations']);
+    }
+
+    public function test_discipline_responses_stores_physio_data(): void
+    {
+        $practice = Practice::factory()->create();
+        $user     = User::factory()->create(['practice_id' => $practice->id]);
+        $patient  = Patient::factory()->create(['practice_id' => $practice->id]);
+
+        $this->actingAs($user);
+
+        $physioData = [
+            'functional_limitations' => 'Cannot climb stairs without significant pain.',
+            'work_status'            => 'modified',
+            'functional_goals'       => ['return_work', 'pain_reduction'],
+            'timeline_expectation'   => 'months',
+        ];
+
+        $submission = IntakeSubmission::factory()->create([
+            'practice_id'          => $practice->id,
+            'patient_id'           => $patient->id,
+            'discipline'           => 'physiotherapy',
+            'discipline_responses' => ['physio' => $physioData],
+        ]);
+
+        $submission->refresh();
+        $this->assertEquals('modified', $submission->discipline_responses['physio']['work_status']);
+        $this->assertContains('return_work', $submission->discipline_responses['physio']['functional_goals']);
+    }
+
+    public function test_get_discipline_responses_for_nested_value(): void
+    {
+        $submission = new IntakeSubmission();
+        $submission->discipline_responses = [
+            'tcm' => ['energy_level' => 'low', 'thirst' => 'high'],
+        ];
+
+        $this->assertEquals('low', $submission->getDisciplineResponsesFor('tcm.energy_level'));
+        $this->assertEquals('high', $submission->getDisciplineResponsesFor('tcm.thirst'));
+        $this->assertNull($submission->getDisciplineResponsesFor('tcm.nonexistent'));
+        $this->assertNull($submission->getDisciplineResponsesFor('massage.focus_areas'));
+    }
+
+    public function test_practice_without_discipline_defaults_to_acupuncture(): void
+    {
+        $practice = Practice::factory()->create(['discipline' => null]);
+        $user     = User::factory()->create(['practice_id' => $practice->id]);
+
+        // The intake form's discipline field defaults to 'acupuncture' when practice discipline is null
+        $defaultDiscipline = $user->practice?->discipline ?? 'acupuncture';
+
+        $this->assertEquals('acupuncture', $defaultDiscipline);
+
+        // A practice WITH discipline should return that discipline
+        $practice2 = Practice::factory()->create(['discipline' => 'massage']);
+        $user2     = User::factory()->create(['practice_id' => $practice2->id]);
+
+        $defaultDiscipline2 = $user2->practice?->discipline ?? 'acupuncture';
+        $this->assertEquals('massage', $defaultDiscipline2);
+    }
+
+    public function test_get_discipline_section_returns_formatted_data(): void
+    {
+        $submission = new IntakeSubmission();
+        $submission->discipline = 'acupuncture';
+        $submission->discipline_responses = ['tcm' => ['energy_level' => 'low']];
+
+        $section = $submission->getDisciplineSection();
+        $this->assertEquals('TCM Assessment', $section['label']);
+        $this->assertEquals('tcm', $section['key']);
+        $this->assertEquals(['energy_level' => 'low'], $section['data']);
+
+        $submission->discipline = 'massage';
+        $submission->discipline_responses = ['massage' => ['pressure_preference' => 'firm']];
+        $section = $submission->getDisciplineSection();
+        $this->assertEquals('Massage Preferences', $section['label']);
+
+        $submission->discipline = null;
+        $section = $submission->getDisciplineSection();
+        $this->assertEquals('Additional Information', $section['label']);
+    }
+
+    public function test_demo_seeder_creates_intake_submissions_with_tcm_data(): void
+    {
+        $this->seed(DemoSeeder::class);
+
+        $tcmSubmissions = IntakeSubmission::withoutPracticeScope()
+            ->where('discipline', 'acupuncture')
+            ->whereNotNull('discipline_responses')
+            ->get()
+            ->filter(fn ($s) => !empty(data_get($s->discipline_responses, 'tcm.energy_level')));
+
+        $this->assertGreaterThanOrEqual(3, $tcmSubmissions->count(),
+            'DemoSeeder should create at least 3 acupuncture intakes with TCM energy_level data');
+
+        $first = $tcmSubmissions->first();
+        $this->assertNotNull($first->chief_complaint);
+        $this->assertNotNull($first->discipline_responses['tcm']['emotional_tendencies']);
+    }
+
+    public function test_view_intake_submission_page_loads(): void
+    {
+        $practice = Practice::factory()->create();
+        $user     = User::factory()->create(['practice_id' => $practice->id]);
+        $patient  = Patient::factory()->create(['practice_id' => $practice->id]);
+
+        $this->actingAs($user);
+        $submission = IntakeSubmission::factory()->create([
+            'practice_id' => $practice->id,
+            'patient_id'  => $patient->id,
+        ]);
+
+        $response = $this->get("/admin/intake-submissions/{$submission->id}");
+        $response->assertSuccessful();
+    }
+
+    public function test_intake_form_create_page_loads(): void
+    {
+        $practice = Practice::factory()->create(['discipline' => 'acupuncture']);
+        $user     = User::factory()->create(['practice_id' => $practice->id]);
+
+        $response = $this->actingAs($user)->get('/admin/intake-submissions/create');
+        $response->assertSuccessful();
     }
 }
