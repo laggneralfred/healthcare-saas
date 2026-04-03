@@ -12,6 +12,9 @@ git fetch origin
 git reset --hard origin/master
 log "==> Building app image (no cache)..."
 ${COMPOSE} build app --no-cache
+log "==> Stopping and removing old app containers..."
+docker stop healthcare-saas-app healthcare-saas-nginx healthcare-saas-queue healthcare-saas-scheduler 2>/dev/null || true
+docker rm   healthcare-saas-app healthcare-saas-nginx healthcare-saas-queue healthcare-saas-scheduler 2>/dev/null || true
 log "==> Recreating containers..."
 ${COMPOSE} up -d --no-deps --force-recreate app nginx queue scheduler
 log "==> Waiting for app container..."
