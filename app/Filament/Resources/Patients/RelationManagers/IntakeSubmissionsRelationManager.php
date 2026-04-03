@@ -100,7 +100,8 @@ class IntakeSubmissionsRelationManager extends RelationManager
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
-                    DeleteBulkAction::make(),
+                    DeleteBulkAction::make()
+                        ->hidden(fn () => auth()->user()?->isDemo()),
                 ]),
             ]);
     }

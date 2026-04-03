@@ -20,13 +20,17 @@ class PractitionerForm
                     ->relationship('user', 'name')
                     ->searchable()
                     ->preload()
-                    ->required(),
+                    ->required()
+                    ->disabledOn('view'),
                 TextInput::make('license_number')
-                    ->maxLength(100),
+                    ->maxLength(100)
+                    ->disabledOn('view'),
                 TextInput::make('specialty')
-                    ->maxLength(150),
+                    ->maxLength(150)
+                    ->disabledOn('view'),
                 Toggle::make('is_active')
-                    ->default(true),
+                    ->default(true)
+                    ->disabledOn('view'),
             ]);
     }
 }

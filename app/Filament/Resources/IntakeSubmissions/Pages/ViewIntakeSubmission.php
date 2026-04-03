@@ -12,6 +12,17 @@ class ViewIntakeSubmission extends ViewRecord
 {
     protected static string $resource = IntakeSubmissionResource::class;
 
+    protected function getHeaderActions(): array
+    {
+        return [
+            \Filament\Actions\Action::make('back')
+                ->label('Back')
+                ->icon('heroicon-o-arrow-left')
+                ->url(fn () => static::getResource()::getUrl('index'))
+                ->color('gray'),
+        ];
+    }
+
     public function infolist(Schema $schema): Schema
     {
         return $schema->components([
