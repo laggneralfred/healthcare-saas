@@ -248,24 +248,28 @@ class ViewIntakeSubmission extends ViewRecord
                         ->hiddenLabel()
                         ->columnSpanFull()
                         ->content(function ($record) {
-                            $section = $record->getDisciplineSection();
-                            $data    = $section['data'];
-                            $key     = $section['key'];
+                            try {
+                                $section = $record->getDisciplineSection();
+                                $data    = $section['data'];
+                                $key     = $section['key'];
 
-                            if (empty($data)) {
-                                return '—';
+                                if (empty($data)) {
+                                    return '—';
+                                }
+
+                                return match ($key) {
+                                    'tcm'     => static::formatTcmSection($data),
+                                    'massage' => static::formatMassageSection($data),
+                                    'chiro'   => static::formatChiroSection($data),
+                                    'physio'  => static::formatPhysioSection($data),
+                                    default   => implode("\n", array_map(
+                                        fn ($k, $v) => ucwords(str_replace('_', ' ', $k)) . ': ' . static::flattenValue($v),
+                                        array_keys($data), $data
+                                    )),
+                                };
+                            } catch (\Throwable $e) {
+                                return '(Unable to display discipline data)';
                             }
-
-                            return match ($key) {
-                                'tcm'     => static::formatTcmSection($data),
-                                'massage' => static::formatMassageSection($data),
-                                'chiro'   => static::formatChiroSection($data),
-                                'physio'  => static::formatPhysioSection($data),
-                                default   => implode("\n", array_map(
-                                    fn ($k, $v) => ucwords(str_replace('_', ' ', $k)) . ': ' . (is_array($v) ? implode(', ', $v) : $v),
-                                    array_keys($data), $data
-                                )),
-                            };
                         }),
                 ]),
 
@@ -396,6 +400,19 @@ class ViewIntakeSubmission extends ViewRecord
         }
 
         return implode("\n", $lines) ?: '—';
+    }
+
+    private static function flattenValue(mixed $v): string
+    {
+        if (is_bool($v)) return $v ? 'Yes' : 'No';
+        if (is_null($v)) return '—';
+        if (is_array($v)) {
+            return implode(', ', array_map(
+                fn ($i) => is_array($i) ? json_encode($i) : (string) $i,
+                $v
+            ));
+        }
+        return (string) $v;
     }
 
     private static function formatPhysioSection(array $data): string
