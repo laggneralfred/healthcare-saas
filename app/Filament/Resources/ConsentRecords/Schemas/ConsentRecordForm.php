@@ -25,7 +25,9 @@ class ConsentRecordForm
 
                 Select::make('appointment_id')
                     ->relationship('appointment', 'id')
-                    ->getOptionLabelFromRecordUsing(fn ($r) => "#{$r->id} — {$r->start_datetime?->format('M j, Y g:ia')}")
+                    ->getOptionLabelFromRecordUsing(fn ($r) => $r
+                        ? "#{$r->id} — {$r->start_datetime?->format('M j, Y g:ia')}"
+                        : '(Appointment not found)')
                     ->searchable()->nullable()
                     ->disabledOn('view'),
 

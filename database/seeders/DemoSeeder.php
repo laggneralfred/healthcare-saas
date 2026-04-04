@@ -45,6 +45,31 @@ class DemoSeeder extends Seeder
             ]
         );
 
+        // ── Cleanup old demo data from previous resets ────────────────────────
+        // demo:reset runs db:seed (not migrate:fresh), so records accumulate.
+        // Delete in dependency order to avoid FK violations.
+        $apptIds = Appointment::where('practice_id', $practice->id)->pluck('id');
+
+        if ($apptIds->isNotEmpty()) {
+            $encounterIds = Encounter::where('practice_id', $practice->id)->pluck('id');
+            if ($encounterIds->isNotEmpty()) {
+                AcupunctureEncounter::whereIn('encounter_id', $encounterIds)->delete();
+            }
+            $checkoutIds = CheckoutSession::where('practice_id', $practice->id)->pluck('id');
+            if ($checkoutIds->isNotEmpty()) {
+                CheckoutLine::whereIn('checkout_session_id', $checkoutIds)->delete();
+            }
+            ConsentRecord::where('practice_id', $practice->id)->whereNotNull('appointment_id')->delete();
+            IntakeSubmission::where('practice_id', $practice->id)->whereNotNull('appointment_id')->delete();
+            Encounter::where('practice_id', $practice->id)->delete();
+            CheckoutSession::where('practice_id', $practice->id)->delete();
+            Appointment::where('practice_id', $practice->id)->delete();
+        }
+
+        // Also clean up any standalone orphaned consent records / intake submissions
+        ConsentRecord::where('practice_id', $practice->id)->whereDoesntHave('appointment')->delete();
+        IntakeSubmission::where('practice_id', $practice->id)->whereDoesntHave('appointment')->delete();
+
         // ── Service fees ──────────────────────────────────────────────────────
         $feeData = [
             ['name' => 'Initial Consultation',      'default_price' => 150.00],
