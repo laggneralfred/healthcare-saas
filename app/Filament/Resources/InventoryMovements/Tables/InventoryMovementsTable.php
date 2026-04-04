@@ -32,7 +32,7 @@ class InventoryMovementsTable
                         'sale' => 'heroicon-m-arrow-down-circle',
                         'adjustment' => 'heroicon-m-adjustments-horizontal',
                         'return' => 'heroicon-m-arrow-uturn-left',
-                        default => null,
+                        default => 'heroicon-m-arrows-right-left',
                     }),
                 TextColumn::make('quantity')
                     ->numeric()
