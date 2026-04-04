@@ -16,28 +16,23 @@ class DemoModeMiddleware
                 return $next($request);
             }
 
-            // Block create and edit pages (GET requests)
-            if ($request->isMethod('GET') &&
+            // Check if this is a write page (GET /create or /edit)
+            $isWritePage = $request->isMethod('GET') &&
                 (str_contains($request->path(), '/create') ||
-                 preg_match('/\/[\w-]+\/edit/', $request->path()) ||
-                 str_contains($request->path(), '/edit'))) {
+                 str_contains($request->path(), '/edit'));
+
+            // Check if this is a state-changing HTTP method
+            $isWriteMethod = $request->isMethod('POST') || $request->isMethod('PUT') ||
+                $request->isMethod('PATCH') || $request->isMethod('DELETE');
+
+            // Block both write pages and write methods
+            if ($isWritePage || $isWriteMethod) {
                 Notification::make()
-                    ->title('Read-only demo')
-                    ->body('This is a preview — create and edit actions are disabled.')
                     ->warning()
+                    ->title('Demo mode — changes are disabled')
+                    ->body('This is a read-only preview. Sign up for a free trial to make changes.')
                     ->send();
                 return redirect('/admin/dashboard');
-            }
-
-            // Block all write methods
-            if ($request->isMethod('POST') || $request->isMethod('PUT') ||
-                $request->isMethod('PATCH') || $request->isMethod('DELETE')) {
-                Notification::make()
-                    ->warning()
-                    ->title('Demo Mode')
-                    ->body('This action is disabled in the public demo. Sign up for a free trial.')
-                    ->send();
-                return back();
             }
         }
         return $next($request);
