@@ -5,6 +5,7 @@ namespace App\Filament\Resources\InventoryProducts;
 use App\Filament\Resources\InventoryProducts\Pages\CreateInventoryProduct;
 use App\Filament\Resources\InventoryProducts\Pages\EditInventoryProduct;
 use App\Filament\Resources\InventoryProducts\Pages\ListInventoryProducts;
+use App\Filament\Resources\InventoryProducts\Pages\ViewInventoryProduct;
 use App\Filament\Resources\InventoryProducts\Schemas\InventoryProductForm;
 use App\Filament\Resources\InventoryProducts\Tables\InventoryProductsTable;
 use App\Models\InventoryProduct;
@@ -49,6 +50,7 @@ class InventoryProductResource extends Resource
             'index' => ListInventoryProducts::route('/'),
             'create' => CreateInventoryProduct::route('/create'),
             'edit' => EditInventoryProduct::route('/{record}/edit'),
+            'view' => ViewInventoryProduct::route('/{record}'),
         ];
     }
 
