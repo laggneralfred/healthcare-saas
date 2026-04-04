@@ -21,6 +21,8 @@ class PractitionerResource extends Resource
     protected static ?string $model = Practitioner::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    protected static string|\UnitEnum|null $navigationGroup = 'Settings';
+    protected static ?int $navigationSort = 4;
 
     public static function form(Schema $schema): Schema
     {

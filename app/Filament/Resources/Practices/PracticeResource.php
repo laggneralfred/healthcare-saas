@@ -21,6 +21,10 @@ class PracticeResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
 
+    protected static string|\UnitEnum|null $navigationGroup = 'Settings';
+
+    protected static ?int $navigationSort = 1;
+
     public static function form(Schema $schema): Schema
     {
         return PracticeForm::configure($schema);

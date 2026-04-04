@@ -15,7 +15,11 @@ class BillingPage extends Page
 
     protected static ?string $title = 'Billing & Subscription';
 
-    protected static ?int $navigationSort = 10;
+    protected static ?string $navigationLabel = 'Subscription';
+
+    protected static string|\UnitEnum|null $navigationGroup = 'Settings';
+
+    protected static ?int $navigationSort = 2;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedCreditCard;
 

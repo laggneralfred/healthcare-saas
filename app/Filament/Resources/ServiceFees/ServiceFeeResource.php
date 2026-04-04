@@ -23,6 +23,10 @@ class ServiceFeeResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedCurrencyDollar;
 
+    protected static string|\UnitEnum|null $navigationGroup = 'Billing';
+
+    protected static ?int $navigationSort = 2;
+
     public static function form(Schema $schema): Schema
     {
         return ServiceFeeForm::configure($schema);

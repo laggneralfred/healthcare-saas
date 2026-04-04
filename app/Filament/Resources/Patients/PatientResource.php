@@ -23,6 +23,10 @@ class PatientResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
 
+    protected static string|\UnitEnum|null $navigationGroup = 'Patients';
+
+    protected static ?int $navigationSort = 1;
+
     public static function form(Schema $schema): Schema
     {
         return PatientForm::configure($schema);
