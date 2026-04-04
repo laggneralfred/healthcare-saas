@@ -10,6 +10,8 @@ use App\Models\CheckoutSession;
 use App\Models\ConsentRecord;
 use App\Models\Encounter;
 use App\Models\IntakeSubmission;
+use App\Models\InventoryMovement;
+use App\Models\InventoryProduct;
 use App\Models\Patient;
 use App\Models\Practice;
 use App\Models\Practitioner;
@@ -897,8 +899,70 @@ class DemoSeeder extends Seeder
             ]);
         }
 
-        // ── Inventory & Communications ────────────────────────────────────────
-        $this->call(InventoryProductSeeder::class);
+        // ── Inventory Movements ───────────────────────────────────────────────
+        // Seed movements only once to avoid accumulation on repeated demo:reset
+        if (!InventoryMovement::where('practice_id', $practice->id)->exists()) {
+            // First, seed the products
+            $this->call(InventoryProductSeeder::class);
+
+            // Get all products for this practice
+            $products = InventoryProduct::where('practice_id', $practice->id)->get();
+
+            foreach ($products as $product) {
+                // 1. Initial stock receipt: 50-100 units, 6 months ago
+                InventoryMovement::create([
+                    'id'                   => \Illuminate\Support\Str::uuid(),
+                    'practice_id'          => $practice->id,
+                    'inventory_product_id' => $product->id,
+                    'type'                 => 'in',
+                    'quantity'             => rand(50, 100),
+                    'unit_price'           => $product->cost_price,
+                    'reference'            => null,
+                    'notes'                => 'Initial stock',
+                    'created_by'           => null,
+                    'created_at'           => Carbon::now()->subMonths(6),
+                    'updated_at'           => Carbon::now()->subMonths(6),
+                ]);
+
+                // 2. Two to three dispensing movements over the last 3 months
+                for ($i = 0; $i < rand(2, 3); $i++) {
+                    $randomPatient = $patients[array_rand($patients)];
+                    InventoryMovement::create([
+                        'id'                   => \Illuminate\Support\Str::uuid(),
+                        'practice_id'          => $practice->id,
+                        'inventory_product_id' => $product->id,
+                        'type'                 => 'out',
+                        'quantity'             => rand(1, 5),
+                        'unit_price'           => $product->cost_price,
+                        'reference'            => null,
+                        'notes'                => 'Dispensed to ' . $randomPatient->first_name,
+                        'created_by'           => null,
+                        'created_at'           => Carbon::now()->subMonths(rand(1, 3)),
+                        'updated_at'           => Carbon::now()->subMonths(rand(1, 3)),
+                    ]);
+                }
+
+                // 3. Adjustment movement: ±5 units, 1 month ago
+                InventoryMovement::create([
+                    'id'                   => \Illuminate\Support\Str::uuid(),
+                    'practice_id'          => $practice->id,
+                    'inventory_product_id' => $product->id,
+                    'type'                 => 'adjustment',
+                    'quantity'             => rand(-5, 5),
+                    'unit_price'           => null,
+                    'reference'            => null,
+                    'notes'                => 'Inventory adjustment',
+                    'created_by'           => null,
+                    'created_at'           => Carbon::now()->subMonth(),
+                    'updated_at'           => Carbon::now()->subMonth(),
+                ]);
+            }
+        } else {
+            // Products already seeded, skip and call the seeder anyway to avoid skipping it entirely
+            $this->call(InventoryProductSeeder::class);
+        }
+
+        // ── Communications ────────────────────────────────────────────────────
         (new DefaultMessageTemplatesSeeder())->seedForPractice($practice);
 
         // ── Summary ───────────────────────────────────────────────────────────
