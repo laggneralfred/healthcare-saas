@@ -22,7 +22,12 @@ sleep 15
 log "==> Fixing permissions..."
 docker exec --user root "${APP_CONTAINER}" chown -R www-data:www-data bootstrap/cache storage
 log "==> Caching config, routes, views..."
+docker exec --user root "${APP_CONTAINER}" rm -f bootstrap/cache/packages.php bootstrap/cache/services.php bootstrap/cache/config.php
+docker exec "${APP_CONTAINER}" php artisan package:discover --ansi
+docker exec "${APP_CONTAINER}" php artisan migrate --force
 docker exec "${APP_CONTAINER}" php artisan optimize
+docker exec --user root healthcare-saas-queue rm -f bootstrap/cache/packages.php bootstrap/cache/services.php bootstrap/cache/config.php
+docker exec --user root healthcare-saas-scheduler rm -f bootstrap/cache/packages.php bootstrap/cache/services.php bootstrap/cache/config.php
 log "==> Reloading Caddy..."
 docker exec "${CADDY_CONTAINER}" caddy reload \
     --config /etc/caddy/Caddyfile \
