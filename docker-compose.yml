@@ -72,16 +72,12 @@ services:
 
       QUEUE_CONNECTION: redis
 
-      MAIL_MAILER: ${MAIL_MAILER:-log}
-      MAIL_HOST: ${MAIL_HOST:-127.0.0.1}
-      MAIL_PORT: ${MAIL_PORT:-2525}
-      MAIL_USERNAME: ${MAIL_USERNAME}
-      MAIL_PASSWORD: ${MAIL_PASSWORD}
-      MAIL_FROM_ADDRESS: ${MAIL_FROM_ADDRESS:-noreply@practiqapp.com}
-      MAIL_FROM_NAME: ${MAIL_FROM_NAME:-Practiq}
-
-      # Postmark (production email)
-      POSTMARK_API_KEY: ${POSTMARK_API_KEY}
+      MAIL_MAILER: mailgun
+      MAIL_FROM_ADDRESS: noreply@practiqapp.com
+      MAIL_FROM_NAME: Practiq
+      MAILGUN_DOMAIN: mg.practiqapp.com
+      MAILGUN_SECRET: ${MAILGUN_SECRET}
+      MAILGUN_ENDPOINT: api.mailgun.net
 
       # Stripe
       STRIPE_KEY: ${STRIPE_KEY}
@@ -172,14 +168,12 @@ services:
 
       QUEUE_CONNECTION: redis
 
-      MAIL_MAILER: ${MAIL_MAILER:-log}
-      MAIL_HOST: ${MAIL_HOST:-127.0.0.1}
-      MAIL_PORT: ${MAIL_PORT:-2525}
-      MAIL_USERNAME: ${MAIL_USERNAME}
-      MAIL_PASSWORD: ${MAIL_PASSWORD}
-      MAIL_FROM_ADDRESS: ${MAIL_FROM_ADDRESS:-noreply@practiqapp.com}
-      MAIL_FROM_NAME: ${MAIL_FROM_NAME:-Practiq}
-      POSTMARK_API_KEY: ${POSTMARK_API_KEY}
+      MAIL_MAILER: mailgun
+      MAIL_FROM_ADDRESS: noreply@practiqapp.com
+      MAIL_FROM_NAME: Practiq
+      MAILGUN_DOMAIN: mg.practiqapp.com
+      MAILGUN_SECRET: ${MAILGUN_SECRET}
+      MAILGUN_ENDPOINT: api.mailgun.net
 
       STRIPE_KEY: ${STRIPE_KEY}
       STRIPE_SECRET: ${STRIPE_SECRET}
@@ -228,6 +222,13 @@ services:
       REDIS_PASSWORD: changeme
 
       QUEUE_CONNECTION: redis
+
+      MAIL_MAILER: mailgun
+      MAIL_FROM_ADDRESS: noreply@practiqapp.com
+      MAIL_FROM_NAME: Practiq
+      MAILGUN_DOMAIN: mg.practiqapp.com
+      MAILGUN_SECRET: ${MAILGUN_SECRET}
+      MAILGUN_ENDPOINT: api.mailgun.net
     volumes:
       - app_storage:/app/storage
       - app_bootstrap:/app/bootstrap/cache
