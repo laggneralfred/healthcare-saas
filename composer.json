@@ -12,6 +12,7 @@
         "laravel/framework": "^13.0",
         "laravel/tinker": "^3.0",
         "spatie/laravel-model-states": "^2.12",
+        "symfony/http-client": "^8.0",
         "symfony/mailgun-mailer": "^8.0"
     },
     "require-dev": {
