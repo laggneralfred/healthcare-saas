@@ -2,6 +2,7 @@
 
 namespace App\Providers\Filament;
 
+use App\Http\Middleware\EnforceGracePeriodReadOnly;
 use App\Http\Middleware\RequiresActiveSubscription;
 use App\Models\Practice;
 use App\Services\PracticeContext;
@@ -77,6 +78,34 @@ class AdminPanelProvider extends PanelProvider
             },
         );
 
+        // Grace period banner — shown when trial has expired but within 30-day grace window
+        FilamentView::registerRenderHook(
+            PanelsRenderHook::CONTENT_START,
+            function (): string {
+                if (! session('trial_grace')) {
+                    return '';
+                }
+                $billingUrl = route('filament.admin.pages.billing');
+                return <<<HTML
+<div x-data="{ dismissed: sessionStorage.getItem('practiq_grace_dismissed') === '1' }"
+     x-show="!dismissed"
+     x-transition
+     style="background-color:#d97706;color:white;padding:12px 24px;display:flex;justify-content:space-between;align-items:center;font-size:14px;">
+    <span>
+        <strong>⚠ Your free trial has expired.</strong>
+        Your data is safe — subscribe to continue using Practiq.
+        <a href="{$billingUrl}" style="color:white;text-decoration:underline;font-weight:600;margin-left:8px;">
+            Subscribe Now &rarr;
+        </a>
+    </span>
+    <button @click="dismissed=true;sessionStorage.setItem('practiq_grace_dismissed','1')"
+            style="background:none;border:none;color:white;cursor:pointer;font-size:18px;line-height:1;padding:0;margin:0;"
+            type="button" aria-label="Dismiss">&times;</button>
+</div>
+HTML;
+            },
+        );
+
         $isDemo = fn () => auth()->check() && auth()->user()->isDemo();
 
         FilamentAction::configureUsing(function (FilamentAction $action) use ($isDemo): void {
@@ -120,6 +149,7 @@ class AdminPanelProvider extends PanelProvider
                 DisableBladeIconComponents::class,
                 DispatchServingFilamentEvent::class,
                 'demo.mode',
+                'grace.readonly',
             ])
             ->authMiddleware([
                 Authenticate::class,

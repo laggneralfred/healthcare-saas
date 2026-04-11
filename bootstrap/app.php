@@ -17,7 +17,8 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
 
         $middleware->alias([
-            'demo.mode' => \App\Http\Middleware\DemoModeMiddleware::class,
+            'demo.mode'      => \App\Http\Middleware\DemoModeMiddleware::class,
+            'grace.readonly' => \App\Http\Middleware\EnforceGracePeriodReadOnly::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

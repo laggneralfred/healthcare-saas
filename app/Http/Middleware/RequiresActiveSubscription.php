@@ -58,8 +58,22 @@ class RequiresActiveSubscription
             return $next($request);
         }
 
-        // Trial expired or no subscription
-        return redirect('/subscribe');
+        // Grace period: allow read-only access for 30 days after trial expiry
+        if ($practice->trial_ends_at) {
+            $daysSinceExpiry = (int) now()->diffInDays($practice->trial_ends_at);
 
+            if ($daysSinceExpiry <= 30) {
+                session(['trial_grace' => true]);
+                return $next($request);
+            }
+
+            return redirect('/subscribe')->with(
+                'error',
+                'Your trial ended 30+ days ago. Subscribe to access your account.'
+            );
+        }
+
+        // No trial at all — no subscription
+        return redirect('/subscribe');
     }
 }
