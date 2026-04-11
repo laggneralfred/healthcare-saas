@@ -21,9 +21,13 @@ class IntakeSubmissionResource extends Resource
     use BelongsToPractice;
     protected static ?string $model = IntakeSubmission::class;
 
+    protected static ?string $navigationLabel = 'Medical History';
+
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
 
     protected static string|\UnitEnum|null $navigationGroup = 'Patients';
+
+    protected static ?int $navigationGroupSort = 2;
 
     protected static ?int $navigationSort = 3;
 

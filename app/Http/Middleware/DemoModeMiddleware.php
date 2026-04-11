@@ -16,21 +16,27 @@ class DemoModeMiddleware
                 return $next($request);
             }
 
-            // Check if this is a write page (GET /create or /edit)
+            // Check if this is a write page (GET /create, /edit, /import, or /export)
             $isWritePage = $request->isMethod('GET') &&
                 (str_contains($request->path(), '/create') ||
-                 str_contains($request->path(), '/edit'));
+                 str_contains($request->path(), '/edit') ||
+                 str_contains($request->path(), '/import') ||
+                 str_contains($request->path(), '/export'));
 
-            // Check if this is a state-changing HTTP method
+            // Check if this is a state-changing HTTP method or import/export action
             $isWriteMethod = $request->isMethod('POST') || $request->isMethod('PUT') ||
                 $request->isMethod('PATCH') || $request->isMethod('DELETE');
 
-            // Block both write pages and write methods
-            if ($isWritePage || $isWriteMethod) {
+            // Block import/export routes explicitly
+            $isImportExport = str_contains($request->path(), '/import') ||
+                str_contains($request->path(), '/export');
+
+            // Block both write pages and write methods, plus import/export
+            if ($isWritePage || $isWriteMethod || $isImportExport) {
                 Notification::make()
                     ->warning()
-                    ->title('Demo mode — changes are disabled')
-                    ->body('This is a read-only preview. Sign up for a free trial to make changes.')
+                    ->title('Demo mode — import and export are disabled')
+                    ->body('This is a read-only preview. Sign up for a free trial to import or export data.')
                     ->send();
                 return redirect('/admin/dashboard');
             }

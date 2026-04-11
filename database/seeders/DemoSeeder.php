@@ -160,7 +160,7 @@ class DemoSeeder extends Seeder
             'Water' => ['color' => 'Black',        'sound' => 'Groaning',  'odor' => 'Putrid',    'emotion' => 'Fear'],
         ];
 
-        // ── 8 Patients with full demographics ────────────────────────────────
+        // ── 14 Patients with full demographics (8 acupuncture + 6 multi-discipline) ──
         $patientData = [
             // 1. Emma Nakamura — lower back pain, ~38
             [
@@ -579,6 +579,267 @@ class DemoSeeder extends Seeder
                 'assessment_notes'   => 'Kidney Yin Deficiency with Empty Heat. Red peeled tongue, rapid thin pulse.',
                 'plan_notes'         => 'Needle KI3, KI6, HT6 to nourish Yin and clear Empty Heat. SP6 and CV4 to support Chong/Ren.',
             ],
+            // ───────────────────── MASSAGE THERAPY (2 patients) ─────────────────
+            // 9. Marcus Reynolds — neck tension from desk work, ~45
+            [
+                'first_name'                => 'Marcus',
+                'last_name'                 => 'Reynolds',
+                'email'                     => 'marcus.reynolds@email.com',
+                'phone'                     => '(415) 555-0217',
+                'dob'                       => '1980-05-15',
+                'gender'                    => 'male',
+                'address_line_1'            => '2847 Fillmore St',
+                'city'                      => 'San Francisco',
+                'state'                     => 'CA',
+                'postal_code'               => '94115',
+                'emergency_contact_name'    => 'Linda Reynolds',
+                'emergency_contact_phone'   => '(415) 555-0218',
+                'emergency_contact_relationship' => 'Sister',
+                'occupation'                => 'Software Developer',
+                'chief_complaint'   => 'Chronic neck and upper back tension from prolonged screen time. Morning stiffness and occasional headaches.',
+                'onset_duration'    => '18 months',
+                'onset_type'        => 'gradual',
+                'aggravating'       => 'Sitting at desk, stress, cold weather, poor ergonomics.',
+                'relieving'         => 'Stretching, massage, heat therapy, neck exercises.',
+                'pain_scale'        => 6,
+                'sleep_quality'     => 'fair',
+                'sleep_hours'       => 6,
+                'stress_level'      => 'high',
+                'exercise'          => '2-3x_week',
+                'diet'              => 'Healthy with occasional takeout. Drinks lots of coffee.',
+                'goals'             => 'Reduce daily neck tension, eliminate morning stiffness, prevent tension headaches.',
+                'visit_notes_prefix' => 'neck and upper back tension — rates pain 6/10 today. Reports morning stiffness lasting 30 minutes.',
+                'assessment_notes'   => 'Significant muscle tension in upper trapezius, levator scapulae, and suboccipitals bilaterally. Limited cervical rotation.',
+                'plan_notes'         => 'Deep tissue massage focusing on neck and shoulders. Myofascial release of upper traps. Ergonomic assessment recommended.',
+                'massage_responses'  => [
+                    'massage' => [
+                        'pain_areas' => ['neck', 'upper_back', 'shoulders'],
+                        'massage_frequency_preference' => 'biweekly',
+                        'pressure_preference' => 'firm',
+                        'contraindications' => ['none'],
+                        'previous_massage' => true,
+                        'massage_comfort' => 'very_comfortable',
+                        'health_conditions' => ['none'],
+                    ]
+                ],
+            ],
+            // 10. Patricia Wong — sports recovery massage, ~38
+            [
+                'first_name'                => 'Patricia',
+                'last_name'                 => 'Wong',
+                'email'                     => 'patricia.wong@email.com',
+                'phone'                     => '(415) 555-0219',
+                'dob'                       => '1987-11-22',
+                'gender'                    => 'female',
+                'address_line_1'            => '1567 Ocean Ave',
+                'city'                      => 'San Francisco',
+                'state'                     => 'CA',
+                'postal_code'               => '94112',
+                'emergency_contact_name'    => 'David Wong',
+                'emergency_contact_phone'   => '(415) 555-0220',
+                'emergency_contact_relationship' => 'Husband',
+                'occupation'                => 'Runner / Marathon Coach',
+                'chief_complaint'   => 'Post-race muscle soreness and tight hip flexors. Looking for recovery massage to improve performance and prevent injuries.',
+                'onset_duration'    => 'ongoing',
+                'onset_type'        => 'recurring',
+                'aggravating'       => 'Running, prolonged sitting after training, lack of recovery time.',
+                'relieving'         => 'Massage, stretching, foam rolling, ice baths.',
+                'pain_scale'        => 4,
+                'sleep_quality'     => 'good',
+                'sleep_hours'       => 7,
+                'stress_level'      => 'moderate',
+                'exercise'          => 'daily',
+                'diet'              => 'High-protein diet for athletic recovery. Plenty of hydration.',
+                'goals'             => 'Maintain muscle health, improve recovery time, prevent running injuries.',
+                'visit_notes_prefix' => 'post-race recovery — completed half-marathon yesterday. Quads, hamstrings, and glutes very tight.',
+                'assessment_notes'   => 'Significant muscle tightness in major lower limb muscle groups. Hip flexors restricted. No acute injuries noted.',
+                'plan_notes'         => 'Sports massage focusing on quads, hamstrings, glutes, and hip flexors. Use PNF stretching and fascial release.',
+                'massage_responses'  => [
+                    'massage' => [
+                        'pain_areas' => ['quads', 'hamstrings', 'glutes', 'hip_flexors'],
+                        'massage_frequency_preference' => 'weekly',
+                        'pressure_preference' => 'medium_firm',
+                        'contraindications' => ['none'],
+                        'previous_massage' => true,
+                        'massage_comfort' => 'very_comfortable',
+                        'health_conditions' => ['none'],
+                    ]
+                ],
+            ],
+            // ───────────────────── CHIROPRACTIC (2 patients) ────────────────────
+            // 11. Christopher Lee — lower back pain from car accident, ~52
+            [
+                'first_name'                => 'Christopher',
+                'last_name'                 => 'Lee',
+                'email'                     => 'christopher.lee@email.com',
+                'phone'                     => '(415) 555-0221',
+                'dob'                       => '1973-07-10',
+                'gender'                    => 'male',
+                'address_line_1'            => '5611 Geary Blvd',
+                'city'                      => 'San Francisco',
+                'state'                     => 'CA',
+                'postal_code'               => '94121',
+                'emergency_contact_name'    => 'Michelle Lee',
+                'emergency_contact_phone'   => '(415) 555-0222',
+                'emergency_contact_relationship' => 'Wife',
+                'occupation'                => 'Construction Manager',
+                'chief_complaint'   => 'Persistent lower back pain following car accident 8 months ago. Radiating pain into left leg. Work capacity limited.',
+                'onset_duration'    => '8 months',
+                'onset_type'        => 'acute',
+                'aggravating'       => 'Bending, lifting, prolonged standing, sitting longer than 30 minutes.',
+                'relieving'         => 'Rest, ice packs, ibuprofen, lying flat.',
+                'pain_scale'        => 7,
+                'sleep_quality'     => 'poor',
+                'sleep_hours'       => 5,
+                'stress_level'      => 'very_high',
+                'exercise'          => 'rarely',
+                'diet'              => 'Tends to eat fast food due to work schedule. Inconsistent eating patterns.',
+                'goals'             => 'Reduce lower back and leg pain to return to full-duty work. Improve sleep quality.',
+                'visit_notes_prefix' => 'lower back with left leg radiculopathy — rates pain 7/10 today. Can barely stand for 2 hours.',
+                'assessment_notes'   => 'L4-L5 disc involvement suspected. Positive straight leg raise left. Diminished reflexes. Spine X-rays reviewed.',
+                'plan_notes'         => 'Spinal adjustments targeting L4-L5. Flexion-distraction decompression therapy. Core stabilization exercises.',
+                'chiro_responses'    => [
+                    'chiropractic' => [
+                        'primary_condition' => 'lower_back_pain',
+                        'secondary_conditions' => ['leg_pain', 'sleep_issues'],
+                        'adjustment_frequency_preference' => 'twice_weekly',
+                        'contraindications' => ['none'],
+                        'previous_chiropractic' => false,
+                        'treatment_comfort' => 'slightly_nervous',
+                        'work_related_pain' => true,
+                    ]
+                ],
+            ],
+            // 12. Amanda Torres — headaches and tension, ~41
+            [
+                'first_name'                => 'Amanda',
+                'last_name'                 => 'Torres',
+                'email'                     => 'amanda.torres@email.com',
+                'phone'                     => '(415) 555-0223',
+                'dob'                       => '1984-03-28',
+                'gender'                    => 'female',
+                'address_line_1'            => '738 Clayton St',
+                'city'                      => 'San Francisco',
+                'state'                     => 'CA',
+                'postal_code'               => '94117',
+                'emergency_contact_name'    => 'Roberto Torres',
+                'emergency_contact_phone'   => '(415) 555-0224',
+                'emergency_contact_relationship' => 'Brother',
+                'occupation'                => 'Accountant',
+                'chief_complaint'   => 'Chronic tension headaches occurring 4-5 times per week. Migraine aura occasionally. Limited by frequent analgesic use.',
+                'onset_duration'    => '3 years',
+                'onset_type'        => 'gradual',
+                'aggravating'       => 'Work stress, poor posture, skipping meals, hormonal cycles.',
+                'relieving'         => 'Rest in dark room, ice packs, neck stretching.',
+                'pain_scale'        => 6,
+                'sleep_quality'     => 'fair',
+                'sleep_hours'       => 6,
+                'stress_level'      => 'very_high',
+                'exercise'          => '1-2x_week',
+                'diet'              => 'Skips breakfast often. Drinks 3-4 coffees daily. Late dinners.',
+                'goals'             => 'Reduce headache frequency and intensity. Improve overall neck mobility. Reduce medication dependency.',
+                'visit_notes_prefix' => 'tension headaches — experiencing headache today with neck stiffness. Rates intensity 6/10.',
+                'assessment_notes'   => 'Significant cervical muscle tension, particularly upper trapezius and sternocleidomastoid bilaterally. Forward head posture noted.',
+                'plan_notes'         => 'Cervical adjustments to improve alignment. Soft tissue therapy. Ergonomic counseling for workstation.',
+                'chiro_responses'    => [
+                    'chiropractic' => [
+                        'primary_condition' => 'headaches',
+                        'secondary_conditions' => ['neck_tension', 'migraines'],
+                        'adjustment_frequency_preference' => 'weekly',
+                        'contraindications' => ['none'],
+                        'previous_chiropractic' => true,
+                        'treatment_comfort' => 'comfortable',
+                        'work_related_pain' => true,
+                    ]
+                ],
+            ],
+            // ───────────────────── PHYSIOTHERAPY (2 patients) ────────────────────
+            // 13. Robert Johnson — knee rehabilitation post-surgery, ~55
+            [
+                'first_name'                => 'Robert',
+                'last_name'                 => 'Johnson',
+                'email'                     => 'robert.johnson@email.com',
+                'phone'                     => '(415) 555-0225',
+                'dob'                       => '1970-09-12',
+                'gender'                    => 'male',
+                'address_line_1'            => '3421 Clement St',
+                'city'                      => 'San Francisco',
+                'state'                     => 'CA',
+                'postal_code'               => '94118',
+                'emergency_contact_name'    => 'Sarah Johnson',
+                'emergency_contact_phone'   => '(415) 555-0226',
+                'emergency_contact_relationship' => 'Wife',
+                'occupation'                => 'Retired Police Officer',
+                'chief_complaint'   => 'Post-operative rehabilitation following ACL reconstruction surgery 3 months ago. Limited knee flexion and functional mobility.',
+                'onset_duration'    => '3 months',
+                'onset_type'        => 'acute_surgical',
+                'aggravating'       => 'Excessive bending, stairs, running, prolonged standing.',
+                'relieving'         => 'Ice, elevation, prescribed exercises, light walking.',
+                'pain_scale'        => 5,
+                'sleep_quality'     => 'good',
+                'sleep_hours'       => 7,
+                'stress_level'      => 'moderate',
+                'exercise'          => 'rehabilitation_only',
+                'diet'              => 'High-protein diet to support healing. Good hydration.',
+                'goals'             => 'Restore full knee range of motion. Return to walking and light activities. Build strength and confidence.',
+                'visit_notes_prefix' => 'post-ACL surgery rehab — 3 months post-op. Knee flexion limited to 95 degrees. Mild swelling noted.',
+                'assessment_notes'   => 'Knee flexion and extension ROM limited. Quad and hamstring weakness noted. Gait slightly antalgic on left.',
+                'plan_notes'         => 'Progressive ROM exercises. Quad and hamstring strengthening. Proprioceptive training. Gradual return to weight-bearing.',
+                'physio_responses'   => [
+                    'physiotherapy' => [
+                        'primary_condition' => 'knee_rehabilitation',
+                        'surgery_type' => 'acl_reconstruction',
+                        'therapy_frequency_preference' => 'twice_weekly',
+                        'equipment_use' => ['resistance_bands', 'balance_board', 'stationary_bike'],
+                        'previous_physiotherapy' => false,
+                        'therapy_comfort' => 'slightly_nervous',
+                        'functional_goals' => ['walking', 'stairs', 'light_activity'],
+                    ]
+                ],
+            ],
+            // 14. Jennifer Martinez — lower back strain recovery, ~47
+            [
+                'first_name'                => 'Jennifer',
+                'last_name'                 => 'Martinez',
+                'email'                     => 'jennifer.martinez@email.com',
+                'phone'                     => '(415) 555-0227',
+                'dob'                       => '1978-06-19',
+                'gender'                    => 'female',
+                'address_line_1'            => '2104 Powell St',
+                'city'                      => 'San Francisco',
+                'state'                     => 'CA',
+                'postal_code'               => '94108',
+                'emergency_contact_name'    => 'Carlos Martinez',
+                'emergency_contact_phone'   => '(415) 555-0228',
+                'emergency_contact_relationship' => 'Spouse',
+                'occupation'                => 'Nurse',
+                'chief_complaint'   => 'Lower back strain from repetitive lifting at work. Difficulty with functional activities like bending and twisting.',
+                'onset_duration'    => '6 weeks',
+                'onset_type'        => 'gradual_occupational',
+                'aggravating'       => 'Lifting, bending, twisting, prolonged standing.',
+                'relieving'         => 'Rest, heat therapy, gentle stretching, pain relief medications.',
+                'pain_scale'        => 5,
+                'sleep_quality'     => 'fair',
+                'sleep_hours'       => 6,
+                'stress_level'      => 'high',
+                'exercise'          => '2-3x_week',
+                'diet'              => 'Tries to eat healthy but shift work makes it difficult. Occasionally skips meals.',
+                'goals'             => 'Return to full work duties without pain. Improve core strength. Learn proper body mechanics.',
+                'visit_notes_prefix' => 'work-related lower back strain — rates pain 5/10 today. Limited forward flexion due to pain.',
+                'assessment_notes'   => 'Muscle spasm in lumbar paraspinals. Decreased lumbar flexion. Core strength significantly weak. Posture correction needed.',
+                'plan_notes'         => 'Progressive core strengthening. Postural education for work tasks. Lumbar stabilization exercises. Ergonomic assessment.',
+                'physio_responses'   => [
+                    'physiotherapy' => [
+                        'primary_condition' => 'lower_back_strain',
+                        'occupational_injury' => true,
+                        'therapy_frequency_preference' => 'twice_weekly',
+                        'equipment_use' => ['resistance_bands', 'foam_roller', 'exercise_ball'],
+                        'previous_physiotherapy' => false,
+                        'therapy_comfort' => 'comfortable',
+                        'functional_goals' => ['work_duties', 'lifting', 'bending'],
+                    ]
+                ],
+            ],
         ];
 
         // Create patients (keyed on email for idempotency)
@@ -614,11 +875,26 @@ class DemoSeeder extends Seeder
             $patient = $patients[$idx];
             $submittedOn = Carbon::now('UTC')->subDays(30 + $idx * 7);
 
+            // Determine discipline and responses based on patient index
+            $discipline = 'acupuncture';
+            $disciplineResponses = ['tcm' => $data['tcm_responses'] ?? []];
+
+            if ($idx >= 8 && $idx < 10) {
+                $discipline = 'massage';
+                $disciplineResponses = $data['massage_responses'] ?? ['massage' => []];
+            } elseif ($idx >= 10 && $idx < 12) {
+                $discipline = 'chiropractic';
+                $disciplineResponses = $data['chiro_responses'] ?? ['chiropractic' => []];
+            } elseif ($idx >= 12) {
+                $discipline = 'physiotherapy';
+                $disciplineResponses = $data['physio_responses'] ?? ['physiotherapy' => []];
+            }
+
             IntakeSubmission::create([
                 'practice_id'          => $practice->id,
                 'patient_id'           => $patient->id,
                 'status'               => 'complete',
-                'discipline'           => 'acupuncture',
+                'discipline'           => $discipline,
                 'submitted_on'         => $submittedOn,
                 'chief_complaint'      => $data['chief_complaint'],
                 'onset_duration'       => $data['onset_duration'],
@@ -636,7 +912,7 @@ class DemoSeeder extends Seeder
                 'consent_given'        => true,
                 'consent_signed_by'    => $data['first_name'] . ' ' . $data['last_name'],
                 'consent_signed_at'    => $submittedOn,
-                'discipline_responses' => ['tcm' => $data['tcm_responses']],
+                'discipline_responses' => $disciplineResponses,
             ]);
 
             ConsentRecord::create([
@@ -649,7 +925,7 @@ class DemoSeeder extends Seeder
             ]);
         }
 
-        // ── Historical appointments: 3 per patient = 24 total ────────────────
+        // ── Historical appointments: 3 per patient = 42 total (14 patients × 3 appointments) ──
         $now = Carbon::now('America/Los_Angeles');
         $typeArray = array_values($types);
         $practitioners = [$practitioner1, $practitioner2];
@@ -664,6 +940,16 @@ class DemoSeeder extends Seeder
         foreach ($patientData as $idx => $data) {
             $patient = $patients[$idx];
             $practitioner = $practitioners[$idx % 2];
+
+            // Determine discipline based on patient index
+            $discipline = 'acupuncture';
+            if ($idx >= 8 && $idx < 10) {
+                $discipline = 'massage';
+            } elseif ($idx >= 10 && $idx < 12) {
+                $discipline = 'chiropractic';
+            } elseif ($idx >= 12) {
+                $discipline = 'physiotherapy';
+            }
 
             // Spread 3 visits for this patient across last 6 months
             // Each visit ~6-8 weeks apart
@@ -693,7 +979,14 @@ class DemoSeeder extends Seeder
                     'notes'               => 'Completed session — ' . $data['chief_complaint'],
                 ]);
 
-                // Encounter (SOAP note)
+                // Encounter (SOAP note) — structured differently for each discipline
+                $visitNotes = implode("\n\n", [
+                    'SUBJECTIVE: ' . $patient->name . ' presented with ' . $data['visit_notes_prefix'],
+                    'OBJECTIVE: ' . $data['assessment_notes'],
+                    'ASSESSMENT: Patient response positive to treatment.',
+                    'PLAN: ' . $data['plan_notes'],
+                ]);
+
                 $encounter = Encounter::create([
                     'practice_id'     => $practice->id,
                     'patient_id'      => $patient->id,
@@ -702,45 +995,53 @@ class DemoSeeder extends Seeder
                     'status'          => 'complete',
                     'visit_date'      => $apptStart->toDateString(),
                     'completed_on'    => $apptStart->copy()->addHour(),
-                    'visit_notes'     => implode("\n\n", [
-                        'SUBJECTIVE: ' . $patient->name . ' presented with ' . $data['visit_notes_prefix'],
-                        'OBJECTIVE: Tongue: ' . $data['tongue_body'] . ', coating ' . $data['tongue_coating'] . '. Pulse: ' . $data['pulse_quality'] . '.',
-                        'ASSESSMENT: ' . $data['assessment_notes'],
-                        'PLAN: ' . $data['plan_notes'],
-                    ]),
+                    'visit_notes'     => $visitNotes,
                 ]);
 
-                // AcupunctureEncounter — full fields
-                $elementKey  = $data['element_key'];
-                $elementData = $fiveElements[$elementKey];
-                $elements    = $data['elements'];
+                // AcupunctureEncounter — only for acupuncture patients
+                if ($discipline === 'acupuncture' && isset($data['element_key'])) {
+                    $elementKey  = $data['element_key'];
+                    $elementData = $fiveElements[$elementKey];
+                    $elements    = $data['elements'];
 
-                AcupunctureEncounter::create([
-                    'encounter_id'       => $encounter->id,
-                    'tcm_diagnosis'      => $data['tcm_diagnosis'],
-                    'tongue_body'        => $data['tongue_body'],
-                    'tongue_coating'     => $data['tongue_coating'],
-                    'pulse_quality'      => $data['pulse_quality'],
-                    'zang_fu_diagnosis'  => $data['zang_fu'],
-                    'five_elements'      => $elements,
-                    'csor_color'         => $elementData['color'],
-                    'csor_sound'         => $elementData['sound'],
-                    'csor_odor'          => $elementData['odor'],
-                    'csor_emotion'       => $elementData['emotion'],
-                    'points_used'        => $data['points'],
-                    'meridians'          => $data['meridians'],
-                    'treatment_protocol' => $data['protocol'],
-                    'needle_count'       => $data['needle_count'],
-                    'session_notes'      => $sessionNotesVariations[$visitIdx],
-                ]);
+                    AcupunctureEncounter::create([
+                        'encounter_id'       => $encounter->id,
+                        'tcm_diagnosis'      => $data['tcm_diagnosis'],
+                        'tongue_body'        => $data['tongue_body'],
+                        'tongue_coating'     => $data['tongue_coating'],
+                        'pulse_quality'      => $data['pulse_quality'],
+                        'zang_fu_diagnosis'  => $data['zang_fu'],
+                        'five_elements'      => $elements,
+                        'csor_color'         => $elementData['color'],
+                        'csor_sound'         => $elementData['sound'],
+                        'csor_odor'          => $elementData['odor'],
+                        'csor_emotion'       => $elementData['emotion'],
+                        'points_used'        => $data['points'],
+                        'meridians'          => $data['meridians'],
+                        'treatment_protocol' => $data['protocol'],
+                        'needle_count'       => $data['needle_count'],
+                        'session_notes'      => $sessionNotesVariations[$visitIdx],
+                    ]);
+                }
 
                 // IntakeSubmission for this appointment visit (with status complete)
+                $disciplineResponses = [];
+                if ($discipline === 'acupuncture') {
+                    $disciplineResponses = ['tcm' => $data['tcm_responses'] ?? []];
+                } elseif ($discipline === 'massage') {
+                    $disciplineResponses = $data['massage_responses'] ?? ['massage' => []];
+                } elseif ($discipline === 'chiropractic') {
+                    $disciplineResponses = $data['chiro_responses'] ?? ['chiropractic' => []];
+                } elseif ($discipline === 'physiotherapy') {
+                    $disciplineResponses = $data['physio_responses'] ?? ['physiotherapy' => []];
+                }
+
                 IntakeSubmission::create([
                     'practice_id'          => $practice->id,
                     'patient_id'           => $patient->id,
                     'appointment_id'       => $appointment->id,
                     'status'               => 'complete',
-                    'discipline'           => 'acupuncture',
+                    'discipline'           => $discipline,
                     'submitted_on'         => $apptStart->copy()->subDay(),
                     'chief_complaint'      => $data['chief_complaint'],
                     'onset_type'           => $data['onset_type'],
@@ -748,7 +1049,7 @@ class DemoSeeder extends Seeder
                     'consent_given'        => true,
                     'consent_signed_by'    => $patient->name,
                     'consent_signed_at'    => $apptStart->copy()->subDay(),
-                    'discipline_responses' => ['tcm' => $data['tcm_responses']],
+                    'discipline_responses' => $disciplineResponses,
                 ]);
 
                 ConsentRecord::create([
@@ -968,8 +1269,8 @@ class DemoSeeder extends Seeder
         // ── Summary ───────────────────────────────────────────────────────────
         $this->command->info('✔ Demo practice: Serenity Acupuncture & Wellness');
         $this->command->info('✔ 2 practitioners: Dr. Sarah Chen, Dr. Marcus Webb');
-        $this->command->info('✔ 8 patients with full demographics, intake forms, and consent records');
-        $this->command->info('✔ 24 historical appointments (3 per patient) with encounters, acupuncture data, and paid checkouts');
+        $this->command->info('✔ 14 patients with full demographics: 8 acupuncture, 2 massage, 2 chiropractic, 2 physiotherapy');
+        $this->command->info('✔ 42 historical appointments (3 per patient) with encounters, discipline-specific data, and paid checkouts');
         $this->command->info('✔ 3 today\'s appointments (scheduled)');
         $this->command->info('✔ 3 upcoming this-week appointments (scheduled)');
         $this->command->info('✔ 2 cancelled appointments');
