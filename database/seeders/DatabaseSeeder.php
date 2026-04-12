@@ -34,7 +34,12 @@ class DatabaseSeeder extends Seeder
             // 1. Setup the Infrastructure
             $practice = Practice::updateOrCreate(
                 ['name' => 'Eureka Integrated Health'],
-                ['slug' => 'eureka-health', 'is_active' => true]
+                [
+                    'slug'          => 'eureka-health',
+                    'is_active'     => true,
+                    'is_demo'       => true,
+                    'trial_ends_at' => now()->addYears(10),
+                ]
             );
 
             $admin = User::where('email', 'admin@healthcare.test')->first() 

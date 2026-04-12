@@ -27,6 +27,11 @@ class RequiresActiveSubscription
             return $next($request);
         }
 
+        // Demo practices bypass subscription checks entirely
+        if ($user->practice?->is_demo) {
+            return $next($request);
+        }
+
         // Always allow certain routes to avoid redirect loops
         if ($request->routeIs(
             'filament.admin.pages.billing',

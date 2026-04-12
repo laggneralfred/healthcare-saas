@@ -29,11 +29,12 @@ class DemoSeeder extends Seeder
         $practice = Practice::updateOrCreate(
             ['slug' => 'serenity-acupuncture'],
             [
-                'name'       => 'Serenity Acupuncture & Wellness',
-                'timezone'   => 'America/Los_Angeles',
-                'is_active'  => true,
-                'is_demo'    => true,
-                'discipline' => 'acupuncture',
+                'name'           => 'Serenity Acupuncture & Wellness',
+                'timezone'       => 'America/Los_Angeles',
+                'is_active'      => true,
+                'is_demo'        => true,
+                'discipline'     => 'acupuncture',
+                'trial_ends_at'  => now()->addYears(10),
             ]
         );
 
