@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Encounters\Schemas;
 
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Hidden;
+use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -78,65 +79,88 @@ class EncounterForm
                 Tab::make('Acupuncture')->schema([
                     Section::make('Traditional Chinese Medicine (TCM)')
                         ->schema([
+                            Placeholder::make('tcm_diagnosis')
+                                ->label('TCM Diagnosis')
+                                ->content(fn ($record) => $record?->acupunctureEncounter?->tcm_diagnosis ?? '—')
+                                ->visible(fn () => auth()->user()?->id), // Show in view mode
+
                             TextInput::make('acupunctureEncounter.tcm_diagnosis')
                                 ->label('TCM Diagnosis')
                                 ->maxLength(255)
-                                ->disabledOn('view'),
+                                ->visibleOn('edit')
+                                ->hidden(),
+
+                            Placeholder::make('tongue_body')
+                                ->label('Tongue Body')
+                                ->content(fn ($record) => $record?->acupunctureEncounter?->tongue_body ?? '—')
+                                ->visible(fn () => auth()->user()?->id),
+
                             TextInput::make('acupunctureEncounter.tongue_body')
                                 ->label('Tongue Body')
-                                ->disabledOn('view'),
+                                ->visibleOn('edit'),
+
+                            Placeholder::make('tongue_coating')
+                                ->label('Tongue Coating')
+                                ->content(fn ($record) => $record?->acupunctureEncounter?->tongue_coating ?? '—')
+                                ->visible(fn () => auth()->user()?->id),
+
                             TextInput::make('acupunctureEncounter.tongue_coating')
                                 ->label('Tongue Coating')
-                                ->disabledOn('view'),
+                                ->visibleOn('edit'),
+
+                            Placeholder::make('pulse_quality')
+                                ->label('Pulse Quality')
+                                ->content(fn ($record) => $record?->acupunctureEncounter?->pulse_quality ?? '—')
+                                ->visible(fn () => auth()->user()?->id),
+
                             TextInput::make('acupunctureEncounter.pulse_quality')
                                 ->label('Pulse Quality')
-                                ->disabledOn('view'),
+                                ->visibleOn('edit'),
+
+                            Placeholder::make('zang_fu_diagnosis')
+                                ->label('Zang-Fu Diagnosis')
+                                ->content(fn ($record) => $record?->acupunctureEncounter?->zang_fu_diagnosis ?? '—')
+                                ->visible(fn () => auth()->user()?->id),
+
                             TextInput::make('acupunctureEncounter.zang_fu_diagnosis')
                                 ->label('Zang-Fu Diagnosis')
-                                ->disabledOn('view'),
+                                ->visibleOn('edit'),
                         ])->columns(2),
 
-                    Section::make('Worsley Five Element')
+                    Section::make('Treatment Details')
                         ->schema([
-                            Select::make('acupunctureEncounter.five_elements')
-                                ->label('Five Elements')
-                                ->options([
-                                    'Wood'  => 'Wood',
-                                    'Fire'  => 'Fire',
-                                    'Earth' => 'Earth',
-                                    'Metal' => 'Metal',
-                                    'Water' => 'Water',
-                                ])
-                                ->multiple()
-                                ->disabledOn('view'),
+                            Placeholder::make('points_used')
+                                ->label('Points Used')
+                                ->content(fn ($record) => $record?->acupunctureEncounter?->points_used ?? '—')
+                                ->visible(fn () => auth()->user()?->id)
+                                ->columnSpanFull(),
 
-                            Grid::make(4)
-                                ->schema([
-                                    TextInput::make('acupunctureEncounter.csor_color')
-                                        ->label('Color (C)')
-                                        ->disabledOn('view'),
-                                    TextInput::make('acupunctureEncounter.csor_sound')
-                                        ->label('Sound (S)')
-                                        ->disabledOn('view'),
-                                    TextInput::make('acupunctureEncounter.csor_odor')
-                                        ->label('Odor (O)')
-                                        ->disabledOn('view'),
-                                    TextInput::make('acupunctureEncounter.csor_emotion')
-                                        ->label('Emotion (R)')
-                                        ->disabledOn('view'),
-                                ]),
-                        ])->columns(1),
+                            Textarea::make('acupunctureEncounter.points_used')
+                                ->rows(3)
+                                ->visibleOn('edit')
+                                ->columnSpanFull(),
 
-                    TextInput::make('acupunctureEncounter.needle_count')
-                        ->numeric()
-                        ->default(0)
-                        ->disabledOn('view'),
-                    Textarea::make('acupunctureEncounter.points_used')
-                        ->rows(3)
-                        ->disabledOn('view'),
-                    Textarea::make('acupunctureEncounter.treatment_protocol')
-                        ->rows(3)
-                        ->disabledOn('view'),
+                            Placeholder::make('needle_count')
+                                ->label('Needle Count')
+                                ->content(fn ($record) => ($record?->acupunctureEncounter?->needle_count ?? '—'))
+                                ->visible(fn () => auth()->user()?->id),
+
+                            TextInput::make('acupunctureEncounter.needle_count')
+                                ->numeric()
+                                ->default(0)
+                                ->visibleOn('edit'),
+
+                            Placeholder::make('treatment_protocol')
+                                ->label('Treatment Protocol')
+                                ->content(fn ($record) => $record?->acupunctureEncounter?->treatment_protocol ?? '—')
+                                ->visible(fn () => auth()->user()?->id)
+                                ->columnSpanFull(),
+
+                            Textarea::make('acupunctureEncounter.treatment_protocol')
+                                ->rows(3)
+                                ->visibleOn('edit')
+                                ->columnSpanFull(),
+                        ])->columns(2),
                 ])->visible(fn ($record) => $record?->discipline === 'acupuncture'),
 
                 Tab::make('Massage')->schema([
