@@ -111,7 +111,17 @@ class DatabaseSeeder extends Seeder
             // 7. Default communication templates and rules
             (new DefaultMessageTemplatesSeeder())->seedForPractice($practice);
 
-            $this->command->info('Clinic seeded: 5 Practitioners (including Admin), 50 Patients, and a mess of Financial States.');
+            $this->command->info(sprintf(
+                'Clinic seeded: %d practitioners, %d patients, %d appointments, %d intake submissions, %d encounters (%d acupuncture), %d inventory products, %d movements.',
+                Practitioner::where('practice_id', $practice->id)->count(),
+                Patient::where('practice_id', $practice->id)->count(),
+                Appointment::where('practice_id', $practice->id)->count(),
+                IntakeSubmission::where('practice_id', $practice->id)->count(),
+                Encounter::where('practice_id', $practice->id)->count(),
+                AcupunctureEncounter::whereHas('encounter', fn ($q) => $q->where('practice_id', $practice->id))->count(),
+                InventoryProduct::where('practice_id', $practice->id)->count(),
+                InventoryMovement::where('practice_id', $practice->id)->count(),
+            ));
 
         } catch (\Throwable $e) {
             $this->command->error('DatabaseSeeder failed: ' . $e->getMessage());
