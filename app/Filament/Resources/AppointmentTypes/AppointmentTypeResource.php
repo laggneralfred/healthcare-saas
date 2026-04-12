@@ -25,7 +25,7 @@ class AppointmentTypeResource extends Resource
 
     protected static string|\UnitEnum|null $navigationGroup = 'Schedule';
 
-    protected static ?int $navigationGroupSort = 1;
+    protected static ?int $navigationGroupSort = 2;
 
     protected static ?int $navigationSort = 2;
 

@@ -25,7 +25,7 @@ class ServiceFeeResource extends Resource
 
     protected static string|\UnitEnum|null $navigationGroup = 'Billing';
 
-    protected static ?int $navigationGroupSort = 4;
+    protected static ?int $navigationGroupSort = 2;
 
     protected static ?int $navigationSort = 2;
 

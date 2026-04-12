@@ -27,7 +27,7 @@ class IntakeSubmissionResource extends Resource
 
     protected static string|\UnitEnum|null $navigationGroup = 'Patients';
 
-    protected static ?int $navigationGroupSort = 2;
+    protected static ?int $navigationGroupSort = 3;
 
     protected static ?int $navigationSort = 3;
 
