@@ -10,6 +10,8 @@ use App\Models\CheckoutSession;
 use App\Models\ConsentRecord;
 use App\Models\Encounter;
 use App\Models\IntakeSubmission;
+use App\Models\InventoryMovement;
+use App\Models\InventoryProduct;
 use App\Models\Patient;
 use App\Models\Practice;
 use App\Models\Practitioner;
@@ -97,10 +99,16 @@ class DatabaseSeeder extends Seeder
                 $this->createAppointment($practice, $doc, $patients->random(), $aptTypes[array_rand($aptTypes)], Cancelled::class, Voided::class);
             }
 
-            // 4. Seed Infrastructure (Plans)
+            // 4. Seed Clinical Records (Intake, Encounters, Acupuncture)
+            $this->seedClinicalRecords($practice, $patients, $practitioners);
+
+            // 5. Seed Inventory
+            $this->seedInventory($practice);
+
+            // 6. Seed Infrastructure (Plans)
             $this->seedSubscriptionPlans();
 
-            // 5. Default communication templates and rules
+            // 7. Default communication templates and rules
             (new DefaultMessageTemplatesSeeder())->seedForPractice($practice);
 
             $this->command->info('Clinic seeded: 5 Practitioners (including Admin), 50 Patients, and a mess of Financial States.');
@@ -138,27 +146,123 @@ class DatabaseSeeder extends Seeder
         }
     }
 
+    private function seedClinicalRecords($practice, $patients, $practitioners): void
+    {
+        $acupunctureDoc = $practitioners['Acupuncture'] ?? $practitioners[array_key_first($practitioners)];
+        $aptTypes = AppointmentType::where('practice_id', $practice->id)->get();
+
+        foreach ($patients as $patient) {
+            // 3-5 intake submissions per patient
+            $intakeCount = rand(3, 5);
+            for ($i = 0; $i < $intakeCount; $i++) {
+                if (rand(0, 1)) {
+                    // Complete intake
+                    IntakeSubmission::factory()->complete()->create([
+                        'practice_id' => $practice->id,
+                        'patient_id' => $patient->id,
+                    ]);
+                } else {
+                    // Missing intake
+                    IntakeSubmission::factory()->missing()->create([
+                        'practice_id' => $practice->id,
+                        'patient_id' => $patient->id,
+                    ]);
+                }
+            }
+
+            // 5-10 encounters per patient
+            $encounterCount = rand(5, 10);
+            for ($i = 0; $i < $encounterCount; $i++) {
+                $practitioner = $practitioners[array_rand($practitioners)];
+                $aptType = $aptTypes->random();
+
+                // Create an appointment for this encounter
+                $appointment = Appointment::create([
+                    'practice_id' => $practice->id,
+                    'patient_id' => $patient->id,
+                    'practitioner_id' => $practitioner->id,
+                    'appointment_type_id' => $aptType->id,
+                    'status' => Closed::class,
+                    'start_datetime' => now()->subDays(rand(1, 60)),
+                    'end_datetime' => now()->subDays(rand(1, 60))->addHour(),
+                ]);
+
+                // Randomly create complete or draft encounters
+                if (rand(0, 2) > 0) {
+                    $encounter = Encounter::factory()->complete()->create([
+                        'practice_id' => $practice->id,
+                        'patient_id' => $patient->id,
+                        'appointment_id' => $appointment->id,
+                        'practitioner_id' => $practitioner->id,
+                    ]);
+                } else {
+                    $encounter = Encounter::factory()->draft()->create([
+                        'practice_id' => $practice->id,
+                        'patient_id' => $patient->id,
+                        'appointment_id' => $appointment->id,
+                        'practitioner_id' => $practitioner->id,
+                    ]);
+                }
+
+                // For acupuncture practitioners, add acupuncture encounter extension
+                if ($practitioner->id === $acupunctureDoc->id && $encounter->status === 'complete' && rand(0, 1)) {
+                    AcupunctureEncounter::factory()
+                        ->withClinicalData()
+                        ->create([
+                            'encounter_id' => $encounter->id,
+                        ]);
+                }
+            }
+        }
+    }
+
+    private function seedInventory($practice): void
+    {
+        // Create 20-30 inventory products
+        $productCount = rand(20, 30);
+        $products = [];
+
+        for ($i = 0; $i < $productCount; $i++) {
+            $product = InventoryProduct::factory()->create([
+                'practice_id' => $practice->id,
+            ]);
+            $products[] = $product;
+        }
+
+        // Create movements for each product (restock, sales, adjustments)
+        foreach ($products as $product) {
+            // 3-8 movements per product
+            $movementCount = rand(3, 8);
+            for ($i = 0; $i < $movementCount; $i++) {
+                InventoryMovement::factory()->create([
+                    'practice_id' => $practice->id,
+                    'inventory_product_id' => $product->id,
+                ]);
+            }
+        }
+    }
+
     private function seedSubscriptionPlans(): void
     {
         $plans = [
             [
-                'key' => 'solo', 
-                'name' => 'Solo Plan', 
-                'price_monthly' => 4900, 
+                'key' => 'solo',
+                'name' => 'Solo Plan',
+                'price_monthly' => 4900,
                 'max_practitioners' => 1,
                 'features' => ['Core clinical tools', '1 Practitioner', 'Basic reporting']
             ],
             [
-                'key' => 'clinic', 
-                'name' => 'Clinic Plan', 
-                'price_monthly' => 9900, 
+                'key' => 'clinic',
+                'name' => 'Clinic Plan',
+                'price_monthly' => 9900,
                 'max_practitioners' => 5,
                 'features' => ['Up to 5 Practitioners', 'Advanced reporting', 'Inventory management']
             ],
             [
-                'key' => 'enterprise', 
-                'name' => 'Enterprise Plan', 
-                'price_monthly' => 19900, 
+                'key' => 'enterprise',
+                'name' => 'Enterprise Plan',
+                'price_monthly' => 19900,
                 'max_practitioners' => -1,
                 'features' => ['Unlimited Practitioners', 'Custom reporting', 'Priority support']
             ],
