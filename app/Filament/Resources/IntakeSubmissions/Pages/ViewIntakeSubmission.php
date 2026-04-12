@@ -121,10 +121,23 @@ class ViewIntakeSubmission extends ViewRecord
                         ->content(function ($record) {
                             $meds = $record->current_medications;
                             if (empty($meds)) return '—';
-                            return implode("\n", array_map(
-                                fn ($m) => trim(($m['name'] ?? '') . ' ' . ($m['dose'] ?? '') . ' ' . ($m['frequency'] ?? '')),
-                                $meds
-                            ));
+
+                            // Handle if it's a string instead of array
+                            if (is_string($meds)) {
+                                return $meds;
+                            }
+
+                            // Handle array of medications
+                            if (is_array($meds)) {
+                                return implode("\n", array_map(
+                                    fn ($m) => is_array($m)
+                                        ? trim(($m['name'] ?? '') . ' ' . ($m['dose'] ?? '') . ' ' . ($m['frequency'] ?? ''))
+                                        : (string) $m,
+                                    $meds
+                                ));
+                            }
+
+                            return '—';
                         }),
 
                     Placeholder::make('allergies_list')
@@ -132,10 +145,23 @@ class ViewIntakeSubmission extends ViewRecord
                         ->content(function ($record) {
                             $items = $record->allergies;
                             if (empty($items)) return '—';
-                            return implode("\n", array_map(
-                                fn ($a) => trim(($a['name'] ?? '') . ($a['reaction'] ? ' (' . $a['reaction'] . ')' : '')),
-                                $items
-                            ));
+
+                            // Handle if it's a string instead of array
+                            if (is_string($items)) {
+                                return $items;
+                            }
+
+                            // Handle array of allergies
+                            if (is_array($items)) {
+                                return implode("\n", array_map(
+                                    fn ($a) => is_array($a)
+                                        ? trim(($a['name'] ?? '') . ($a['reaction'] ? ' (' . $a['reaction'] . ')' : ''))
+                                        : (string) $a,
+                                    $items
+                                ));
+                            }
+
+                            return '—';
                         }),
 
                     Placeholder::make('past_diagnoses_list')
