@@ -3,6 +3,7 @@
 namespace Database\Factories;
 
 use App\Models\AppointmentType;
+use Faker\Factory as FakerFactory;
 use App\Models\Practice;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -15,14 +16,15 @@ class AppointmentTypeFactory extends Factory
 
     public function definition(): array
     {
+        $faker = FakerFactory::create();
         return [
             'practice_id'            => Practice::factory(),
-            'name'                   => $this->faker->randomElement([
+            'name'                   => $faker->randomElement([
                 'Initial Consultation', 'Follow-up Treatment', 'Cupping Session',
                 'Herbal Consultation', 'Swedish Massage', 'Deep Tissue Massage',
                 'Sports Massage', 'Hot Stone Therapy', 'Acupuncture Treatment',
             ]),
-            'duration_minutes'       => $this->faker->randomElement([30, 45, 60, 75, 90]),
+            'duration_minutes'       => $faker->randomElement([30, 45, 60, 75, 90]),
             'default_service_fee_id' => null,
             'is_active'              => true,
         ];

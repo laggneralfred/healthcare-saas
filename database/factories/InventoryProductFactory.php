@@ -3,6 +3,7 @@
 namespace Database\Factories;
 
 use App\Models\InventoryProduct;
+use Faker\Factory as FakerFactory;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -17,10 +18,11 @@ class InventoryProductFactory extends Factory
      */
     public function definition(): array
     {
+        $faker = FakerFactory::create();
         $categories = ['Herbal Formula', 'Single Herb', 'Supplement', 'Other'];
         $units = ['bottle', 'packet', 'gram', 'capsule', 'tablet'];
 
-        $category = $this->faker->randomElement($categories);
+        $category = $faker->randomElement($categories);
 
         // Realistic product names by category
         $productNames = match ($category) {
@@ -48,22 +50,22 @@ class InventoryProductFactory extends Factory
             default => [15, 20, 25],
         };
 
-        $sellingPrice = $this->faker->randomElement($prices);
-        $costPrice = $sellingPrice * $this->faker->randomFloat(2, 0.4, 0.7);
+        $sellingPrice = $faker->randomElement($prices);
+        $costPrice = $sellingPrice * $faker->randomFloat(2, 0.4, 0.7);
 
         return [
-            'id'                   => $this->faker->uuid(),
+            'id'                   => $faker->uuid(),
             'practice_id'          => null,
-            'name'                 => $this->faker->randomElement($productNames),
-            'sku'                  => strtoupper($this->faker->bothify('INV-####')),
-            'description'          => $this->faker->optional(0.7)->sentence(),
+            'name'                 => $faker->randomElement($productNames),
+            'sku'                  => strtoupper($faker->bothify('INV-####')),
+            'description'          => $faker->optional(0.7)->sentence(),
             'category'             => $category,
-            'unit'                 => $this->faker->randomElement($units),
+            'unit'                 => $faker->randomElement($units),
             'selling_price'        => $sellingPrice,
             'cost_price'           => round($costPrice, 2),
             'stock_quantity'       => 0,
             'low_stock_threshold'  => 10,
-            'is_active'            => $this->faker->boolean(90),
+            'is_active'            => $faker->boolean(90),
         ];
     }
 }

@@ -3,6 +3,7 @@
 namespace Database\Factories;
 
 use App\Models\ConsentRecord;
+use Faker\Factory as FakerFactory;
 use App\Models\Patient;
 use App\Models\Practice;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -16,6 +17,7 @@ class ConsentRecordFactory extends Factory
 
     public function definition(): array
     {
+        $faker = FakerFactory::create();
         return [
             'practice_id'      => Practice::factory(),
             'patient_id'       => Patient::factory(),
@@ -32,18 +34,19 @@ class ConsentRecordFactory extends Factory
     /** Consent has been signed. */
     public function complete(): static
     {
+        $faker = FakerFactory::create();
         return $this->state(fn (array $attributes) => [
             'status'           => 'complete',
-            'signed_on'        => $this->faker->dateTimeBetween('-30 days', '-1 day'),
-            'consent_given_by' => $this->faker->name(),
-            'consent_summary'  => $this->faker->optional(0.6)->randomElement([
+            'signed_on'        => $faker->dateTimeBetween('-30 days', '-1 day'),
+            'consent_given_by' => $faker->name(),
+            'consent_summary'  => $faker->optional(0.6)->randomElement([
                 'I understand the treatment plan and agree to proceed.',
                 'Consent given on behalf of myself. No known allergies to treatment.',
                 'I have reviewed the informed consent document and agree to the terms.',
                 'Agreeing to treatment. Please note I have a latex sensitivity.',
                 'Consent given. I may need shorter sessions due to a low pain threshold.',
             ]),
-            'notes' => $this->faker->optional(0.3)->randomElement([
+            'notes' => $faker->optional(0.3)->randomElement([
                 'Please keep sessions to 45 minutes.',
                 'Call before texting.',
                 'Prefer female practitioners if available.',

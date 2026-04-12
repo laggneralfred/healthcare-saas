@@ -3,6 +3,7 @@
 namespace Database\Factories;
 
 use App\Models\Appointment;
+use Faker\Factory as FakerFactory;
 use App\Models\CheckoutSession;
 use App\Models\Patient;
 use App\Models\Practice;
@@ -23,6 +24,7 @@ class CheckoutSessionFactory extends Factory
 
     public function definition(): array
     {
+        $faker = FakerFactory::create();
         return [
             'practice_id'    => Practice::factory(),
             'appointment_id' => Appointment::factory(),
@@ -42,22 +44,24 @@ class CheckoutSessionFactory extends Factory
 
     public function open(): static
     {
+        $faker = FakerFactory::create();
         return $this->state([
             'state'        => Open::$name,
-            'amount_total' => $this->faker->randomFloat(2, 75, 200),
+            'amount_total' => $faker->randomFloat(2, 75, 200),
         ]);
     }
 
     public function paid(string $tenderType = 'card'): static
     {
-        $total = $this->faker->randomFloat(2, 75, 200);
+        $faker = FakerFactory::create();
+        $total = $faker->randomFloat(2, 75, 200);
 
         return $this->state([
             'state'        => Paid::$name,
             'amount_total' => $total,
             'amount_paid'  => $total,
             'tender_type'  => $tenderType,
-            'paid_on'      => $this->faker->dateTimeBetween('-30 days', 'now'),
+            'paid_on'      => $faker->dateTimeBetween('-30 days', 'now'),
         ]);
     }
 
@@ -75,7 +79,7 @@ class CheckoutSessionFactory extends Factory
     {
         return $this->state([
             'state'        => PaymentDue::$name,
-            'amount_total' => $this->faker->randomFloat(2, 75, 200),
+            'amount_total' => $faker->randomFloat(2, 75, 200),
             'amount_paid'  => 0,
             'tender_type'  => null,
             'paid_on'      => null,

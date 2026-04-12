@@ -3,6 +3,7 @@
 namespace Database\Factories;
 
 use App\Models\InventoryMovement;
+use Faker\Factory as FakerFactory;
 use App\Models\InventoryProduct;
 use App\Models\Practice;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -19,15 +20,16 @@ class InventoryMovementFactory extends Factory
      */
     public function definition(): array
     {
+        $faker = FakerFactory::create();
         return [
-            'id'                   => $this->faker->uuid(),
+            'id'                   => $faker->uuid(),
             'practice_id'          => Practice::factory(),
             'inventory_product_id' => InventoryProduct::factory(),
-            'type'                 => $this->faker->randomElement(['sale', 'restock', 'adjustment', 'return']),
-            'quantity'             => $this->faker->randomElement([1, 5, 10, -1, -5, -10]),
-            'unit_price'           => $this->faker->optional()->randomFloat(2, 1, 100),
-            'reference'            => $this->faker->optional()->word(),
-            'notes'                => $this->faker->optional()->sentence(),
+            'type'                 => $faker->randomElement(['sale', 'restock', 'adjustment', 'return']),
+            'quantity'             => $faker->randomElement([1, 5, 10, -1, -5, -10]),
+            'unit_price'           => $faker->optional()->randomFloat(2, 1, 100),
+            'reference'            => $faker->optional()->word(),
+            'notes'                => $faker->optional()->sentence(),
             'created_by'           => null,
         ];
     }

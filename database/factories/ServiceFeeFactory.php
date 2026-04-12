@@ -3,6 +3,7 @@
 namespace Database\Factories;
 
 use App\Models\Practice;
+use Faker\Factory as FakerFactory;
 use App\Models\ServiceFee;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -28,7 +29,8 @@ class ServiceFeeFactory extends Factory
 
     public function definition(): array
     {
-        $fee = $this->faker->randomElement(self::$fees);
+        $faker = FakerFactory::create();
+        $fee = $faker->randomElement(self::$fees);
 
         return [
             'practice_id'       => Practice::factory(),

@@ -3,6 +3,7 @@
 namespace Database\Factories;
 
 use App\Models\Practice;
+use Faker\Factory as FakerFactory;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
 
@@ -15,15 +16,16 @@ class PracticeFactory extends Factory
 
     public function definition(): array
     {
-        $name = $this->faker->company();
+        $faker = FakerFactory::create();
+        $name = $faker->company();
         return [
             'name'           => $name,
             'slug'           => Str::slug($name),
-            'timezone'       => $this->faker->randomElement(['America/New_York', 'America/Chicago', 'America/Los_Angeles', 'America/Denver']),
+            'timezone'       => $faker->randomElement(['America/New_York', 'America/Chicago', 'America/Los_Angeles', 'America/Denver']),
             'is_active'      => true,
             'is_demo'        => false,
-            'discipline'     => $this->faker->randomElement(['acupuncture', 'massage', 'chiropractic', 'physical_therapy', 'other']),
-            'referral_source' => $this->faker->optional(0.5)->randomElement(['Google', 'Word of Mouth', 'Facebook', 'Yelp', 'Direct']),
+            'discipline'     => $faker->randomElement(['acupuncture', 'massage', 'chiropractic', 'physical_therapy', 'other']),
+            'referral_source' => $faker->optional(0.5)->randomElement(['Google', 'Word of Mouth', 'Facebook', 'Yelp', 'Direct']),
             'trial_ends_at'  => now()->addDays(30),
         ];
     }

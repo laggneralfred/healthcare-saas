@@ -3,6 +3,7 @@
 namespace Database\Factories;
 
 use App\Models\Practice;
+use Faker\Factory as FakerFactory;
 use App\Models\Practitioner;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -16,11 +17,12 @@ class PractitionerFactory extends Factory
 
     public function definition(): array
     {
+        $faker = FakerFactory::create();
         return [
             'practice_id'    => Practice::factory(),
             'user_id'        => User::factory(),
-            'license_number' => strtoupper($this->faker->bothify('??-#####')),
-            'specialty'      => $this->faker->randomElement([
+            'license_number' => strtoupper($faker->bothify('??-#####')),
+            'specialty'      => $faker->randomElement([
                 'Acupuncture', 'Traditional Chinese Medicine', 'Cupping Therapy', 'Herbal Medicine',
                 'Swedish Massage', 'Deep Tissue', 'Sports Massage', 'Trigger Point',
                 'Physical Therapy', 'Chiropractic', 'Massage Therapy',

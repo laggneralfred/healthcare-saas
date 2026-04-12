@@ -3,6 +3,7 @@
 namespace Database\Factories;
 
 use App\Models\Appointment;
+use Faker\Factory as FakerFactory;
 use App\Models\AppointmentType;
 use App\Models\Patient;
 use App\Models\Practice;
@@ -19,8 +20,9 @@ class AppointmentFactory extends Factory
 
     public function definition(): array
     {
-        $start = $this->faker->dateTimeBetween('-60 days', '+30 days');
-        $end   = (clone $start)->modify('+' . $this->faker->randomElement([30, 45, 60, 90]) . ' minutes');
+        $faker = FakerFactory::create();
+        $start = $faker->dateTimeBetween('-60 days', '+30 days');
+        $end   = (clone $start)->modify('+' . $faker->randomElement([30, 45, 60, 90]) . ' minutes');
 
         return [
             'practice_id'         => Practice::factory(),
@@ -31,7 +33,7 @@ class AppointmentFactory extends Factory
             'start_datetime'      => $start,
             'end_datetime'        => $end,
             'needs_follow_up'     => false,
-            'notes'               => $this->faker->optional(0.4)->sentence(),
+            'notes'               => $faker->optional(0.4)->sentence(),
         ];
     }
 

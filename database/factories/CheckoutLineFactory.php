@@ -3,6 +3,7 @@
 namespace Database\Factories;
 
 use App\Models\CheckoutLine;
+use Faker\Factory as FakerFactory;
 use App\Models\CheckoutSession;
 use App\Models\Practice;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -32,12 +33,13 @@ class CheckoutLineFactory extends Factory
 
     public function definition(): array
     {
+        $faker = FakerFactory::create();
         return [
             'checkout_session_id'  => CheckoutSession::factory(),
             'practice_id'          => Practice::factory(),
             'sequence'             => 0,
-            'description'          => $this->faker->randomElement(self::$descriptions),
-            'amount'               => $this->faker->randomFloat(2, 50, 175),
+            'description'          => $faker->randomElement(self::$descriptions),
+            'amount'               => $faker->randomFloat(2, 50, 175),
             'inventory_product_id' => null,
             'quantity'             => null,
         ];

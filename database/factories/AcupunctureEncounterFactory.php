@@ -3,6 +3,7 @@
 namespace Database\Factories;
 
 use App\Models\AcupunctureEncounter;
+use Faker\Factory as FakerFactory;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -14,6 +15,7 @@ class AcupunctureEncounterFactory extends Factory
 
     public function definition(): array
     {
+        $faker = FakerFactory::create();
         return [
             'encounter_id'       => null,
             'tcm_diagnosis'      => null,
@@ -36,8 +38,9 @@ class AcupunctureEncounterFactory extends Factory
 
     public function withClinicalData(): static
     {
+        $faker = FakerFactory::create();
         return $this->state(fn (array $attributes) => [
-            'tcm_diagnosis' => $this->faker->randomElement([
+            'tcm_diagnosis' => $faker->randomElement([
                 'Liver Qi Stagnation',
                 'Kidney Yin Deficiency',
                 'Spleen Qi Deficiency',
@@ -49,32 +52,32 @@ class AcupunctureEncounterFactory extends Factory
                 'Wind-Cold Invasion',
                 'Liver Yang Rising',
             ]),
-            'tongue_body' => $this->faker->randomElement([
+            'tongue_body' => $faker->randomElement([
                 'Pale', 'Red', 'Swollen', 'Dusky', 'Thin', 'Normal',
             ]),
-            'tongue_coating' => $this->faker->randomElement([
+            'tongue_coating' => $faker->randomElement([
                 'Thin white', 'Thick yellow', 'Peeled', 'Greasy', 'No coat',
             ]),
-            'pulse_quality' => $this->faker->randomElement([
+            'pulse_quality' => $faker->randomElement([
                 'Wiry', 'Slippery', 'Thready', 'Weak', 'Floating', 'Deep', 'Choppy',
             ]),
-            'zang_fu_diagnosis' => $this->faker->randomElement([
+            'zang_fu_diagnosis' => $faker->randomElement([
                 'Liver/Spleen Disharmony',
                 'Kidney/Heart Not Communicating',
                 'Lung/Kidney Yin Deficiency',
                 'Spleen/Stomach Damp-Heat',
                 'Heart/Liver Blood Deficiency',
             ]),
-            'five_elements' => $this->faker->randomElements(['Wood', 'Fire', 'Earth', 'Metal', 'Water'], $this->faker->numberBetween(1, 2)),
-            'csor_color' => $this->faker->randomElement(['Greenish', 'Reddish', 'Yellowish', 'Whiteish', 'Blueish/Blackish']),
-            'csor_sound' => $this->faker->randomElement(['Shouting', 'Laughing', 'Singing', 'Weeping', 'Groaning']),
-            'csor_odor' => $this->faker->randomElement(['Rancid', 'Scorched', 'Fragrant', 'Rotten', 'Putrid']),
-            'csor_emotion' => $this->faker->randomElement(['Anger', 'Joy', 'Sympathy', 'Grief', 'Fear']),
+            'five_elements' => $faker->randomElements(['Wood', 'Fire', 'Earth', 'Metal', 'Water'], $faker->numberBetween(1, 2)),
+            'csor_color' => $faker->randomElement(['Greenish', 'Reddish', 'Yellowish', 'Whiteish', 'Blueish/Blackish']),
+            'csor_sound' => $faker->randomElement(['Shouting', 'Laughing', 'Singing', 'Weeping', 'Groaning']),
+            'csor_odor' => $faker->randomElement(['Rancid', 'Scorched', 'Fragrant', 'Rotten', 'Putrid']),
+            'csor_emotion' => $faker->randomElement(['Anger', 'Joy', 'Sympathy', 'Grief', 'Fear']),
             'points_used' => 'LI4, LV3, ST36, SP6',
             'meridians' => 'Large Intestine, Liver, Stomach, Spleen',
             'treatment_protocol' => 'Regulate Qi, tonify Spleen.',
-            'needle_count' => $this->faker->numberBetween(6, 12),
-            'session_notes' => $this->faker->randomElement([
+            'needle_count' => $faker->numberBetween(6, 12),
+            'session_notes' => $faker->randomElement([
                 'Patient reported improved sleep since last visit.',
                 'Initial hesitation to needles, but relaxed quickly.',
                 'Cupping applied to upper back after needling.',
