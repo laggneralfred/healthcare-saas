@@ -20,6 +20,7 @@ class Encounter extends Model
         'practitioner_id',
         'status',
         'visit_date',
+        'discipline',
         'chief_complaint',
         'subjective',
         'objective',
