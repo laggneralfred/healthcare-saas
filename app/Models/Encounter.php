@@ -20,8 +20,13 @@ class Encounter extends Model
         'practitioner_id',
         'status',
         'visit_date',
-        'completed_on',
+        'chief_complaint',
+        'subjective',
+        'objective',
+        'assessment',
+        'plan',
         'visit_notes',
+        'completed_on',
     ];
 
     protected function casts(): array

@@ -36,14 +36,14 @@ class EncounterForm
                         ->searchable()
                         ->preload()
                         ->disabledOn('view'),
-                    DatePicker::make('date')
+                    DatePicker::make('visit_date')
                         ->required()
                         ->default(now())
                         ->disabledOn('view'),
                     Select::make('status')
                         ->options([
                             'draft' => 'Draft',
-                            'final' => 'Final',
+                            'complete' => 'Complete',
                         ])
                         ->default('draft')
                         ->required()
