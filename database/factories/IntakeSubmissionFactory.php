@@ -34,52 +34,188 @@ class IntakeSubmissionFactory extends Factory
         ];
     }
 
-    /** Intake has been submitted with content. */
+    /** Intake has been submitted with full health-history content. */
     public function complete(): static
     {
         $faker = FakerFactory::create();
+
+        $discipline = $faker->randomElement(['acupuncture', 'massage', 'chiropractic', 'physiotherapy']);
+
+        $complaints = [
+            'Chronic lower back pain radiating to the left hip, worse with prolonged sitting.',
+            'Persistent tension headaches occurring 3–4 times per week.',
+            'Shoulder tightness and reduced range of motion after desk work.',
+            'Fatigue and low energy throughout the day, worse in the afternoon.',
+            'Digestive discomfort — bloating and irregular bowel movements.',
+            'Anxiety, shallow breathing, and difficulty unwinding after work.',
+            'Knee pain when climbing stairs, present for the past 3 months.',
+            'Neck stiffness following a minor car accident 6 weeks ago.',
+            'Insomnia — difficulty falling asleep and waking at 3–4 am.',
+            'Menstrual irregularity with cramping and mood changes.',
+        ];
+
+        $medications = [
+            [],
+            ['Ibuprofen 400mg as needed'],
+            ['Sertraline 50mg daily', 'Magnesium glycinate 400mg nightly'],
+            ['Metformin 500mg twice daily'],
+            ['Vitamin D3 2000IU', 'Fish oil 1000mg'],
+            ['Levothyroxine 50mcg daily'],
+        ];
+
+        $diagnoses = [
+            [],
+            ['Hypertension'],
+            ['Type 2 Diabetes'],
+            ['IBS'],
+            ['Anxiety disorder'],
+            ['Hypothyroidism', 'Vitamin D deficiency'],
+            ['Herniated disc L4-L5'],
+        ];
+
+        $surgeries = [
+            [],
+            ['Appendectomy 2015'],
+            ['Knee arthroscopy 2019'],
+            ['C-section 2018'],
+            ['Tonsillectomy 2010'],
+        ];
+
+        $previousTreatments = [
+            [],
+            ['Physiotherapy'],
+            ['Chiropractic care'],
+            ['Massage therapy'],
+            ['Acupuncture'],
+            ['Physiotherapy', 'Massage therapy'],
+        ];
+
+        $hadPrevious = $faker->boolean(60);
+
         return $this->state(fn () => [
-            'status'           => 'complete',
-            'submitted_on'     => $faker->dateTimeBetween('-30 days', '-1 day'),
-            'reason_for_visit' => $faker->randomElement([
-                'Persistent lower back pain radiating to left leg.',
-                'Chronic migraines, 3–4 times per week for the past month.',
-                'Shoulder tension and reduced range of motion.',
-                'Fatigue and difficulty sleeping for the past three weeks.',
-                'Digestive issues, bloating after meals.',
-                'Anxiety and stress management.',
-                'Neck stiffness after long hours at computer.',
-            ]),
+            'status'       => 'complete',
+            'submitted_on' => $faker->dateTimeBetween('-90 days', '-1 day'),
+            'discipline'   => $discipline,
+
+            // Core complaint
+            'reason_for_visit' => $faker->randomElement($complaints),
             'current_concerns' => $faker->randomElement([
-                'Pain is worse in the morning and improves through the day.',
-                'Headaches begin behind the eyes and spread to the temples.',
-                'Shoulder pain worsens when reaching overhead.',
-                'Difficulty falling asleep, waking at 3–4 am.',
-                'Bloating most noticeable after dinner.',
-                'Tension in chest and shallow breathing.',
+                'Symptoms are worse in the morning and improve through the day.',
+                'Pain increases with activity and improves with rest.',
+                'Symptoms are worse after prolonged sitting or standing.',
+                'Condition has been getting gradually worse over the past month.',
+                'Symptoms are intermittent — good days and bad days.',
+                'Worse in cold or damp weather, better with heat.',
             ]),
             'relevant_history' => $faker->randomElement([
-                'No prior surgeries. Family history of hypertension.',
-                'Herniated disc (L4-L5) diagnosed 2019, managed conservatively.',
-                'Rotator cuff strain 2022, resolved with PT.',
-                'No significant medical history.',
-                'IBS diagnosis 2018. Managed with diet.',
-                'Anxiety disorder, currently on no medication.',
+                'No significant prior medical history.',
+                'Managed with diet and lifestyle, no current medications.',
+                'Prior injury resolved with physiotherapy in 2022.',
+                'Family history of cardiovascular disease.',
+                'Chronic condition managed with medication.',
             ]),
-            'medications' => $faker->randomElement([
-                'Ibuprofen 400mg as needed.',
-                'None.',
-                'Magnesium glycinate 400mg nightly.',
-                'Vitamin D3 2000IU daily. Fish oil 1000mg.',
-                'Metformin 500mg twice daily.',
-                'Sertraline 50mg daily.',
+
+            // Extended health-history columns
+            'chief_complaint'  => $faker->randomElement($complaints),
+            'onset_duration'   => $faker->randomElement(['2 weeks', '1 month', '3 months', '6 months', '1 year', '2 years', '5+ years']),
+            'onset_type'       => $faker->randomElement(['sudden', 'gradual', 'after injury', 'after illness', 'unknown']),
+            'aggravating_factors' => $faker->randomElement([
+                'Sitting for long periods, cold weather, stress.',
+                'Overhead reaching, lifting, and repetitive arm movements.',
+                'Eating large meals, certain foods, stress.',
+                'Screen time before bed, caffeine, work pressure.',
+                'Walking on hard surfaces, stairs, prolonged standing.',
             ]),
-            'notes' => $faker->optional(0.5)->randomElement([
+            'relieving_factors' => $faker->randomElement([
+                'Heat pad, gentle stretching, lying down.',
+                'Rest, ice, anti-inflammatory medication.',
+                'Walking, light exercise, warm baths.',
+                'Meditation, breathing exercises, sleep.',
+                'Supportive footwear, elevation.',
+            ]),
+            'pain_scale' => $faker->numberBetween(2, 9),
+
+            'previous_episodes'             => $faker->boolean(40),
+            'previous_episodes_description' => $faker->optional(0.4)->randomElement([
+                'Similar episode 2 years ago, resolved on its own.',
+                'Recurring issue every winter for the past 3 years.',
+                'Previous flare-up after a stressful work period.',
+            ]),
+
+            // Medical history (jsonb arrays)
+            'current_medications' => $faker->randomElement($medications),
+            'allergies'           => $faker->optional(0.3)->randomElement([
+                ['Penicillin'], ['Latex'], ['Aspirin'], ['Shellfish'],
+            ]) ?? [],
+            'past_diagnoses'  => $faker->randomElement($diagnoses),
+            'past_surgeries'  => $faker->randomElement($surgeries),
+
+            // Health flags
+            'is_pregnant'           => $faker->boolean(5),
+            'has_pacemaker'         => $faker->boolean(2),
+            'takes_blood_thinners'  => $faker->boolean(5),
+            'has_bleeding_disorder' => $faker->boolean(2),
+            'has_infectious_disease' => $faker->boolean(2),
+
+            // Lifestyle
+            'exercise_frequency' => $faker->randomElement(['never', '1-2x_week', '3-4x_week', 'daily']),
+            'sleep_quality'      => $faker->randomElement(['poor', 'fair', 'good', 'excellent']),
+            'sleep_hours'        => $faker->numberBetween(4, 9),
+            'stress_level'       => $faker->randomElement(['low', 'moderate', 'high', 'very_high']),
+            'diet_description'   => $faker->randomElement([
+                'Mostly home-cooked meals, low sugar.',
+                'Mixed diet, tends to skip breakfast.',
+                'Vegetarian, high in vegetables and legumes.',
+                'High-protein diet, gym-focused nutrition.',
+                'Irregular eating habits, relies on takeout.',
+            ]),
+            'smoking_status' => $faker->randomElement(['never', 'former', 'current']),
+            'smoking_amount' => $faker->optional(0.1)->randomElement(['occasional', '5/day', '10/day']),
+            'alcohol_use'    => $faker->randomElement(['none', 'occasional', 'social', 'regular']),
+
+            // Previous treatment
+            'had_previous_treatment'     => $hadPrevious,
+            'previous_treatments_tried'  => $hadPrevious ? $faker->randomElement($previousTreatments) : [],
+            'previous_treatment_results' => $hadPrevious ? $faker->randomElement([
+                'Provided temporary relief but symptoms returned.',
+                'Significant improvement, stopped when symptoms resolved.',
+                'Minimal benefit.',
+                'Helped with pain management but did not address root cause.',
+            ]) : null,
+            'other_practitioner'      => $faker->boolean(20),
+            'other_practitioner_name' => $faker->optional(0.2)->name(),
+
+            // Goals
+            'treatment_goals' => $faker->randomElement([
+                'Reduce daily pain levels so I can work and exercise normally.',
+                'Sleep through the night without waking.',
+                'Restore full range of motion in the affected area.',
+                'Manage stress and improve overall energy levels.',
+                'Return to recreational sport without pain.',
+            ]),
+            'success_indicators' => $faker->randomElement([
+                'Pain below 3/10 consistently.',
+                'Sleeping 7+ hours without interruption.',
+                'Able to complete a full workday without discomfort.',
+                'Completing a 5km run pain-free.',
+            ]),
+
+            // Discipline-specific responses (jsonb)
+            'discipline_responses' => [],
+
+            // Consent
+            'consent_given'     => true,
+            'consent_signed_at' => $faker->dateTimeBetween('-90 days', '-1 day'),
+            'consent_signed_by' => $faker->name(),
+            'consent_ip_address' => $faker->ipv4(),
+
+            // Legacy columns
+            'medications' => null,
+            'notes'       => $faker->optional(0.3)->randomElement([
                 'Prefer afternoon appointments.',
                 'Please use thinner needles if possible.',
-                'First time trying acupuncture — a little nervous.',
-                'Had a bad reaction to deep tissue massage in the past.',
-                'Would like to discuss herbal supplements.',
+                'First time trying this — a little nervous.',
+                'Had a bad reaction to deep tissue work in the past.',
             ]),
         ]);
     }

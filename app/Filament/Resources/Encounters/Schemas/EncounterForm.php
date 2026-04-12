@@ -16,42 +16,111 @@ use Filament\Schemas\Schema;
 
 class EncounterForm
 {
+    private static function formatLastVisits($record): string
+    {
+        if (!$record || !$record->patient) {
+            return '—';
+        }
+
+        $visits = $record->patient->encounters()
+            ->where('id', '!=', $record->id)
+            ->latest('visit_date')
+            ->limit(3)
+            ->get();
+
+        if ($visits->isEmpty()) {
+            return '—';
+        }
+
+        $lines = [];
+        foreach ($visits as $visit) {
+            $date = $visit->visit_date->format('M j');
+            $chief = $visit->chief_complaint ? substr($visit->chief_complaint, 0, 25) : 'Visit';
+            $lines[] = "$date — $chief ✓";
+        }
+
+        return implode('<br>', $lines);
+    }
+
+    private static function formatIntakeSummary($record): string
+    {
+        if (!$record || !$record->patient) {
+            return '—';
+        }
+
+        $intake = $record->patient->intakeSubmissions()
+            ->where('status', 'complete')
+            ->latest()
+            ->first();
+
+        if (!$intake) {
+            return '—';
+        }
+
+        $chief = $intake->chief_complaint ?? '—';
+        $painLabel = $intake->pain_scale_label ?? '—';
+        $redFlags = $intake->hasRedFlags() ? '⚠ Red flags detected' : '✓ No red flags';
+
+        return "Chief: $chief<br>Pain: $painLabel<br>$redFlags";
+    }
+
     public static function configure(Schema $schema): Schema
     {
         return $schema->components([
             Hidden::make('practice_id')
                 ->default(fn () => auth()->user()->practice_id),
 
-            Section::make('Encounter Details')
-                ->schema([
-                    Select::make('patient_id')
-                        ->relationship('patient', 'name')
-                        ->required()
-                        ->searchable()
-                        ->preload()
-                        ->disabledOn('view'),
-                    Select::make('practitioner_id')
-                        ->relationship('practitioner', 'id')
-                        ->getOptionLabelFromRecordUsing(fn ($record) => $record->user?->name ?? "Practitioner #{$record->id}")
-                        ->required()
-                        ->searchable()
-                        ->preload()
-                        ->disabledOn('view'),
-                    DatePicker::make('visit_date')
-                        ->required()
-                        ->default(now())
-                        ->disabledOn('view'),
-                    Select::make('status')
-                        ->options([
-                            'draft' => 'Draft',
-                            'complete' => 'Complete',
-                        ])
-                        ->default('draft')
-                        ->required()
-                        ->disabledOn('view'),
-                ])->columns(2),
+            Grid::make(3)->columnSpanFull()->schema([
+                // ── Left Panel: Patient Context ────────────────────────
+                Section::make('Patient Context')
+                    ->columnSpan(1)
+                    ->schema([
+                        Placeholder::make('last_visits')
+                            ->label('Last Visits')
+                            ->hiddenLabel()
+                            ->content(fn ($record) => self::formatLastVisits($record)),
 
-            Tabs::make('Clinical Documentation')->tabs([
+                        Placeholder::make('intake_summary')
+                            ->label('Intake Summary')
+                            ->hiddenLabel()
+                            ->content(fn ($record) => self::formatIntakeSummary($record))
+                            ->columnSpanFull(),
+                    ]),
+
+                // ── Right Panel: Encounter Details + Clinical Notes ────
+                Section::make('')
+                    ->columnSpan(2)
+                    ->schema([
+                        Section::make('Encounter Details')
+                            ->schema([
+                                Select::make('patient_id')
+                                    ->relationship('patient', 'name')
+                                    ->required()
+                                    ->searchable()
+                                    ->preload()
+                                    ->disabledOn('view'),
+                                Select::make('practitioner_id')
+                                    ->relationship('practitioner', 'id')
+                                    ->getOptionLabelFromRecordUsing(fn ($record) => $record->user?->name ?? "Practitioner #{$record->id}")
+                                    ->required()
+                                    ->searchable()
+                                    ->preload()
+                                    ->disabledOn('view'),
+                                DatePicker::make('visit_date')
+                                    ->required()
+                                    ->default(now())
+                                    ->disabledOn('view'),
+                                Select::make('status')
+                                    ->options([
+                                        'draft' => 'Draft',
+                                        'complete' => 'Complete',
+                                    ])
+                                    ->default('draft')
+                                    ->required()
+                                    ->disabledOn('view'),
+                            ])->columns(2),
+
+                        Tabs::make('Clinical Documentation')->tabs([
                 Tab::make('Core Notes')->schema([
                     Textarea::make('chief_complaint')
                         ->rows(3)
@@ -186,7 +255,9 @@ class EncounterForm
                         ->disabledOn('view'),
                 ])->visible(fn ($record) => $record?->discipline === 'physiotherapy'),
 
-            ])->columnSpanFull(),
+            ]),
+        ]),
+        ]),
         ]);
     }
 }
