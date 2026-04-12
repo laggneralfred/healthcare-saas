@@ -2,7 +2,11 @@
 
 namespace Database\Factories;
 
+use App\Models\Appointment;
 use App\Models\Encounter;
+use App\Models\Patient;
+use App\Models\Practice;
+use App\Models\Practitioner;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -15,10 +19,14 @@ class EncounterFactory extends Factory
     public function definition(): array
     {
         return [
-            'status'     => 'draft',
-            'visit_date' => fake()->dateTimeBetween('-60 days', 'now')->format('Y-m-d'),
-            'visit_notes' => null,
-            'completed_on' => null,
+            'practice_id'    => Practice::factory(),
+            'patient_id'     => Patient::factory(),
+            'appointment_id' => Appointment::factory(),
+            'practitioner_id' => Practitioner::factory(),
+            'status'         => 'draft',
+            'visit_date'     => fake()->dateTimeBetween('-60 days', 'now')->format('Y-m-d'),
+            'visit_notes'    => null,
+            'completed_on'   => null,
         ];
     }
 

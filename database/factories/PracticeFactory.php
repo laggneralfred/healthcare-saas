@@ -17,10 +17,13 @@ class PracticeFactory extends Factory
     {
         $name = fake()->company();
         return [
-            'name'      => $name,
-            'slug'      => Str::slug($name),
-            'timezone'  => fake()->randomElement(['America/New_York', 'America/Chicago', 'America/Los_Angeles', 'America/Denver']),
+            'name'           => $name,
+            'slug'           => Str::slug($name),
+            'timezone'       => fake()->randomElement(['America/New_York', 'America/Chicago', 'America/Los_Angeles', 'America/Denver']),
             'is_active'      => true,
+            'is_demo'        => false,
+            'discipline'     => fake()->randomElement(['acupuncture', 'massage', 'chiropractic', 'physical_therapy', 'other']),
+            'referral_source' => fake()->optional(0.5)->randomElement(['Google', 'Word of Mouth', 'Facebook', 'Yelp', 'Direct']),
             'trial_ends_at'  => now()->addDays(30),
         ];
     }

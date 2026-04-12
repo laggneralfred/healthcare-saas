@@ -33,11 +33,13 @@ class CheckoutLineFactory extends Factory
     public function definition(): array
     {
         return [
-            'checkout_session_id' => CheckoutSession::factory(),
-            'practice_id'         => Practice::factory(),
-            'sequence'            => 0,
-            'description'         => fake()->randomElement(self::$descriptions),
-            'amount'              => fake()->randomFloat(2, 50, 175),
+            'checkout_session_id'  => CheckoutSession::factory(),
+            'practice_id'          => Practice::factory(),
+            'sequence'             => 0,
+            'description'          => fake()->randomElement(self::$descriptions),
+            'amount'               => fake()->randomFloat(2, 50, 175),
+            'inventory_product_id' => null,
+            'quantity'             => null,
         ];
     }
 }

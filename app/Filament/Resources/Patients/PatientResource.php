@@ -29,6 +29,8 @@ class PatientResource extends Resource
 
     protected static ?int $navigationSort = 1;
 
+    protected static ?string $navigationLabel = 'Patients';
+
     public static function form(Schema $schema): Schema
     {
         return PatientForm::configure($schema);

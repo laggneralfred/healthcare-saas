@@ -21,10 +21,10 @@ class PractitionerFactory extends Factory
             'user_id'        => User::factory(),
             'license_number' => strtoupper(fake()->bothify('??-#####')),
             'specialty'      => fake()->randomElement([
-                'Acupuncture', 'TCM', 'Cupping Therapy', 'Herbal Medicine',
+                'Acupuncture', 'Traditional Chinese Medicine', 'Cupping Therapy', 'Herbal Medicine',
                 'Swedish Massage', 'Deep Tissue', 'Sports Massage', 'Trigger Point',
+                'Physical Therapy', 'Chiropractic', 'Massage Therapy',
             ]),
-            'bio' => fake()->paragraph(),
             'is_active' => true,
         ];
     }

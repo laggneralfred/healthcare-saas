@@ -16,13 +16,15 @@ class AppointmentTypeFactory extends Factory
     public function definition(): array
     {
         return [
-            'practice_id' => Practice::factory(),
-            'name'        => fake()->randomElement([
+            'practice_id'            => Practice::factory(),
+            'name'                   => fake()->randomElement([
                 'Initial Consultation', 'Follow-up Treatment', 'Cupping Session',
                 'Herbal Consultation', 'Swedish Massage', 'Deep Tissue Massage',
                 'Sports Massage', 'Hot Stone Therapy', 'Acupuncture Treatment',
             ]),
-            'is_active' => true,
+            'duration_minutes'       => fake()->randomElement([30, 45, 60, 75, 90]),
+            'default_service_fee_id' => null,
+            'is_active'              => true,
         ];
     }
 }
