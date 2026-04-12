@@ -143,10 +143,23 @@ class ViewIntakeSubmission extends ViewRecord
                         ->content(function ($record) {
                             $items = $record->past_diagnoses;
                             if (empty($items)) return '—';
-                            return implode("\n", array_map(
-                                fn ($d) => trim(($d['condition'] ?? '') . ($d['year'] ? ' (' . $d['year'] . ')' : '')),
-                                $items
-                            ));
+
+                            // Handle if it's a string instead of array
+                            if (is_string($items)) {
+                                return $items;
+                            }
+
+                            // Handle array of diagnoses
+                            if (is_array($items)) {
+                                return implode("\n", array_map(
+                                    fn ($d) => is_array($d)
+                                        ? trim(($d['condition'] ?? '') . ($d['year'] ? ' (' . $d['year'] . ')' : ''))
+                                        : (string) $d,
+                                    $items
+                                ));
+                            }
+
+                            return '—';
                         }),
 
                     Placeholder::make('past_surgeries_list')
@@ -154,10 +167,23 @@ class ViewIntakeSubmission extends ViewRecord
                         ->content(function ($record) {
                             $items = $record->past_surgeries;
                             if (empty($items)) return '—';
-                            return implode("\n", array_map(
-                                fn ($s) => trim(($s['procedure'] ?? '') . ($s['year'] ? ' (' . $s['year'] . ')' : '')),
-                                $items
-                            ));
+
+                            // Handle if it's a string instead of array
+                            if (is_string($items)) {
+                                return $items;
+                            }
+
+                            // Handle array of surgeries
+                            if (is_array($items)) {
+                                return implode("\n", array_map(
+                                    fn ($s) => is_array($s)
+                                        ? trim(($s['procedure'] ?? '') . ($s['year'] ? ' (' . $s['year'] . ')' : ''))
+                                        : (string) $s,
+                                    $items
+                                ));
+                            }
+
+                            return '—';
                         }),
                 ]),
 

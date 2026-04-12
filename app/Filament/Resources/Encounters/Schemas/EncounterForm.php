@@ -39,7 +39,7 @@ class EncounterForm
             $lines[] = "$date — $chief ✓";
         }
 
-        return implode('<br>', $lines);
+        return implode("\n", $lines);
     }
 
     private static function formatIntakeSummary($record): string
@@ -61,7 +61,7 @@ class EncounterForm
         $painLabel = $intake->pain_scale_label ?? '—';
         $redFlags = $intake->hasRedFlags() ? '⚠ Red flags detected' : '✓ No red flags';
 
-        return "Chief: $chief<br>Pain: $painLabel<br>$redFlags";
+        return "Chief: $chief\nPain: $painLabel\n$redFlags";
     }
 
     public static function configure(Schema $schema): Schema
@@ -105,6 +105,38 @@ class EncounterForm
                                     ->required()
                                     ->searchable()
                                     ->preload()
+                                    ->live()
+                                    ->afterStateUpdated(function (callable $set, $state) {
+                                        if ($state) {
+                                            $practitioner = \App\Models\Practitioner::find($state);
+                                            if ($practitioner && $practitioner->specialty) {
+                                                $disciplineMap = [
+                                                    'Acupuncture' => 'acupuncture',
+                                                    'Acupuncture & Oriental Medicine' => 'acupuncture',
+                                                    'Traditional Chinese Medicine' => 'acupuncture',
+                                                    'Massage Therapy' => 'massage',
+                                                    'Massage' => 'massage',
+                                                    'Chiropractic' => 'chiropractic',
+                                                    'Chiropractic Care' => 'chiropractic',
+                                                    'Physical Therapy' => 'physiotherapy',
+                                                    'Physiotherapy' => 'physiotherapy',
+                                                ];
+                                                $discipline = $disciplineMap[$practitioner->specialty] ?? null;
+                                                if ($discipline) {
+                                                    $set('discipline', $discipline);
+                                                }
+                                            }
+                                        }
+                                    })
+                                    ->disabledOn('view'),
+                                Select::make('discipline')
+                                    ->options([
+                                        'acupuncture' => 'Acupuncture',
+                                        'massage' => 'Massage Therapy',
+                                        'chiropractic' => 'Chiropractic',
+                                        'physiotherapy' => 'Physical Therapy',
+                                    ])
+                                    ->required()
                                     ->disabledOn('view'),
                                 DatePicker::make('visit_date')
                                     ->required()
@@ -151,18 +183,17 @@ class EncounterForm
                             Placeholder::make('tcm_diagnosis')
                                 ->label('TCM Diagnosis')
                                 ->content(fn ($record) => $record?->acupunctureEncounter?->tcm_diagnosis ?? '—')
-                                ->visible(fn () => auth()->user()?->id), // Show in view mode
+                                ->visibleOn('view'),
 
                             TextInput::make('acupunctureEncounter.tcm_diagnosis')
                                 ->label('TCM Diagnosis')
                                 ->maxLength(255)
-                                ->visibleOn('edit')
-                                ->hidden(),
+                                ->visibleOn('edit'),
 
                             Placeholder::make('tongue_body')
                                 ->label('Tongue Body')
                                 ->content(fn ($record) => $record?->acupunctureEncounter?->tongue_body ?? '—')
-                                ->visible(fn () => auth()->user()?->id),
+                                ->visibleOn('view'),
 
                             TextInput::make('acupunctureEncounter.tongue_body')
                                 ->label('Tongue Body')
@@ -171,7 +202,7 @@ class EncounterForm
                             Placeholder::make('tongue_coating')
                                 ->label('Tongue Coating')
                                 ->content(fn ($record) => $record?->acupunctureEncounter?->tongue_coating ?? '—')
-                                ->visible(fn () => auth()->user()?->id),
+                                ->visibleOn('view'),
 
                             TextInput::make('acupunctureEncounter.tongue_coating')
                                 ->label('Tongue Coating')
@@ -180,7 +211,7 @@ class EncounterForm
                             Placeholder::make('pulse_quality')
                                 ->label('Pulse Quality')
                                 ->content(fn ($record) => $record?->acupunctureEncounter?->pulse_quality ?? '—')
-                                ->visible(fn () => auth()->user()?->id),
+                                ->visibleOn('view'),
 
                             TextInput::make('acupunctureEncounter.pulse_quality')
                                 ->label('Pulse Quality')
@@ -189,7 +220,7 @@ class EncounterForm
                             Placeholder::make('zang_fu_diagnosis')
                                 ->label('Zang-Fu Diagnosis')
                                 ->content(fn ($record) => $record?->acupunctureEncounter?->zang_fu_diagnosis ?? '—')
-                                ->visible(fn () => auth()->user()?->id),
+                                ->visibleOn('view'),
 
                             TextInput::make('acupunctureEncounter.zang_fu_diagnosis')
                                 ->label('Zang-Fu Diagnosis')
@@ -201,7 +232,7 @@ class EncounterForm
                             Placeholder::make('points_used')
                                 ->label('Points Used')
                                 ->content(fn ($record) => $record?->acupunctureEncounter?->points_used ?? '—')
-                                ->visible(fn () => auth()->user()?->id)
+                                ->visibleOn('view')
                                 ->columnSpanFull(),
 
                             Textarea::make('acupunctureEncounter.points_used')
@@ -212,7 +243,7 @@ class EncounterForm
                             Placeholder::make('needle_count')
                                 ->label('Needle Count')
                                 ->content(fn ($record) => ($record?->acupunctureEncounter?->needle_count ?? '—'))
-                                ->visible(fn () => auth()->user()?->id),
+                                ->visibleOn('view'),
 
                             TextInput::make('acupunctureEncounter.needle_count')
                                 ->numeric()
@@ -222,7 +253,7 @@ class EncounterForm
                             Placeholder::make('treatment_protocol')
                                 ->label('Treatment Protocol')
                                 ->content(fn ($record) => $record?->acupunctureEncounter?->treatment_protocol ?? '—')
-                                ->visible(fn () => auth()->user()?->id)
+                                ->visibleOn('view')
                                 ->columnSpanFull(),
 
                             Textarea::make('acupunctureEncounter.treatment_protocol')

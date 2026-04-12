@@ -21,17 +21,20 @@ class CreateEncounter extends CreateRecord
         // Auto-populate discipline from practitioner if not set
         if (!empty($data['practitioner_id'])) {
             $practitioner = \App\Models\Practitioner::find($data['practitioner_id']);
-            if ($practitioner && $practitioner->user) {
-                $specialty = $practitioner->user->specialty;
-                if ($specialty) {
-                    $disciplineMap = [
-                        'Acupuncture' => 'acupuncture',
-                        'Massage Therapy' => 'massage',
-                        'Chiropractic' => 'chiropractic',
-                        'Physical Therapy' => 'physiotherapy',
-                    ];
-                    $data['discipline'] = $disciplineMap[$specialty] ?? null;
-                }
+            if ($practitioner && $practitioner->specialty) {
+                $specialty = $practitioner->specialty;
+                $disciplineMap = [
+                    'Acupuncture' => 'acupuncture',
+                    'Acupuncture & Oriental Medicine' => 'acupuncture',
+                    'Traditional Chinese Medicine' => 'acupuncture',
+                    'Massage Therapy' => 'massage',
+                    'Massage' => 'massage',
+                    'Chiropractic' => 'chiropractic',
+                    'Chiropractic Care' => 'chiropractic',
+                    'Physical Therapy' => 'physiotherapy',
+                    'Physiotherapy' => 'physiotherapy',
+                ];
+                $data['discipline'] = $disciplineMap[$specialty] ?? null;
             }
         }
 
