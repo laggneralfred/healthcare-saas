@@ -137,7 +137,7 @@ class EncounterForm
                     Textarea::make('acupunctureEncounter.treatment_protocol')
                         ->rows(3)
                         ->disabledOn('view'),
-                ])->visible(fn ($record) => true), // Logic simplified for brevity
+                ])->visible(fn ($record) => $record?->discipline === 'acupuncture'),
 
                 Tab::make('Massage')->schema([
                     TextInput::make('massageEncounter.technique_used')
@@ -146,21 +146,21 @@ class EncounterForm
                         ->disabledOn('view'),
                     Textarea::make('massageEncounter.areas_focused')
                         ->disabledOn('view'),
-                ])->visible(fn ($record) => true),
+                ])->visible(fn ($record) => $record?->discipline === 'massage'),
 
                 Tab::make('Chiropractic')->schema([
                     TextInput::make('chiropracticEncounter.adjustment_level')
                         ->disabledOn('view'),
                     TextInput::make('chiropracticEncounter.technique')
                         ->disabledOn('view'),
-                ])->visible(fn ($record) => true),
+                ])->visible(fn ($record) => $record?->discipline === 'chiropractic'),
 
                 Tab::make('Physiotherapy')->schema([
                     TextInput::make('physiotherapyEncounter.exercise_program')
                         ->disabledOn('view'),
                     TextInput::make('physiotherapyEncounter.equipment_used')
                         ->disabledOn('view'),
-                ])->visible(fn ($record) => true),
+                ])->visible(fn ($record) => $record?->discipline === 'physiotherapy'),
 
             ])->columnSpanFull(),
         ]);

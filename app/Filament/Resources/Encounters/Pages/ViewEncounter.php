@@ -3,7 +3,10 @@
 namespace App\Filament\Resources\Encounters\Pages;
 
 use App\Filament\Resources\Encounters\EncounterResource;
+use App\Filament\Resources\Encounters\Schemas\EncounterForm;
 use Filament\Resources\Pages\ViewRecord;
+use Filament\Schemas\Schema;
+use Illuminate\Database\Eloquent\Model;
 
 class ViewEncounter extends ViewRecord
 {
@@ -18,5 +21,15 @@ class ViewEncounter extends ViewRecord
                 ->url(fn () => static::getResource()::getUrl('index'))
                 ->color('gray'),
         ];
+    }
+
+    public function form(Schema $schema): Schema
+    {
+        return EncounterResource::form($schema);
+    }
+
+    protected function resolveRecord($key): Model
+    {
+        return parent::resolveRecord($key)->load('acupunctureEncounter');
     }
 }
