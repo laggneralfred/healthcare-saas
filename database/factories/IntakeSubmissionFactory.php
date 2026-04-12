@@ -37,8 +37,8 @@ class IntakeSubmissionFactory extends Factory
     {
         return $this->state(fn () => [
             'status'           => 'complete',
-            'submitted_on'     => \fake()->dateTimeBetween('-30 days', '-1 day'),
-            'reason_for_visit' => \fake()->randomElement([
+            'submitted_on'     => $this->faker->dateTimeBetween('-30 days', '-1 day'),
+            'reason_for_visit' => $this->faker->randomElement([
                 'Persistent lower back pain radiating to left leg.',
                 'Chronic migraines, 3–4 times per week for the past month.',
                 'Shoulder tension and reduced range of motion.',
@@ -47,7 +47,7 @@ class IntakeSubmissionFactory extends Factory
                 'Anxiety and stress management.',
                 'Neck stiffness after long hours at computer.',
             ]),
-            'current_concerns' => \fake()->randomElement([
+            'current_concerns' => $this->faker->randomElement([
                 'Pain is worse in the morning and improves through the day.',
                 'Headaches begin behind the eyes and spread to the temples.',
                 'Shoulder pain worsens when reaching overhead.',
@@ -55,7 +55,7 @@ class IntakeSubmissionFactory extends Factory
                 'Bloating most noticeable after dinner.',
                 'Tension in chest and shallow breathing.',
             ]),
-            'relevant_history' => \fake()->randomElement([
+            'relevant_history' => $this->faker->randomElement([
                 'No prior surgeries. Family history of hypertension.',
                 'Herniated disc (L4-L5) diagnosed 2019, managed conservatively.',
                 'Rotator cuff strain 2022, resolved with PT.',
@@ -63,7 +63,7 @@ class IntakeSubmissionFactory extends Factory
                 'IBS diagnosis 2018. Managed with diet.',
                 'Anxiety disorder, currently on no medication.',
             ]),
-            'medications' => \fake()->randomElement([
+            'medications' => $this->faker->randomElement([
                 'Ibuprofen 400mg as needed.',
                 'None.',
                 'Magnesium glycinate 400mg nightly.',
@@ -71,7 +71,7 @@ class IntakeSubmissionFactory extends Factory
                 'Metformin 500mg twice daily.',
                 'Sertraline 50mg daily.',
             ]),
-            'notes' => \fake()->optional(0.5)->randomElement([
+            'notes' => $this->faker->optional(0.5)->randomElement([
                 'Prefer afternoon appointments.',
                 'Please use thinner needles if possible.',
                 'First time trying acupuncture — a little nervous.',

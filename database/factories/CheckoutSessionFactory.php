@@ -44,20 +44,20 @@ class CheckoutSessionFactory extends Factory
     {
         return $this->state([
             'state'        => Open::$name,
-            'amount_total' => \fake()->randomFloat(2, 75, 200),
+            'amount_total' => $this->faker->randomFloat(2, 75, 200),
         ]);
     }
 
     public function paid(string $tenderType = 'card'): static
     {
-        $total = \fake()->randomFloat(2, 75, 200);
+        $total = $this->faker->randomFloat(2, 75, 200);
 
         return $this->state([
             'state'        => Paid::$name,
             'amount_total' => $total,
             'amount_paid'  => $total,
             'tender_type'  => $tenderType,
-            'paid_on'      => \fake()->dateTimeBetween('-30 days', 'now'),
+            'paid_on'      => $this->faker->dateTimeBetween('-30 days', 'now'),
         ]);
     }
 
@@ -75,7 +75,7 @@ class CheckoutSessionFactory extends Factory
     {
         return $this->state([
             'state'        => PaymentDue::$name,
-            'amount_total' => \fake()->randomFloat(2, 75, 200),
+            'amount_total' => $this->faker->randomFloat(2, 75, 200),
             'amount_paid'  => 0,
             'tender_type'  => null,
             'paid_on'      => null,

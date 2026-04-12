@@ -17,12 +17,12 @@ class AppointmentTypeFactory extends Factory
     {
         return [
             'practice_id'            => Practice::factory(),
-            'name'                   => \fake()->randomElement([
+            'name'                   => $this->faker->randomElement([
                 'Initial Consultation', 'Follow-up Treatment', 'Cupping Session',
                 'Herbal Consultation', 'Swedish Massage', 'Deep Tissue Massage',
                 'Sports Massage', 'Hot Stone Therapy', 'Acupuncture Treatment',
             ]),
-            'duration_minutes'       => \fake()->randomElement([30, 45, 60, 75, 90]),
+            'duration_minutes'       => $this->faker->randomElement([30, 45, 60, 75, 90]),
             'default_service_fee_id' => null,
             'is_active'              => true,
         ];
