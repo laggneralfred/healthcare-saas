@@ -22,4 +22,18 @@ class EditEncounter extends EditRecord
     {
         return parent::resolveRecord($key)->load('acupunctureEncounter');
     }
+
+    protected function mutateFormDataBeforeFill(array $data): array
+    {
+        // Flatten acupunctureEncounter relationship data into form state
+        $record = $this->record;
+        if ($record->acupunctureEncounter) {
+            $acu = $record->acupunctureEncounter->toArray();
+            foreach ($acu as $key => $value) {
+                $data["acupunctureEncounter.$key"] = $value;
+            }
+        }
+
+        return $data;
+    }
 }
