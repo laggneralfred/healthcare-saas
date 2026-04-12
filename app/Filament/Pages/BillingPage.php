@@ -21,6 +21,8 @@ class BillingPage extends Page
 
     protected static ?int $navigationSort = 3;
 
+    protected static ?int $navigationGroupSort = 100;
+
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedCreditCard;
 
     protected string $view = 'filament.pages.billing';
