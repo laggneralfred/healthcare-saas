@@ -57,7 +57,7 @@ RUN mkdir -p bootstrap/cache storage/logs storage/framework/cache storage/framew
     && chown -R www-data:www-data bootstrap/cache storage
 
 # Install PHP dependencies
-RUN composer install --optimize-autoloader --no-dev --no-interaction
+RUN composer install --optimize-autoloader --no-interaction
 
 # Install Node.js and build frontend assets
 FROM node:20-alpine AS frontend-builder
