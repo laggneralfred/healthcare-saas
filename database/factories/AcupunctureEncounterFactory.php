@@ -37,7 +37,7 @@ class AcupunctureEncounterFactory extends Factory
     public function withClinicalData(): static
     {
         return $this->state(fn (array $attributes) => [
-            'tcm_diagnosis' => fake()->randomElement([
+            'tcm_diagnosis' => \fake()->randomElement([
                 'Liver Qi Stagnation',
                 'Kidney Yin Deficiency',
                 'Spleen Qi Deficiency',
@@ -49,32 +49,32 @@ class AcupunctureEncounterFactory extends Factory
                 'Wind-Cold Invasion',
                 'Liver Yang Rising',
             ]),
-            'tongue_body' => fake()->randomElement([
+            'tongue_body' => \fake()->randomElement([
                 'Pale', 'Red', 'Swollen', 'Dusky', 'Thin', 'Normal',
             ]),
-            'tongue_coating' => fake()->randomElement([
+            'tongue_coating' => \fake()->randomElement([
                 'Thin white', 'Thick yellow', 'Peeled', 'Greasy', 'No coat',
             ]),
-            'pulse_quality' => fake()->randomElement([
+            'pulse_quality' => \fake()->randomElement([
                 'Wiry', 'Slippery', 'Thready', 'Weak', 'Floating', 'Deep', 'Choppy',
             ]),
-            'zang_fu_diagnosis' => fake()->randomElement([
+            'zang_fu_diagnosis' => \fake()->randomElement([
                 'Liver/Spleen Disharmony',
                 'Kidney/Heart Not Communicating',
                 'Lung/Kidney Yin Deficiency',
                 'Spleen/Stomach Damp-Heat',
                 'Heart/Liver Blood Deficiency',
             ]),
-            'five_elements' => fake()->randomElements(['Wood', 'Fire', 'Earth', 'Metal', 'Water'], fake()->numberBetween(1, 2)),
-            'csor_color' => fake()->randomElement(['Greenish', 'Reddish', 'Yellowish', 'Whiteish', 'Blueish/Blackish']),
-            'csor_sound' => fake()->randomElement(['Shouting', 'Laughing', 'Singing', 'Weeping', 'Groaning']),
-            'csor_odor' => fake()->randomElement(['Rancid', 'Scorched', 'Fragrant', 'Rotten', 'Putrid']),
-            'csor_emotion' => fake()->randomElement(['Anger', 'Joy', 'Sympathy', 'Grief', 'Fear']),
+            'five_elements' => \fake()->randomElements(['Wood', 'Fire', 'Earth', 'Metal', 'Water'], \fake()->numberBetween(1, 2)),
+            'csor_color' => \fake()->randomElement(['Greenish', 'Reddish', 'Yellowish', 'Whiteish', 'Blueish/Blackish']),
+            'csor_sound' => \fake()->randomElement(['Shouting', 'Laughing', 'Singing', 'Weeping', 'Groaning']),
+            'csor_odor' => \fake()->randomElement(['Rancid', 'Scorched', 'Fragrant', 'Rotten', 'Putrid']),
+            'csor_emotion' => \fake()->randomElement(['Anger', 'Joy', 'Sympathy', 'Grief', 'Fear']),
             'points_used' => 'LI4, LV3, ST36, SP6',
             'meridians' => 'Large Intestine, Liver, Stomach, Spleen',
             'treatment_protocol' => 'Regulate Qi, tonify Spleen.',
-            'needle_count' => fake()->numberBetween(6, 12),
-            'session_notes' => fake()->randomElement([
+            'needle_count' => \fake()->numberBetween(6, 12),
+            'session_notes' => \fake()->randomElement([
                 'Patient reported improved sleep since last visit.',
                 'Initial hesitation to needles, but relaxed quickly.',
                 'Cupping applied to upper back after needling.',

@@ -19,8 +19,8 @@ class AppointmentFactory extends Factory
 
     public function definition(): array
     {
-        $start = fake()->dateTimeBetween('-60 days', '+30 days');
-        $end   = (clone $start)->modify('+' . fake()->randomElement([30, 45, 60, 90]) . ' minutes');
+        $start = \fake()->dateTimeBetween('-60 days', '+30 days');
+        $end   = (clone $start)->modify('+' . \fake()->randomElement([30, 45, 60, 90]) . ' minutes');
 
         return [
             'practice_id'         => Practice::factory(),
@@ -31,7 +31,7 @@ class AppointmentFactory extends Factory
             'start_datetime'      => $start,
             'end_datetime'        => $end,
             'needs_follow_up'     => false,
-            'notes'               => fake()->optional(0.4)->sentence(),
+            'notes'               => \fake()->optional(0.4)->sentence(),
         ];
     }
 

@@ -24,7 +24,7 @@ class EncounterFactory extends Factory
             'appointment_id' => Appointment::factory(),
             'practitioner_id' => Practitioner::factory(),
             'status'         => 'draft',
-            'visit_date'     => fake()->dateTimeBetween('-60 days', 'now')->format('Y-m-d'),
+            'visit_date'     => \fake()->dateTimeBetween('-60 days', 'now')->format('Y-m-d'),
             'visit_notes'    => null,
             'completed_on'   => null,
         ];
@@ -34,7 +34,7 @@ class EncounterFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'status'      => 'complete',
-            'visit_notes' => fake()->randomElement([
+            'visit_notes' => \fake()->randomElement([
                 'Patient reports significant improvement in lower back pain. Responded well to treatment. Plan to continue weekly sessions.',
                 'Chief concern: chronic headaches. Treatment focused on GB and LI meridians. Patient tolerated well.',
                 'Follow-up visit for insomnia protocol. Patient sleeping 6-7 hours vs previous 4. Continuing treatment plan.',
@@ -43,7 +43,7 @@ class EncounterFactory extends Factory
                 'Acute presentation: shoulder impingement. Local and distal points selected. Immediate pain relief noted.',
                 'Stress and anxiety protocol. Patient responded well. Recommended lifestyle modifications discussed.',
             ]),
-            'completed_on' => fake()->dateTimeBetween('-30 days', 'now'),
+            'completed_on' => \fake()->dateTimeBetween('-30 days', 'now'),
         ]);
     }
 

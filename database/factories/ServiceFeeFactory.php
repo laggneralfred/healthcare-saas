@@ -28,7 +28,7 @@ class ServiceFeeFactory extends Factory
 
     public function definition(): array
     {
-        $fee = fake()->randomElement(self::$fees);
+        $fee = \fake()->randomElement(self::$fees);
 
         return [
             'practice_id'       => Practice::factory(),

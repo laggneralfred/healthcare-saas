@@ -34,16 +34,16 @@ class ConsentRecordFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'status'           => 'complete',
-            'signed_on'        => fake()->dateTimeBetween('-30 days', '-1 day'),
-            'consent_given_by' => fake()->name(),
-            'consent_summary'  => fake()->optional(0.6)->randomElement([
+            'signed_on'        => \fake()->dateTimeBetween('-30 days', '-1 day'),
+            'consent_given_by' => \fake()->name(),
+            'consent_summary'  => \fake()->optional(0.6)->randomElement([
                 'I understand the treatment plan and agree to proceed.',
                 'Consent given on behalf of myself. No known allergies to treatment.',
                 'I have reviewed the informed consent document and agree to the terms.',
                 'Agreeing to treatment. Please note I have a latex sensitivity.',
                 'Consent given. I may need shorter sessions due to a low pain threshold.',
             ]),
-            'notes' => fake()->optional(0.3)->randomElement([
+            'notes' => \fake()->optional(0.3)->randomElement([
                 'Please keep sessions to 45 minutes.',
                 'Call before texting.',
                 'Prefer female practitioners if available.',
