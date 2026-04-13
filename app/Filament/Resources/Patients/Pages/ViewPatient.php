@@ -49,7 +49,7 @@ class ViewPatient extends ViewRecord
     {
         return Patient::with([
             'encounters'        => fn ($q) => $q->with('practitioner.user')->orderByDesc('visit_date'),
-            'appointments'      => fn ($q) => $q->with('practitioner.user', 'appointmentType')->orderByDesc('start_datetime'),
+            'appointments'      => fn ($q) => $q->with('practitioner.user', 'appointmentType', 'encounter')->orderByDesc('start_datetime'),
             'intakeSubmissions' => fn ($q) => $q->where('status', 'complete')->latest(),
             'checkoutSessions'  => fn ($q) => $q->latest(),
             'consentRecords'    => fn ($q) => $q->where('status', 'complete')->latest(),

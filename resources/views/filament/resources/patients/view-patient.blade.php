@@ -21,6 +21,10 @@
     $encounterViewUrl = fn($enc) => \App\Filament\Resources\Encounters\EncounterResource::getUrl('view', ['record' => $enc->id]);
     $appointmentViewUrl = fn($appt) => \App\Filament\Resources\Appointments\AppointmentResource::getUrl('view', ['record' => $appt->id]);
     $checkoutViewUrl = fn($co) => \App\Filament\Resources\CheckoutSessions\CheckoutSessionResource::getUrl('view', ['record' => $co->id]);
+    $encounterCreateUrl = fn($appt, $patient) => \App\Filament\Resources\Encounters\EncounterResource::getUrl('create') . '?appointment_id=' . $appt->id . '&patient_id=' . $patient->id;
+    $encounterBtn = fn($appt, $patient) => $appt->encounter
+        ? '<a href="' . $encounterViewUrl($appt->encounter) . '" style="color:#0d9488;text-decoration:none;font-weight:500;font-size:0.85rem;">View Encounter</a>'
+        : '<a href="' . $encounterCreateUrl($appt, $patient) . '" style="color:#1e40af;text-decoration:none;font-weight:500;font-size:0.85rem;">Start Encounter</a>';
 @endphp
 
 {{-- ── HEADER BAR ─────────────────────────────────────────────────────────── --}}
@@ -362,8 +366,8 @@
                     <div style="color:#9ca3af;font-size:0.875rem;padding:0.5rem 0;">None scheduled.</div>
                 @else
                     @foreach($upcomingAppointments as $appt)
-                    <div style="display:flex;justify-content:space-between;align-items:center;padding:0.625rem 0;border-bottom:1px solid #f3f4f6;">
-                        <div>
+                    <div style="display:flex;justify-content:space-between;align-items:flex-start;padding:0.625rem 0;border-bottom:1px solid #f3f4f6;gap:0.75rem;">
+                        <div style="flex:1;">
                             <a href="{{ $appointmentViewUrl($appt) }}" style="color:#0d9488;text-decoration:none;font-weight:500;font-size:0.9rem;">
                                 {{ $appt->start_datetime->format('M j, Y · g:i A') }}
                             </a>
@@ -371,9 +375,12 @@
                                 {{ $appt->practitioner?->user?->name ?? '—' }}
                                 @if($appt->appointmentType) · {{ $appt->appointmentType->name }} @endif
                             </div>
+                            <div style="margin-top:0.25rem;">
+                                {!! $encounterBtn($appt, $patient) !!}
+                            </div>
                         </div>
                         @php $s = (string)$appt->status; @endphp
-                        <span style="background-color:#dbeafe;color:#1e40af;border-radius:9999px;padding:0.15rem 0.55rem;font-size:0.75rem;font-weight:600;">
+                        <span style="background-color:#dbeafe;color:#1e40af;border-radius:9999px;padding:0.15rem 0.55rem;font-size:0.75rem;font-weight:600;white-space:nowrap;">
                             {{ $s }}
                         </span>
                     </div>
@@ -388,14 +395,17 @@
                     <div style="color:#9ca3af;font-size:0.875rem;padding:0.5rem 0;">No past appointments.</div>
                 @else
                     @foreach($pastAppointments as $appt)
-                    <div style="display:flex;justify-content:space-between;align-items:center;padding:0.625rem 0;border-bottom:1px solid #f3f4f6;">
-                        <div>
+                    <div style="display:flex;justify-content:space-between;align-items:flex-start;padding:0.625rem 0;border-bottom:1px solid #f3f4f6;gap:0.75rem;">
+                        <div style="flex:1;">
                             <a href="{{ $appointmentViewUrl($appt) }}" style="color:#0d9488;text-decoration:none;font-weight:500;font-size:0.9rem;">
                                 {{ $appt->start_datetime->format('M j, Y · g:i A') }}
                             </a>
                             <div style="font-size:0.8rem;color:#6b7280;">
                                 {{ $appt->practitioner?->user?->name ?? '—' }}
                                 @if($appt->appointmentType) · {{ $appt->appointmentType->name }} @endif
+                            </div>
+                            <div style="margin-top:0.25rem;">
+                                {!! $encounterBtn($appt, $patient) !!}
                             </div>
                         </div>
                         @php
@@ -405,7 +415,7 @@
                             $apptColor = str_contains(strtolower($s), 'complet') ? '#065f46' :
                                         (str_contains(strtolower($s), 'cancel') ? '#991b1b' : '#374151');
                         @endphp
-                        <span style="background-color:{{ $apptBg }};color:{{ $apptColor }};border-radius:9999px;padding:0.15rem 0.55rem;font-size:0.75rem;font-weight:600;">
+                        <span style="background-color:{{ $apptBg }};color:{{ $apptColor }};border-radius:9999px;padding:0.15rem 0.55rem;font-size:0.75rem;font-weight:600;white-space:nowrap;">
                             {{ $s }}
                         </span>
                     </div>

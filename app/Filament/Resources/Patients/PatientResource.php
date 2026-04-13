@@ -43,12 +43,7 @@ class PatientResource extends Resource
 
     public static function getRelations(): array
     {
-        return [
-            RelationManagers\AppointmentsRelationManager::class,
-            RelationManagers\EncountersRelationManager::class,
-            RelationManagers\CheckoutSessionsRelationManager::class,
-            RelationManagers\IntakeSubmissionsRelationManager::class,
-        ];
+        return [];
     }
 
     public static function getPages(): array
