@@ -36,7 +36,7 @@ class EditEncounter extends EditRecord
                 ->action('saveDraft'),
 
             Action::make('complete')
-                ->label('Complete Encounter')
+                ->label('Complete Visit')
                 ->color('success')
                 ->action('completeEncounter'),
 

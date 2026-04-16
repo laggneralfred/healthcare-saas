@@ -32,7 +32,7 @@ class ViewPatient extends ViewRecord
                 ->color('gray'),
 
             Action::make('new_encounter')
-                ->label('New Encounter')
+                ->label('New Visit')
                 ->icon('heroicon-o-document')
                 ->url(fn () => \App\Filament\Resources\Encounters\EncounterResource::getUrl('create'))
                 ->color('primary'),

@@ -23,8 +23,8 @@
     $checkoutViewUrl = fn($co) => \App\Filament\Resources\CheckoutSessions\CheckoutSessionResource::getUrl('view', ['record' => $co->id]);
     $encounterCreateUrl = fn($appt, $patient) => \App\Filament\Resources\Encounters\EncounterResource::getUrl('create') . '?appointment_id=' . $appt->id . '&patient_id=' . $patient->id;
     $encounterBtn = fn($appt, $patient) => $appt->encounter
-        ? '<a href="' . $encounterViewUrl($appt->encounter) . '" style="color:#0d9488;text-decoration:none;font-weight:500;font-size:0.85rem;">View Encounter</a>'
-        : '<a href="' . $encounterCreateUrl($appt, $patient) . '" style="color:#1e40af;text-decoration:none;font-weight:500;font-size:0.85rem;">Start Encounter</a>';
+        ? '<a href="' . $encounterViewUrl($appt->encounter) . '" style="color:#0d9488;text-decoration:none;font-weight:500;font-size:0.85rem;">View Visit</a>'
+        : '<a href="' . $encounterCreateUrl($appt, $patient) . '" style="color:#1e40af;text-decoration:none;font-weight:500;font-size:0.85rem;">Start Visit</a>';
 @endphp
 
 {{-- ── HEADER BAR ─────────────────────────────────────────────────────────── --}}
