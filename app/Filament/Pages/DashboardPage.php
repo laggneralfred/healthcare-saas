@@ -28,7 +28,7 @@ class DashboardPage extends Page
     {
         $practice = auth()->user()->practice;
         if (!$practice->setup_completed_at && !$practice->is_demo) {
-            redirect('/onboarding')->send();
+            $this->redirect('/onboarding');
         }
     }
 
