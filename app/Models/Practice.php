@@ -14,7 +14,7 @@ class Practice extends Model
     protected $fillable = [
         'name', 'slug', 'timezone', 'is_active', 'is_demo',
         'stripe_id', 'pm_type', 'pm_last_four', 'trial_ends_at',
-        'discipline', 'referral_source',
+        'discipline', 'referral_source', 'setup_completed_at',
     ];
 
     protected function casts(): array
@@ -23,6 +23,7 @@ class Practice extends Model
             'is_active' => 'boolean',
             'is_demo' => 'boolean',
             'trial_ends_at' => 'datetime',
+            'setup_completed_at' => 'datetime',
         ];
     }
 

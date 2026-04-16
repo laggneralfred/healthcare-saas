@@ -24,6 +24,14 @@ class DashboardPage extends Page
     protected static ?int                       $navigationSort           = -1;
     protected string $view = 'filament.pages.dashboard';
 
+    public function mount(): void
+    {
+        $practice = auth()->user()->practice;
+        if (!$practice->setup_completed_at && !$practice->is_demo) {
+            redirect('/onboarding')->send();
+        }
+    }
+
     public function getViewData(): array
     {
         $practiceId = PracticeContext::currentPracticeId();

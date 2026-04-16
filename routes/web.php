@@ -5,6 +5,7 @@ use App\Http\Controllers\StripeWebhookController;
 use App\Livewire\Public\BookingCalendar;
 use App\Livewire\Public\ConsentForm;
 use App\Livewire\Public\IntakeForm;
+use App\Livewire\OnboardingWizard;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -59,6 +60,9 @@ Route::get('/import/template', function () {
         'Content-Disposition' => 'attachment; filename="patient_import_template.csv"',
     ]);
 })->name('import.template')->middleware(['web', 'auth']);
+
+// Trial user onboarding wizard
+Route::get('/onboarding', OnboardingWizard::class)->middleware(['web', 'auth'])->name('onboarding');
 
 // Demo instant login — public, redirects to admin
 Route::get('/demo-login', function () {
