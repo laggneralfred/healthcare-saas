@@ -63,6 +63,72 @@ class Patient extends Model
         return trim("{$this->first_name} {$this->last_name}");
     }
 
+    public function setPhoneAttribute(?string $value): void
+    {
+        $this->attributes['phone'] = $this->formatPhoneToE164($value);
+    }
+
+    public function getPhoneAttribute(?string $value): ?string
+    {
+        return $value ? $this->formatPhoneDisplay($value) : null;
+    }
+
+    public function setEmergencyContactPhoneAttribute(?string $value): void
+    {
+        $this->attributes['emergency_contact_phone'] = $this->formatPhoneToE164($value);
+    }
+
+    public function getEmergencyContactPhoneAttribute(?string $value): ?string
+    {
+        return $value ? $this->formatPhoneDisplay($value) : null;
+    }
+
+    private function formatPhoneToE164(?string $phone): ?string
+    {
+        if (!$phone) {
+            return null;
+        }
+
+        $digits = preg_replace('/\D/', '', $phone);
+        if (empty($digits)) {
+            return $phone;
+        }
+
+        if (strlen($digits) === 10) {
+            return '+1' . $digits;
+        }
+        if (strlen($digits) === 11 && $digits[0] === '1') {
+            return '+' . $digits;
+        }
+        if (strlen($digits) === 11) {
+            return '+1' . substr($digits, 1);
+        }
+
+        return '+' . $digits;
+    }
+
+    private function formatPhoneDisplay(?string $phone): ?string
+    {
+        if (!$phone) {
+            return null;
+        }
+
+        $digits = preg_replace('/\D/', '', $phone);
+        if (empty($digits)) {
+            return $phone;
+        }
+
+        if (strlen($digits) === 10) {
+            return '(' . substr($digits, 0, 3) . ') ' . substr($digits, 3, 3) . '-' . substr($digits, 6);
+        }
+        if (strlen($digits) === 11 && $digits[0] === '1') {
+            $digits = substr($digits, 1);
+            return '+1 (' . substr($digits, 0, 3) . ') ' . substr($digits, 3, 3) . '-' . substr($digits, 6);
+        }
+
+        return $phone;
+    }
+
     public function practice(): BelongsTo
     {
         return $this->belongsTo(Practice::class);

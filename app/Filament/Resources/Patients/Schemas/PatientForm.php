@@ -55,11 +55,14 @@ class PatientForm
                     ->schema([
                         TextInput::make('email')
                             ->label('Email address')
-                            ->email()
+                            ->email('rfc,dns')
+                            ->required()
                             ->maxLength(255),
                         TextInput::make('phone')
                             ->tel()
-                            ->maxLength(50),
+                            ->maxLength(50)
+                            ->rule('regex:/^\+?1?[-.\s]?\(?[0-9]{3}\)?[-.\s]?[0-9]{3}[-.\s]?[0-9]{4}$/')
+                            ->helperText('Format: (555) 123-4567 or +1-555-123-4567'),
                         TextInput::make('address_line_1')
                             ->label('Address Line 1')
                             ->maxLength(255)
