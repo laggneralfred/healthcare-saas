@@ -9,6 +9,7 @@ use App\Models\CheckoutLine;
 use App\Models\CheckoutSession;
 use App\Models\ConsentRecord;
 use App\Models\Encounter;
+use App\Models\LegalForm;
 use App\Models\MedicalHistory;
 use App\Models\InventoryMovement;
 use App\Models\InventoryProduct;
@@ -1264,6 +1265,41 @@ class DemoSeeder extends Seeder
             $this->call(InventoryProductSeeder::class);
         }
 
+        // ── Legal Forms ───────────────────────────────────────────────────────
+        $legalForms = [
+            [
+                'discipline' => 'acupuncture',
+                'title' => 'Acupuncture Informed Consent & Treatment Agreement',
+                'body' => '<h2>Informed Consent for Acupuncture Treatment</h2><p>By signing below, I acknowledge that I have been informed of the risks and benefits of acupuncture treatment.</p><h3>Risks:</h3><ul><li>Bruising or soreness at needle insertion sites</li><li>Possible infection if not sterile</li><li>Possible fainting</li></ul><h3>Benefits:</h3><ul><li>Pain relief</li><li>Improved circulation</li><li>Enhanced overall wellness</li></ul><p>I understand that acupuncture does not provide a cure for any condition, and that results vary by individual.</p>',
+            ],
+            [
+                'discipline' => 'massage',
+                'title' => 'Massage Therapy Consent Form',
+                'body' => '<h2>Massage Therapy Informed Consent</h2><p>I consent to receive massage therapy services as described by my therapist.</p><h3>Benefits:</h3><ul><li>Stress relief and relaxation</li><li>Improved circulation</li><li>Reduced muscle tension</li></ul><h3>Acknowledgments:</h3><p>I understand that massage therapy is not a substitute for medical care and does not claim to cure disease or illness.</p>',
+            ],
+            [
+                'discipline' => 'chiropractic',
+                'title' => 'Chiropractic Care Agreement',
+                'body' => '<h2>Chiropractic Care Informed Consent</h2><p>I have been informed of the nature of chiropractic care and agree to treatment.</p><h3>Risks:</h3><ul><li>Temporary soreness or stiffness</li><li>Rare nerve or blood vessel injury</li></ul><h3>Benefits:</h3><ul><li>Improved alignment and mobility</li><li>Pain reduction</li><li>Improved overall health</li></ul><p>I understand that chiropractic care is not emergency care.</p>',
+            ],
+            [
+                'discipline' => 'physiotherapy',
+                'title' => 'Physical Therapy Consent Form',
+                'body' => '<h2>Physical Therapy Informed Consent</h2><p>I consent to participate in physical therapy as recommended by my healthcare provider.</p><h3>Benefits:</h3><ul><li>Improved strength and flexibility</li><li>Pain relief</li><li>Improved mobility and function</li></ul><h3>Acknowledgments:</h3><p>I understand that results depend on my commitment to home exercises and compliance with the treatment plan.</p>',
+            ],
+        ];
+
+        foreach ($legalForms as $formData) {
+            LegalForm::firstOrCreate(
+                [
+                    'practice_id' => $practice->id,
+                    'discipline' => $formData['discipline'],
+                    'is_active' => true,
+                ],
+                array_merge($formData, ['practice_id' => $practice->id])
+            );
+        }
+
         // ── Communications ────────────────────────────────────────────────────
         (new DefaultMessageTemplatesSeeder())->seedForPractice($practice);
 
@@ -1276,6 +1312,7 @@ class DemoSeeder extends Seeder
         $this->command->info('✔ 3 upcoming this-week appointments (scheduled)');
         $this->command->info('✔ 2 cancelled appointments');
         $this->command->info('✔ Inventory products seeded');
+        $this->command->info('✔ Legal forms (4 disciplines)');
         $this->command->info('✔ Default communication templates seeded');
     }
 }
