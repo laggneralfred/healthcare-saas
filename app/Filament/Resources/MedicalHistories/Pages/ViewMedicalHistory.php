@@ -52,15 +52,18 @@ class ViewMedicalHistory extends ViewRecord
                 ->schema([
                     Placeholder::make('patient_name')
                         ->label('Patient')
-                        ->content(fn ($record) => $record->patient?->name ?? '—'),
+                        ->content(fn ($record) => $record->patient?->name ?? '—')
+                        ->extraAttributes(['style' => 'background-color: #fef3c7; padding: 0.75rem; border-radius: 0.375rem;']),
 
                     Placeholder::make('discipline_label')
                         ->label('Discipline')
-                        ->content(fn ($record) => $record->discipline_label ?? '—'),
+                        ->content(fn ($record) => $record->discipline_label ?? '—')
+                        ->extraAttributes(['style' => 'background-color: #fef3c7; padding: 0.75rem; border-radius: 0.375rem;']),
 
                     Placeholder::make('status')
                         ->label('Status')
-                        ->content(fn ($record) => ucfirst($record->status)),
+                        ->content(fn ($record) => ucfirst($record->status))
+                        ->extraAttributes(['style' => 'background-color: #fef3c7; padding: 0.75rem; border-radius: 0.375rem;']),
 
                     Placeholder::make('pain_scale')
                         ->label('Pain Scale')
@@ -72,7 +75,8 @@ class ViewMedicalHistory extends ViewRecord
                         ->label('Consent')
                         ->content(fn ($record) => $record->consent_given
                             ? "Signed by {$record->consent_signed_by}" . ($record->consent_signed_at ? ' on ' . $record->consent_signed_at->format('M j, Y g:ia') : '')
-                            : 'Pending'),
+                            : 'Pending')
+                        ->extraAttributes(['style' => 'background-color: #fef3c7; padding: 0.75rem; border-radius: 0.375rem;']),
 
                     Placeholder::make('submitted_on')
                         ->label('Submitted On')

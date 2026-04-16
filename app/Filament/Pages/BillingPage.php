@@ -212,7 +212,7 @@ class BillingPage extends Page
         if ($subscription && in_array($subscription->stripe_status, ['active', 'trialing'])) {
             // Existing subscriber — send to Stripe Customer Portal to change plan
             // without re-entering payment details
-            return redirect($practice->billingPortalUrl(route('filament.admin.pages.billing')));
+            return $this->redirect($practice->billingPortalUrl(route('filament.admin.pages.billing')));
         }
 
         $checkout = $practice->newSubscription('default', $plan->stripe_price_id)
@@ -221,7 +221,7 @@ class BillingPage extends Page
                 'cancel_url'  => route('filament.admin.pages.billing'),
             ]);
 
-        return redirect($checkout->url);
+        return $this->redirect($checkout->url);
     }
 
     // ── Header actions ─────────────────────────────────────────────────────────

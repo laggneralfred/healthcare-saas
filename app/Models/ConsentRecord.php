@@ -17,6 +17,7 @@ class ConsentRecord extends Model
         'practice_id', 'patient_id', 'appointment_id',
         'status', 'signed_on', 'access_token',
         'consent_given_by', 'consent_summary', 'notes',
+        'signed_at_ip', 'signed_at_user_agent',
     ];
 
     protected function casts(): array
