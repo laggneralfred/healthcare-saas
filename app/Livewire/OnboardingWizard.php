@@ -4,8 +4,10 @@ namespace App\Livewire;
 
 use App\Models\Practice;
 use App\Models\Practitioner;
+use Livewire\Attributes\Layout;
 use Livewire\Component;
 
+#[Layout('layouts.public', ['title' => 'Practice Setup'])]
 class OnboardingWizard extends Component
 {
     public int $currentStep = 1;
