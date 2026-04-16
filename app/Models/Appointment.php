@@ -62,9 +62,9 @@ class Appointment extends Model
         return $this->hasOne(CheckoutSession::class);
     }
 
-    public function intakeSubmission(): HasOne
+    public function medicalHistory(): HasOne
     {
-        return $this->hasOne(IntakeSubmission::class);
+        return $this->hasOne(MedicalHistory::class);
     }
 
     public function consentRecord(): HasOne

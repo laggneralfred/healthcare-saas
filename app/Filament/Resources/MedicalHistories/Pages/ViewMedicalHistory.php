@@ -1,16 +1,16 @@
 <?php
 
-namespace App\Filament\Resources\IntakeSubmissions\Pages;
+namespace App\Filament\Resources\MedicalHistories\Pages;
 
-use App\Filament\Resources\IntakeSubmissions\IntakeSubmissionResource;
+use App\Filament\Resources\MedicalHistories\MedicalHistoryResource;
 use Filament\Forms\Components\Placeholder;
 use Filament\Resources\Pages\ViewRecord;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 
-class ViewIntakeSubmission extends ViewRecord
+class ViewMedicalHistory extends ViewRecord
 {
-    protected static string $resource = IntakeSubmissionResource::class;
+    protected static string $resource = MedicalHistoryResource::class;
 
     protected function getHeaderActions(): array
     {

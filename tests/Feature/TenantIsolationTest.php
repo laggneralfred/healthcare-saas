@@ -8,7 +8,7 @@ use App\Models\AppointmentType;
 use App\Models\CheckoutSession;
 use App\Models\ConsentRecord;
 use App\Models\Encounter;
-use App\Models\IntakeSubmission;
+use App\Models\MedicalHistory;
 use App\Models\Patient;
 use App\Models\Practice;
 use App\Models\Practitioner;
@@ -54,7 +54,7 @@ class TenantIsolationTest extends TestCase
     private ServiceFee          $feeA;
     private AppointmentType     $typeA;
     private Appointment         $appointmentA;
-    private IntakeSubmission    $intakeA;
+    private MedicalHistory    $intakeA;
     private ConsentRecord       $consentA;
     private Encounter           $encounterA;
     private AcupunctureEncounter $acuA;
@@ -99,7 +99,7 @@ class TenantIsolationTest extends TestCase
             'appointment_type_id' => $this->typeA->id,
         ]);
 
-        $this->intakeA = IntakeSubmission::factory()->create([
+        $this->intakeA = MedicalHistory::factory()->create([
             'practice_id'    => $this->practiceA->id,
             'patient_id'     => $this->patientA->id,
             'appointment_id' => $this->appointmentA->id,
@@ -187,14 +187,14 @@ class TenantIsolationTest extends TestCase
         $this->assertNull(Appointment::find($this->appointmentA->id));
     }
 
-    // ── Isolation: IntakeSubmission ────────────────────────────────────────────
+    // ── Isolation: MedicalHistory ────────────────────────────────────────────
 
-    public function test_practice_b_user_cannot_see_practice_a_intake_submissions(): void
+    public function test_practice_b_user_cannot_see_practice_a_medical_historys(): void
     {
         $this->actingAs($this->userB);
 
-        $this->assertCount(0, IntakeSubmission::all());
-        $this->assertNull(IntakeSubmission::find($this->intakeA->id));
+        $this->assertCount(0, MedicalHistory::all());
+        $this->assertNull(MedicalHistory::find($this->intakeA->id));
     }
 
     // ── Isolation: ConsentRecord ───────────────────────────────────────────────
@@ -361,8 +361,8 @@ class TenantIsolationTest extends TestCase
         $this->assertCount(0, Appointment::all());
         $this->assertNull(Appointment::find($this->appointmentA->id));
 
-        $this->assertCount(0, IntakeSubmission::all());
-        $this->assertNull(IntakeSubmission::find($this->intakeA->id));
+        $this->assertCount(0, MedicalHistory::all());
+        $this->assertNull(MedicalHistory::find($this->intakeA->id));
 
         $this->assertCount(0, ConsentRecord::all());
         $this->assertNull(ConsentRecord::find($this->consentA->id));

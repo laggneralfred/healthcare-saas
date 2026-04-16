@@ -6,7 +6,7 @@ use App\Jobs\SendBookingEmails;
 use App\Models\Appointment;
 use App\Models\AppointmentType;
 use App\Models\ConsentRecord;
-use App\Models\IntakeSubmission;
+use App\Models\MedicalHistory;
 use App\Models\Patient;
 use App\Models\Practice;
 use App\Models\Practitioner;
@@ -278,7 +278,7 @@ class BookingCalendar extends Component
         ]);
 
         // Auto-create intake + consent tokens
-        $intake = IntakeSubmission::withoutPracticeScope()->create([
+        $intake = MedicalHistory::withoutPracticeScope()->create([
             'practice_id'    => $this->practice->id,
             'patient_id'     => $patient->id,
             'appointment_id' => $appointment->id,

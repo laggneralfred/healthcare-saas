@@ -108,7 +108,7 @@ class ExportDataTest extends TestCase
             'practice.csv',
             'practitioners.csv',
             'patients.csv',
-            'intake_submissions.csv',
+            'medical_historys.csv',
             'consent_records.csv',
             'appointments.csv',
             'encounters.csv',

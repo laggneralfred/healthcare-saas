@@ -142,7 +142,7 @@ class ActivityLogResource extends Resource
                         'App\Models\Appointment'           => 'Appointment',
                         'App\Models\Encounter'             => 'Encounter',
                         'App\Models\AcupunctureEncounter'  => 'Acupuncture Encounter',
-                        'App\Models\IntakeSubmission'      => 'Intake Submission',
+                        'App\Models\MedicalHistory'      => 'Intake Submission',
                         'App\Models\ConsentRecord'         => 'Consent Record',
                         'App\Models\CheckoutSession'       => 'Checkout Session',
                         'App\Models\Practitioner'          => 'Practitioner',

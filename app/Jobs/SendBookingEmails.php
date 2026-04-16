@@ -6,7 +6,7 @@ use App\Mail\BookingConfirmationMail;
 use App\Mail\PractitionerNotificationMail;
 use App\Models\Appointment;
 use App\Models\ConsentRecord;
-use App\Models\IntakeSubmission;
+use App\Models\MedicalHistory;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -20,7 +20,7 @@ class SendBookingEmails implements ShouldQueue
 
     public function __construct(
         public readonly Appointment $appointment,
-        public readonly IntakeSubmission $intake,
+        public readonly MedicalHistory $intake,
         public readonly ConsentRecord $consent,
     ) {}
 

@@ -4,7 +4,7 @@ namespace App\Mail;
 
 use App\Models\Appointment;
 use App\Models\ConsentRecord;
-use App\Models\IntakeSubmission;
+use App\Models\MedicalHistory;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
@@ -17,7 +17,7 @@ class BookingConfirmationMail extends Mailable
 
     public function __construct(
         public readonly Appointment $appointment,
-        public readonly IntakeSubmission $intake,
+        public readonly MedicalHistory $intake,
         public readonly ConsentRecord $consent,
     ) {}
 

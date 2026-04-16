@@ -48,7 +48,7 @@ class EncounterForm
             return '—';
         }
 
-        $intake = $record->patient->intakeSubmissions()
+        $intake = $record->patient->medicalHistories()
             ->where('status', 'complete')
             ->latest()
             ->first();

@@ -9,7 +9,7 @@ use App\Models\CheckoutSession;
 use App\Models\CommunicationRule;
 use App\Models\ConsentRecord;
 use App\Models\Encounter;
-use App\Models\IntakeSubmission;
+use App\Models\MedicalHistory;
 use App\Models\InventoryMovement;
 use App\Models\InventoryProduct;
 use App\Models\MessageLog;
@@ -58,7 +58,7 @@ class FilamentSmokeTest extends TestCase
             'CheckoutSessions',
             'ConsentRecords',
             'Encounters',
-            'IntakeSubmissions',
+            'MedicalHistories',
             'InventoryProducts',
             'Patients',
             'Practices',
@@ -178,7 +178,7 @@ class FilamentSmokeTest extends TestCase
                 'practitioner_id' => Practitioner::factory()->create(['practice_id' => $this->practice->id])->id,
                 'appointment_id' => Appointment::factory()->create(['practice_id' => $this->practice->id])->id,
             ]),
-            'IntakeSubmissions' => IntakeSubmission::factory()->create(['practice_id' => $this->practice->id]),
+            'MedicalHistories' => MedicalHistory::factory()->create(['practice_id' => $this->practice->id]),
             'InventoryProducts' => InventoryProduct::factory()->create(['practice_id' => $this->practice->id]),
             'Patients' => Patient::factory()->create(['practice_id' => $this->practice->id]),
             'Practices' => $this->practice,

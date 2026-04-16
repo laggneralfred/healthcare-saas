@@ -9,7 +9,7 @@ use App\Models\CheckoutSession;
 use App\Models\ConsentRecord;
 use App\Models\Encounter;
 use App\Models\ExportToken;
-use App\Models\IntakeSubmission;
+use App\Models\MedicalHistory;
 use App\Models\InventoryMovement;
 use App\Models\InventoryProduct;
 use App\Models\Appointment;
@@ -110,10 +110,10 @@ class ExportPracticeDataJob implements ShouldQueue
             $this->addCsvToZip($zip, 'patients.csv', $patients);
 
             // Intake submissions
-            $intakeSubmissions = IntakeSubmission::withoutPracticeScope()
+            $medicalHistories = MedicalHistory::withoutPracticeScope()
                 ->where('practice_id', $this->practiceId)
                 ->get();
-            $this->addCsvToZip($zip, 'intake_submissions.csv', $intakeSubmissions);
+            $this->addCsvToZip($zip, 'medical_historys.csv', $medicalHistories);
 
             // Consent records
             $consentRecords = ConsentRecord::withoutPracticeScope()
@@ -257,11 +257,11 @@ class ExportPracticeDataJob implements ShouldQueue
 
         $patients = Patient::withoutPracticeScope()
             ->where('practice_id', $this->practiceId)
-            ->with(['intakeSubmissions', 'consentRecords', 'appointments.encounter.acupunctureEncounter'])
+            ->with(['medicalHistories', 'consentRecords', 'appointments.encounter.acupunctureEncounter'])
             ->get()
             ->map(fn ($patient) => [
                 ...$patient->toArray(),
-                'intake_submissions' => $patient->intakeSubmissions->toArray(),
+                'medical_historys' => $patient->medicalHistories->toArray(),
                 'consent_records' => $patient->consentRecords->toArray(),
                 'appointments' => $patient->appointments->map(fn ($apt) => [
                     ...$apt->toArray(),

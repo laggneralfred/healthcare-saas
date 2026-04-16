@@ -32,7 +32,7 @@ trait HasAccessToken
     public function getPublicUrl(): string
     {
         $routeName = match (static::class) {
-            \App\Models\IntakeSubmission::class => 'intake.show',
+            \App\Models\MedicalHistory::class => 'intake.show',
             \App\Models\ConsentRecord::class    => 'consent.show',
             default                             => throw new \LogicException('No public route for ' . static::class),
         };

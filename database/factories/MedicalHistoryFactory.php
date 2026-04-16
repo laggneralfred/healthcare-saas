@@ -2,18 +2,18 @@
 
 namespace Database\Factories;
 
-use App\Models\IntakeSubmission;
+use App\Models\MedicalHistory;
 use Faker\Factory as FakerFactory;
 use App\Models\Patient;
 use App\Models\Practice;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends Factory<IntakeSubmission>
+ * @extends Factory<MedicalHistory>
  */
-class IntakeSubmissionFactory extends Factory
+class MedicalHistoryFactory extends Factory
 {
-    protected $model = IntakeSubmission::class;
+    protected $model = MedicalHistory::class;
 
     public function definition(): array
     {

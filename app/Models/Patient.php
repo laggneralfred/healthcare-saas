@@ -139,9 +139,9 @@ class Patient extends Model
         return $this->hasMany(Appointment::class);
     }
 
-    public function intakeSubmissions(): HasMany
+    public function medicalHistories(): HasMany
     {
-        return $this->hasMany(IntakeSubmission::class);
+        return $this->hasMany(MedicalHistory::class);
     }
 
     public function encounters(): HasMany

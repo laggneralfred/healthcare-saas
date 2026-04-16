@@ -2,7 +2,7 @@
 
 namespace App\Livewire\Public;
 
-use App\Models\IntakeSubmission;
+use App\Models\MedicalHistory;
 use App\Services\AuditLogger;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Validate;
@@ -11,7 +11,7 @@ use Livewire\Component;
 #[Layout('layouts.public', ['title' => 'Patient Intake Form'])]
 class IntakeForm extends Component
 {
-    public IntakeSubmission $submission;
+    public MedicalHistory $submission;
 
     #[Validate('nullable|string|max:5000')]
     public string $reason_for_visit = '';
@@ -33,7 +33,7 @@ class IntakeForm extends Component
 
     public function mount(string $token): void
     {
-        $this->submission = IntakeSubmission::findByToken($token)
+        $this->submission = MedicalHistory::findByToken($token)
             ?? abort(404, 'This intake link is not valid.');
 
         $this->consentUrl = $this->submission->appointment?->consentRecord?->getPublicUrl();

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Filament\Resources\IntakeSubmissions\Schemas;
+namespace App\Filament\Resources\MedicalHistories\Schemas;
 
 use Filament\Forms\Components\CheckboxList;
 use Filament\Forms\Components\DatePicker;
@@ -16,7 +16,7 @@ use Filament\Schemas\Components\Wizard;
 use Filament\Schemas\Components\Wizard\Step;
 use Filament\Schemas\Schema;
 
-class IntakeSubmissionForm
+class MedicalHistoryForm
 {
     public static function configure(Schema $schema): Schema
     {

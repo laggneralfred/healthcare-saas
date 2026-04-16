@@ -9,7 +9,7 @@ use App\Models\CheckoutLine;
 use App\Models\CheckoutSession;
 use App\Models\ConsentRecord;
 use App\Models\Encounter;
-use App\Models\IntakeSubmission;
+use App\Models\MedicalHistory;
 use App\Models\InventoryMovement;
 use App\Models\InventoryProduct;
 use App\Models\Patient;
@@ -63,15 +63,15 @@ class DemoSeeder extends Seeder
                 CheckoutLine::whereIn('checkout_session_id', $checkoutIds)->delete();
             }
             ConsentRecord::where('practice_id', $practice->id)->whereNotNull('appointment_id')->delete();
-            IntakeSubmission::where('practice_id', $practice->id)->whereNotNull('appointment_id')->delete();
+            MedicalHistory::where('practice_id', $practice->id)->whereNotNull('appointment_id')->delete();
             Encounter::where('practice_id', $practice->id)->delete();
             CheckoutSession::where('practice_id', $practice->id)->delete();
             Appointment::where('practice_id', $practice->id)->delete();
         }
 
-        // Also clean up any standalone orphaned consent records / intake submissions
+        // Also clean up any standalone orphaned consent records / medical histories
         ConsentRecord::where('practice_id', $practice->id)->whereDoesntHave('appointment')->delete();
-        IntakeSubmission::where('practice_id', $practice->id)->whereDoesntHave('appointment')->delete();
+        MedicalHistory::where('practice_id', $practice->id)->whereDoesntHave('appointment')->delete();
 
         // ── Service fees ──────────────────────────────────────────────────────
         $feeData = [
@@ -870,7 +870,7 @@ class DemoSeeder extends Seeder
             );
         }
 
-        // ── Standalone IntakeSubmission + ConsentRecord per patient ───────────
+        // ── Standalone MedicalHistory + ConsentRecord per patient ───────────
         // One per patient — complete status, not tied to a specific appointment
         foreach ($patientData as $idx => $data) {
             $patient = $patients[$idx];
@@ -891,7 +891,7 @@ class DemoSeeder extends Seeder
                 $disciplineResponses = $data['physio_responses'] ?? ['physiotherapy' => []];
             }
 
-            IntakeSubmission::create([
+            MedicalHistory::create([
                 'practice_id'          => $practice->id,
                 'patient_id'           => $patient->id,
                 'status'               => 'complete',
@@ -1025,7 +1025,7 @@ class DemoSeeder extends Seeder
                     ]);
                 }
 
-                // IntakeSubmission for this appointment visit (with status complete)
+                // MedicalHistory for this appointment visit (with status complete)
                 $disciplineResponses = [];
                 if ($discipline === 'acupuncture') {
                     $disciplineResponses = ['tcm' => $data['tcm_responses'] ?? []];
@@ -1037,7 +1037,7 @@ class DemoSeeder extends Seeder
                     $disciplineResponses = $data['physio_responses'] ?? ['physiotherapy' => []];
                 }
 
-                IntakeSubmission::create([
+                MedicalHistory::create([
                     'practice_id'          => $practice->id,
                     'patient_id'           => $patient->id,
                     'appointment_id'       => $appointment->id,
@@ -1119,7 +1119,7 @@ class DemoSeeder extends Seeder
             ]);
 
             // Pending intake and consent for today's scheduled visits
-            IntakeSubmission::create([
+            MedicalHistory::create([
                 'practice_id' => $practice->id,
                 'patient_id'  => $patient->id,
                 'appointment_id' => $appointment->id,
@@ -1163,7 +1163,7 @@ class DemoSeeder extends Seeder
                 'notes'               => 'Upcoming appointment — ' . $data['chief_complaint'],
             ]);
 
-            IntakeSubmission::create([
+            MedicalHistory::create([
                 'practice_id' => $practice->id,
                 'patient_id'  => $patient->id,
                 'appointment_id' => $appointment->id,

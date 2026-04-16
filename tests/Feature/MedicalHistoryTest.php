@@ -2,7 +2,7 @@
 
 namespace Tests\Feature;
 
-use App\Models\IntakeSubmission;
+use App\Models\MedicalHistory;
 use App\Models\Patient;
 use App\Models\Practice;
 use App\Models\User;
@@ -10,7 +10,7 @@ use Database\Seeders\DemoSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
-class IntakeSubmissionTest extends TestCase
+class MedicalHistoryTest extends TestCase
 {
     use RefreshDatabase;
 
@@ -18,7 +18,7 @@ class IntakeSubmissionTest extends TestCase
 
     public function test_pain_scale_label_mild(): void
     {
-        $submission = new IntakeSubmission();
+        $submission = new MedicalHistory();
         $submission->pain_scale = 2;
         $this->assertEquals('Mild', $submission->pain_scale_label);
 
@@ -31,7 +31,7 @@ class IntakeSubmissionTest extends TestCase
 
     public function test_pain_scale_label_severe(): void
     {
-        $submission = new IntakeSubmission();
+        $submission = new MedicalHistory();
         $submission->pain_scale = 8;
         $this->assertEquals('Severe', $submission->pain_scale_label);
 
@@ -47,7 +47,7 @@ class IntakeSubmissionTest extends TestCase
 
     public function test_onset_type_label(): void
     {
-        $submission = new IntakeSubmission();
+        $submission = new MedicalHistory();
 
         $submission->onset_type = 'sudden';
         $this->assertEquals('Sudden / Acute', $submission->onset_type_label);
@@ -64,7 +64,7 @@ class IntakeSubmissionTest extends TestCase
 
     public function test_discipline_label(): void
     {
-        $submission = new IntakeSubmission();
+        $submission = new MedicalHistory();
 
         $submission->discipline = 'acupuncture';
         $this->assertEquals('Acupuncture', $submission->discipline_label);
@@ -81,7 +81,7 @@ class IntakeSubmissionTest extends TestCase
 
     public function test_has_red_flags_true(): void
     {
-        $submission = new IntakeSubmission();
+        $submission = new MedicalHistory();
         $submission->is_pregnant          = false;
         $submission->has_pacemaker        = true;
         $submission->takes_blood_thinners = false;
@@ -102,7 +102,7 @@ class IntakeSubmissionTest extends TestCase
 
     public function test_has_red_flags_false(): void
     {
-        $submission = new IntakeSubmission();
+        $submission = new MedicalHistory();
         $submission->is_pregnant            = false;
         $submission->has_pacemaker          = false;
         $submission->takes_blood_thinners   = false;
@@ -122,20 +122,20 @@ class IntakeSubmissionTest extends TestCase
 
         $this->actingAs($user);
 
-        IntakeSubmission::factory()->count(2)->create([
+        MedicalHistory::factory()->count(2)->create([
             'practice_id' => $practice->id,
             'patient_id'  => $patient->id,
             'discipline'  => 'acupuncture',
         ]);
-        IntakeSubmission::factory()->create([
+        MedicalHistory::factory()->create([
             'practice_id' => $practice->id,
             'patient_id'  => $patient->id,
             'discipline'  => 'massage',
         ]);
 
-        $this->assertEquals(2, IntakeSubmission::forDiscipline('acupuncture')->count());
-        $this->assertEquals(1, IntakeSubmission::forDiscipline('massage')->count());
-        $this->assertEquals(0, IntakeSubmission::forDiscipline('chiropractic')->count());
+        $this->assertEquals(2, MedicalHistory::forDiscipline('acupuncture')->count());
+        $this->assertEquals(1, MedicalHistory::forDiscipline('massage')->count());
+        $this->assertEquals(0, MedicalHistory::forDiscipline('chiropractic')->count());
     }
 
     public function test_scope_with_red_flags(): void
@@ -146,24 +146,24 @@ class IntakeSubmissionTest extends TestCase
 
         $this->actingAs($user);
 
-        IntakeSubmission::factory()->create([
+        MedicalHistory::factory()->create([
             'practice_id'   => $practice->id,
             'patient_id'    => $patient->id,
             'has_pacemaker' => true,
         ]);
-        IntakeSubmission::factory()->create([
+        MedicalHistory::factory()->create([
             'practice_id'   => $practice->id,
             'patient_id'    => $patient->id,
             'is_pregnant'   => true,
         ]);
-        IntakeSubmission::factory()->create([
+        MedicalHistory::factory()->create([
             'practice_id'   => $practice->id,
             'patient_id'    => $patient->id,
             'has_pacemaker' => false,
             'is_pregnant'   => false,
         ]);
 
-        $this->assertEquals(2, IntakeSubmission::withRedFlags()->count());
+        $this->assertEquals(2, MedicalHistory::withRedFlags()->count());
     }
 
     public function test_scope_with_consent(): void
@@ -174,18 +174,18 @@ class IntakeSubmissionTest extends TestCase
 
         $this->actingAs($user);
 
-        IntakeSubmission::factory()->count(2)->create([
+        MedicalHistory::factory()->count(2)->create([
             'practice_id'   => $practice->id,
             'patient_id'    => $patient->id,
             'consent_given' => true,
         ]);
-        IntakeSubmission::factory()->create([
+        MedicalHistory::factory()->create([
             'practice_id'   => $practice->id,
             'patient_id'    => $patient->id,
             'consent_given' => false,
         ]);
 
-        $this->assertEquals(2, IntakeSubmission::withConsent()->count());
+        $this->assertEquals(2, MedicalHistory::withConsent()->count());
     }
 
     public function test_scope_pending_consent(): void
@@ -196,18 +196,18 @@ class IntakeSubmissionTest extends TestCase
 
         $this->actingAs($user);
 
-        IntakeSubmission::factory()->create([
+        MedicalHistory::factory()->create([
             'practice_id'   => $practice->id,
             'patient_id'    => $patient->id,
             'consent_given' => true,
         ]);
-        IntakeSubmission::factory()->count(3)->create([
+        MedicalHistory::factory()->count(3)->create([
             'practice_id'   => $practice->id,
             'patient_id'    => $patient->id,
             'consent_given' => false,
         ]);
 
-        $this->assertEquals(3, IntakeSubmission::pendingConsent()->count());
+        $this->assertEquals(3, MedicalHistory::pendingConsent()->count());
     }
 
     public function test_consent_auto_fills_signed_at(): void
@@ -218,7 +218,7 @@ class IntakeSubmissionTest extends TestCase
 
         $this->actingAs($user);
 
-        $submission = IntakeSubmission::factory()->create([
+        $submission = MedicalHistory::factory()->create([
             'practice_id'   => $practice->id,
             'patient_id'    => $patient->id,
             'consent_given' => false,
@@ -243,15 +243,15 @@ class IntakeSubmissionTest extends TestCase
 
         // Create an intake submission for practice A
         $this->actingAs($userA);
-        IntakeSubmission::factory()->create([
+        MedicalHistory::factory()->create([
             'practice_id' => $practiceA->id,
             'patient_id'  => $patientA->id,
         ]);
-        $this->assertEquals(1, IntakeSubmission::count());
+        $this->assertEquals(1, MedicalHistory::count());
 
         // Switch to practice B — practice A's submission must be invisible
         $this->actingAs($userB);
-        $this->assertEquals(0, IntakeSubmission::count());
+        $this->assertEquals(0, MedicalHistory::count());
     }
 
     // ── Part B: Discipline-specific data tests ────────────────────────────────
@@ -271,7 +271,7 @@ class IntakeSubmissionTest extends TestCase
             'emotional_tendencies' => ['stress', 'anxiety'],
         ];
 
-        $submission = IntakeSubmission::factory()->create([
+        $submission = MedicalHistory::factory()->create([
             'practice_id'          => $practice->id,
             'patient_id'           => $patient->id,
             'discipline'           => 'acupuncture',
@@ -298,7 +298,7 @@ class IntakeSubmissionTest extends TestCase
             'session_goals'       => ['pain_relief', 'relaxation'],
         ];
 
-        $submission = IntakeSubmission::factory()->create([
+        $submission = MedicalHistory::factory()->create([
             'practice_id'          => $practice->id,
             'patient_id'           => $patient->id,
             'discipline'           => 'massage',
@@ -325,7 +325,7 @@ class IntakeSubmissionTest extends TestCase
             'adjustment_consent'    => 'comfortable',
         ];
 
-        $submission = IntakeSubmission::factory()->create([
+        $submission = MedicalHistory::factory()->create([
             'practice_id'          => $practice->id,
             'patient_id'           => $patient->id,
             'discipline'           => 'chiropractic',
@@ -352,7 +352,7 @@ class IntakeSubmissionTest extends TestCase
             'timeline_expectation'   => 'months',
         ];
 
-        $submission = IntakeSubmission::factory()->create([
+        $submission = MedicalHistory::factory()->create([
             'practice_id'          => $practice->id,
             'patient_id'           => $patient->id,
             'discipline'           => 'physiotherapy',
@@ -366,7 +366,7 @@ class IntakeSubmissionTest extends TestCase
 
     public function test_get_discipline_responses_for_nested_value(): void
     {
-        $submission = new IntakeSubmission();
+        $submission = new MedicalHistory();
         $submission->discipline_responses = [
             'tcm' => ['energy_level' => 'low', 'thirst' => 'high'],
         ];
@@ -397,7 +397,7 @@ class IntakeSubmissionTest extends TestCase
 
     public function test_get_discipline_section_returns_formatted_data(): void
     {
-        $submission = new IntakeSubmission();
+        $submission = new MedicalHistory();
         $submission->discipline = 'acupuncture';
         $submission->discipline_responses = ['tcm' => ['energy_level' => 'low']];
 
@@ -416,11 +416,11 @@ class IntakeSubmissionTest extends TestCase
         $this->assertEquals('Additional Information', $section['label']);
     }
 
-    public function test_demo_seeder_creates_intake_submissions_with_tcm_data(): void
+    public function test_demo_seeder_creates_medical_historys_with_tcm_data(): void
     {
         $this->seed(DemoSeeder::class);
 
-        $tcmSubmissions = IntakeSubmission::withoutPracticeScope()
+        $tcmSubmissions = MedicalHistory::withoutPracticeScope()
             ->where('discipline', 'acupuncture')
             ->whereNotNull('discipline_responses')
             ->get()
@@ -434,19 +434,19 @@ class IntakeSubmissionTest extends TestCase
         $this->assertNotNull($first->discipline_responses['tcm']['emotional_tendencies']);
     }
 
-    public function test_view_intake_submission_page_loads(): void
+    public function test_view_medical_history_page_loads(): void
     {
         $practice = Practice::factory()->create();
         $user     = User::factory()->create(['practice_id' => $practice->id]);
         $patient  = Patient::factory()->create(['practice_id' => $practice->id]);
 
         $this->actingAs($user);
-        $submission = IntakeSubmission::factory()->create([
+        $submission = MedicalHistory::factory()->create([
             'practice_id' => $practice->id,
             'patient_id'  => $patient->id,
         ]);
 
-        $response = $this->get("/admin/intake-submissions/{$submission->id}");
+        $response = $this->get("/admin/medical-histories/{$submission->id}");
         $response->assertSuccessful();
     }
 
@@ -455,7 +455,7 @@ class IntakeSubmissionTest extends TestCase
         $practice = Practice::factory()->create(['discipline' => 'acupuncture']);
         $user     = User::factory()->create(['practice_id' => $practice->id]);
 
-        $response = $this->actingAs($user)->get('/admin/intake-submissions/create');
+        $response = $this->actingAs($user)->get('/admin/medical-histories/create');
         $response->assertSuccessful();
     }
 }

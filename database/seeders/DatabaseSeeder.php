@@ -9,7 +9,7 @@ use App\Models\CheckoutLine;
 use App\Models\CheckoutSession;
 use App\Models\ConsentRecord;
 use App\Models\Encounter;
-use App\Models\IntakeSubmission;
+use App\Models\MedicalHistory;
 use App\Models\InventoryMovement;
 use App\Models\InventoryProduct;
 use App\Models\Patient;
@@ -353,7 +353,7 @@ class DatabaseSeeder extends Seeder
 
             // First visit: create intake + consent
             if ($index === 0) {
-                IntakeSubmission::create([
+                MedicalHistory::create([
                     'practice_id'       => $this->practice->id,
                     'patient_id'        => $patient->id,
                     'appointment_id'    => $apt->id,
@@ -433,7 +433,7 @@ class DatabaseSeeder extends Seeder
         ]);
 
         // Pending intake form (not submitted)
-        IntakeSubmission::create([
+        MedicalHistory::create([
             'practice_id'    => $this->practice->id,
             'patient_id'     => $patient->id,
             'appointment_id' => $apt->id,
@@ -540,7 +540,7 @@ class DatabaseSeeder extends Seeder
 
             // First visit: create intake + consent
             if ($index === 0) {
-                IntakeSubmission::create([
+                MedicalHistory::create([
                     'practice_id'       => $this->practice->id,
                     'patient_id'        => $patient->id,
                     'appointment_id'    => $apt->id,
@@ -599,12 +599,12 @@ class DatabaseSeeder extends Seeder
                 $intakeCount = rand(2, 4);
                 for ($i = 0; $i < $intakeCount; $i++) {
                     if (rand(0, 1)) {
-                        IntakeSubmission::factory()->complete()->create([
+                        MedicalHistory::factory()->complete()->create([
                             'practice_id' => $this->practice->id,
                             'patient_id'  => $patient->id,
                         ]);
                     } else {
-                        IntakeSubmission::factory()->missing()->create([
+                        MedicalHistory::factory()->missing()->create([
                             'practice_id' => $this->practice->id,
                             'patient_id'  => $patient->id,
                         ]);
@@ -845,7 +845,7 @@ class DatabaseSeeder extends Seeder
         ]);
 
         if ($isFirstVisit) {
-            IntakeSubmission::create([
+            MedicalHistory::create([
                 'practice_id'       => $this->practice->id,
                 'patient_id'        => $patient->id,
                 'appointment_id'    => $apt->id,
@@ -892,7 +892,7 @@ class DatabaseSeeder extends Seeder
             Practitioner::where('practice_id', $this->practice->id)->count(),
             Patient::where('practice_id', $this->practice->id)->count(),
             Appointment::where('practice_id', $this->practice->id)->count(),
-            IntakeSubmission::where('practice_id', $this->practice->id)->count(),
+            MedicalHistory::where('practice_id', $this->practice->id)->count(),
             Encounter::where('practice_id', $this->practice->id)->count(),
             InventoryProduct::where('practice_id', $this->practice->id)->count(),
         ));

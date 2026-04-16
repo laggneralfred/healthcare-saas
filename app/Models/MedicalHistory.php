@@ -10,9 +10,11 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class IntakeSubmission extends Model
+class MedicalHistory extends Model
 {
     use HasFactory, HasAccessToken, BelongsToPractice, HasAuditLog;
+
+    protected $table = 'medical_histories';
 
     protected $fillable = [
         'practice_id', 'patient_id', 'appointment_id',
@@ -64,7 +66,7 @@ class IntakeSubmission extends Model
 
     protected static function booted(): void
     {
-        static::saving(function (IntakeSubmission $submission) {
+        static::saving(function (MedicalHistory $submission) {
             if ($submission->consent_given && ! $submission->consent_signed_at) {
                 $submission->consent_signed_at = now();
             }
