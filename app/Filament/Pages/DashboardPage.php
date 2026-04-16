@@ -82,29 +82,25 @@ class DashboardPage extends Page
             ->count();
 
         // Revenue metrics (weekly)
-        $checkoutSessionsThisWeek = CheckoutSession::where('practice_id', $practice->id)
+        $revenueThisWeek = CheckoutSession::where('practice_id', $practice->id)
+            ->where('state', Paid::$name)
             ->whereBetween('paid_on', [$startOfWeek, $endOfWeek])
-            ->get();
-
-        $revenueThisWeek = $checkoutSessionsThisWeek
-            ->filter(fn (CheckoutSession $s) => $s->state instanceof Paid)
             ->sum('amount_total');
 
         // Revenue metrics (monthly)
-        $checkoutSessionsThisMonth = CheckoutSession::where('practice_id', $practice->id)
+        $totalRevenue = CheckoutSession::where('practice_id', $practice->id)
+            ->where('state', Paid::$name)
             ->whereBetween('created_at', [$startOfMonth, $endOfMonth])
-            ->get();
-
-        $totalRevenue = $checkoutSessionsThisMonth
-            ->filter(fn (CheckoutSession $s) => $s->state instanceof Paid)
             ->sum('amount_total');
 
-        $pendingRevenue = $checkoutSessionsThisMonth
-            ->filter(fn (CheckoutSession $s) => $s->state instanceof PaymentDue)
+        $pendingRevenue = CheckoutSession::where('practice_id', $practice->id)
+            ->where('state', PaymentDue::$name)
+            ->whereBetween('created_at', [$startOfMonth, $endOfMonth])
             ->sum('amount_total');
 
-        $checkoutSessionsCompleted = $checkoutSessionsThisMonth
-            ->filter(fn (CheckoutSession $s) => $s->state instanceof Paid)
+        $checkoutSessionsCompleted = CheckoutSession::where('practice_id', $practice->id)
+            ->where('state', Paid::$name)
+            ->whereBetween('created_at', [$startOfMonth, $endOfMonth])
             ->count();
 
         // Appointment status breakdown
@@ -116,16 +112,17 @@ class DashboardPage extends Page
 
         // Revenue by practitioner
         $revenueByPractitioner = CheckoutSession::where('practice_id', $practice->id)
-            ->where('state', 'paid')
+            ->where('state', Paid::$name)
             ->whereBetween('created_at', [$startOfMonth, $endOfMonth])
             ->with('practitioner.user')
-            ->get()
+            ->selectRaw('practitioner_id, COUNT(*) as appointments, SUM(amount_total) as revenue')
             ->groupBy('practitioner_id')
-            ->map(function ($sessions) {
+            ->get()
+            ->map(function ($session) {
                 return [
-                    'practitioner_name' => $sessions->first()?->practitioner?->user?->name ?? 'Unknown',
-                    'appointments' => $sessions->count(),
-                    'revenue' => $sessions->sum('amount_total'),
+                    'practitioner_name' => $session->practitioner?->user?->name ?? 'Unknown',
+                    'appointments' => $session->appointments,
+                    'revenue' => $session->revenue,
                 ];
             })
             ->values()
