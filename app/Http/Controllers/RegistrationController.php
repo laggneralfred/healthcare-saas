@@ -22,16 +22,31 @@ class RegistrationController extends Controller
 
     public function store(Request $request)
     {
-        $validated = $request->validate([
+        $request->validate([
             'practice_name' => 'required|string|max:255',
             'first_name' => 'required|string|max:255',
             'last_name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email',
+            'email' => 'required|email',
             'password' => 'required|confirmed|min:8',
             'discipline' => 'required|in:Acupuncture,Massage Therapy,Chiropractic,Physiotherapy',
             'phone' => 'nullable|string|max:20',
             'referral_source' => 'nullable|in:Google,Facebook,Colleague,Conference,Other',
             'terms_accepted' => 'required|accepted',
+        ]);
+
+        $existingUser = User::where('email', $request->email)->first();
+
+        if ($existingUser && $existingUser->practice_id) {
+            return back()->withErrors(['email' => 'An account with this email already exists. Please log in instead.'])->withInput();
+        }
+
+        if ($existingUser && ! $existingUser->practice_id) {
+            return back()->withErrors(['email' => 'An account with this email exists. Please log in and complete your practice setup.'])->withInput();
+        }
+
+        $validated = $request->only([
+            'practice_name', 'first_name', 'last_name', 'email',
+            'password', 'discipline', 'phone', 'referral_source',
         ]);
 
         // Generate unique slug

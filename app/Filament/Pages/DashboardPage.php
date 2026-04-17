@@ -27,7 +27,7 @@ class DashboardPage extends Page
     public function mount(): void
     {
         $practice = auth()->user()->practice;
-        if (!$practice->setup_completed_at && !$practice->is_demo) {
+        if (!$practice || (!$practice->setup_completed_at && !$practice->is_demo)) {
             $this->redirect('/onboarding');
         }
     }

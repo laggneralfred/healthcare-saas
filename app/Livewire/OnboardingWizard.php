@@ -4,6 +4,7 @@ namespace App\Livewire;
 
 use App\Models\Practice;
 use App\Models\Practitioner;
+use Illuminate\Support\Str;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
@@ -11,7 +12,7 @@ use Livewire\Component;
 class OnboardingWizard extends Component
 {
     public int $currentStep = 1;
-    public Practice $practice;
+    public ?Practice $practice = null;
 
     public string $practiceName = '';
     public string $practiceAddress = '';
@@ -38,14 +39,17 @@ class OnboardingWizard extends Component
 
     public function mount(): void
     {
-        $this->practice = auth()->user()->practice;
+        $practice = auth()->user()->practice;
 
-        if ($this->practice->setup_completed_at) {
-            redirect('/admin');
+        if ($practice) {
+            if ($practice->setup_completed_at) {
+                $this->redirect('/admin');
+                return;
+            }
+            $this->practice = $practice;
+            $this->practiceName = $practice->name;
+            $this->discipline = $practice->discipline ?? 'acupuncture';
         }
-
-        $this->practiceName = $this->practice->name;
-        $this->discipline = $this->practice->discipline ?? 'acupuncture';
     }
 
     public function nextStep(): void
@@ -92,11 +96,33 @@ class OnboardingWizard extends Component
             'disciplines' => 'required|array|min:1',
         ]);
 
-        $this->practice->update([
-            'name' => $this->practiceName,
-            'discipline' => $this->discipline,
-            'setup_completed_at' => now(),
-        ]);
+        if (! $this->practice) {
+            $slug = Str::slug($this->practiceName);
+            $base = $slug;
+            $n = 2;
+            while (Practice::where('slug', $slug)->exists()) {
+                $slug = "{$base}-{$n}";
+                $n++;
+            }
+
+            $this->practice = Practice::create([
+                'name' => $this->practiceName,
+                'slug' => $slug,
+                'timezone' => 'UTC',
+                'is_active' => true,
+                'discipline' => $this->discipline,
+                'trial_ends_at' => now()->addDays(30),
+                'setup_completed_at' => now(),
+            ]);
+
+            auth()->user()->update(['practice_id' => $this->practice->id]);
+        } else {
+            $this->practice->update([
+                'name' => $this->practiceName,
+                'discipline' => $this->discipline,
+                'setup_completed_at' => now(),
+            ]);
+        }
 
         $practitioner = Practitioner::firstOrCreate(
             [
@@ -117,7 +143,7 @@ class OnboardingWizard extends Component
             'specialty' => $this->practitionerName,
         ]);
 
-        redirect('/admin');
+        $this->redirect('/admin');
     }
 
     private function validateStep1(): void
