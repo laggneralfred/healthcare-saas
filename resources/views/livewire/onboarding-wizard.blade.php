@@ -146,16 +146,20 @@
                 </div>
             @endif
 
-            <!-- Navigation (step 1 uses the "Get Started" button above) -->
-            @if ($currentStep > 1)
+            <!-- Navigation (step 1 uses the "Get Started" button embedded above) -->
+            @if ($currentStep === 2 || $currentStep === 3 || $currentStep === 4)
                 <div class="flex gap-4 mt-8">
                     <button wire:click="previousStep" class="flex-1 px-6 py-3 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition">Back</button>
-
-                    @if ($currentStep > 1 && $currentStep < 5)
-                        <button wire:click="nextStep" class="flex-1 px-6 py-3 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 transition">Continue</button>
-                    @elseif ($currentStep === 6)
-                        <button wire:click="completeSetup" class="flex-1 px-6 py-3 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 transition">Go to Dashboard</button>
-                    @endif
+                    <button wire:click="nextStep" class="flex-1 px-6 py-3 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 transition">Continue</button>
+                </div>
+            @elseif ($currentStep === 5)
+                <div class="flex gap-4 mt-8">
+                    <button wire:click="previousStep" class="flex-1 px-6 py-3 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition">Back</button>
+                </div>
+            @elseif ($currentStep === 6)
+                <div class="flex gap-4 mt-8">
+                    <button wire:click="previousStep" class="flex-1 px-6 py-3 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition">Back</button>
+                    <button wire:click="completeSetup" class="flex-1 px-6 py-3 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 transition">Go to Dashboard</button>
                 </div>
             @endif
         </div>

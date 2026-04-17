@@ -150,9 +150,10 @@ class TrialRegistrationTest extends TestCase
         $this->assertAuthenticatedAs(User::where('email', 'redirect@test.com')->first());
     }
 
-    public function test_duplicate_email_is_rejected()
+    public function test_duplicate_email_with_practice_is_rejected()
     {
-        User::factory()->create(['email' => 'duplicate@test.com']);
+        $practice = Practice::factory()->create();
+        User::factory()->create(['email' => 'duplicate@test.com', 'practice_id' => $practice->id]);
 
         $response = $this->post('/register', [
             'practice_name' => 'Duplicate Test',
@@ -167,6 +168,26 @@ class TrialRegistrationTest extends TestCase
 
         $response->assertSessionHasErrors('email');
         $this->assertCount(1, User::where('email', 'duplicate@test.com')->get());
+    }
+
+    public function test_duplicate_email_without_practice_logs_in_and_redirects_to_onboarding()
+    {
+        User::factory()->create(['email' => 'nopractice@test.com', 'practice_id' => null]);
+
+        $response = $this->post('/register', [
+            'practice_name' => 'Some Practice',
+            'first_name' => 'No',
+            'last_name' => 'Practice',
+            'email' => 'nopractice@test.com',
+            'password' => 'password123',
+            'password_confirmation' => 'password123',
+            'discipline' => 'Acupuncture',
+            'terms_accepted' => true,
+        ]);
+
+        $response->assertRedirect('/onboarding');
+        $this->assertAuthenticated();
+        $this->assertCount(1, User::where('email', 'nopractice@test.com')->get());
     }
 
     public function test_trial_middleware_allows_trial_users()

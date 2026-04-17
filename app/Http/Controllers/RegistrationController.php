@@ -41,7 +41,8 @@ class RegistrationController extends Controller
         }
 
         if ($existingUser && ! $existingUser->practice_id) {
-            return back()->withErrors(['email' => 'An account with this email exists. Please log in and complete your practice setup.'])->withInput();
+            Auth::login($existingUser);
+            return redirect('/onboarding');
         }
 
         $validated = $request->only([
