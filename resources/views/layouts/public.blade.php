@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{{ $title ?? config('app.name') }}</title>
+    <title>{{ $title ?? 'Practiq' }}</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @livewireStyles
 </head>
@@ -11,7 +11,7 @@
 
     <header class="bg-white border-b border-gray-200">
         <div class="max-w-2xl mx-auto px-4 py-4">
-            <p class="text-lg font-semibold text-teal-700">{{ config('app.name') }}</p>
+            <p class="text-lg font-semibold text-teal-700">Practiq</p>
         </div>
     </header>
 

@@ -133,7 +133,7 @@ class TrialRegistrationTest extends TestCase
         ]);
     }
 
-    public function test_registration_redirects_to_admin()
+    public function test_registration_redirects_to_onboarding()
     {
         $response = $this->post('/register', [
             'practice_name' => 'Redirect Test',
@@ -146,7 +146,7 @@ class TrialRegistrationTest extends TestCase
             'terms_accepted' => true,
         ]);
 
-        $response->assertRedirect('/admin');
+        $response->assertRedirect('/onboarding');
         $this->assertAuthenticatedAs(User::where('email', 'redirect@test.com')->first());
     }
 

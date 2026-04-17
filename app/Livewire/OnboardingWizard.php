@@ -8,7 +8,7 @@ use Illuminate\Support\Str;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
-#[Layout('layouts.public', ['title' => 'Practice Setup'])]
+#[Layout('layouts.public', ['title' => 'Practice Setup — Practiq'])]
 class OnboardingWizard extends Component
 {
     public int $currentStep = 1;
@@ -43,7 +43,7 @@ class OnboardingWizard extends Component
 
         if ($practice) {
             if ($practice->setup_completed_at) {
-                $this->redirect('/admin');
+                $this->redirect('/admin/dashboard');
                 return;
             }
             $this->practice = $practice;

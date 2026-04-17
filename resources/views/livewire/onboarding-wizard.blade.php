@@ -1,5 +1,5 @@
-<div class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
-    <div class="w-full max-w-2xl">
+<div class="bg-gradient-to-br from-blue-50 to-indigo-100 flex items-start justify-center p-4" style="overflow-y: auto; min-height: 100vh;">
+    <div class="w-full max-w-2xl pt-8 pb-8">
         <!-- Progress bar -->
         <div class="mb-8">
             <div class="flex justify-between items-center mb-2">
@@ -18,7 +18,7 @@
                 <div class="text-center mb-8">
                     <h1 class="text-3xl font-bold text-gray-900 mb-4">Welcome to Practiq</h1>
                     <p class="text-gray-600 text-lg mb-6">Let's get your practice set up in just a few minutes.</p>
-                    <div class="space-y-4 text-left max-w-md mx-auto">
+                    <div class="space-y-4 text-left max-w-md mx-auto mb-8">
                         <div class="flex items-start gap-3">
                             <span class="text-2xl text-indigo-600">✓</span>
                             <div>
@@ -41,6 +41,9 @@
                             </div>
                         </div>
                     </div>
+                    <button wire:click="nextStep" class="w-full px-6 py-3 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 transition">
+                        Get Started
+                    </button>
                 </div>
             @endif
 
@@ -143,18 +146,18 @@
                 </div>
             @endif
 
-            <!-- Navigation -->
-            <div class="flex gap-4 mt-8">
-                @if ($currentStep > 1)
+            <!-- Navigation (step 1 uses the "Get Started" button above) -->
+            @if ($currentStep > 1)
+                <div class="flex gap-4 mt-8">
                     <button wire:click="previousStep" class="flex-1 px-6 py-3 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition">Back</button>
-                @endif
 
-                @if ($currentStep < 5)
-                    <button wire:click="nextStep" class="flex-1 px-6 py-3 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 transition">Continue</button>
-                @elseif ($currentStep === 6)
-                    <button wire:click="completeSetup" class="flex-1 px-6 py-3 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 transition">Go to Dashboard</button>
-                @endif
-            </div>
+                    @if ($currentStep > 1 && $currentStep < 5)
+                        <button wire:click="nextStep" class="flex-1 px-6 py-3 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 transition">Continue</button>
+                    @elseif ($currentStep === 6)
+                        <button wire:click="completeSetup" class="flex-1 px-6 py-3 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 transition">Go to Dashboard</button>
+                    @endif
+                </div>
+            @endif
         </div>
     </div>
 </div>
