@@ -1,175 +1,237 @@
-<div class="bg-gradient-to-br from-blue-50 to-indigo-100 flex items-start justify-center p-4" style="overflow-y: auto; min-height: 100vh;">
-    <div class="w-full max-w-2xl pt-8 pb-8">
-        <!-- Progress bar -->
-        <div class="mb-8">
-            <div class="flex justify-between items-center mb-2">
-                <span class="text-sm font-medium text-gray-600">Step {{ $currentStep }} of 6</span>
-                <span class="text-sm font-medium text-gray-600">{{ round(($currentStep / 6) * 100) }}%</span>
+<div style="overflow-y:auto;min-height:100vh;background:linear-gradient(135deg,#eff6ff 0%,#e0e7ff 100%);display:flex;align-items:flex-start;justify-content:center;padding:1rem;">
+    <div style="width:100%;max-width:640px;padding-top:2rem;padding-bottom:2rem;">
+
+        {{-- Progress bar --}}
+        <div style="margin-bottom:2rem;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem;">
+                <span style="font-size:0.875rem;font-weight:500;color:#4b5563;">Step {{ $currentStep }} of 7</span>
+                <span style="font-size:0.875rem;font-weight:500;color:#4b5563;">{{ round(($currentStep / 7) * 100) }}%</span>
             </div>
-            <div class="w-full bg-gray-200 rounded-full h-2">
-                <div class="bg-indigo-600 h-2 rounded-full transition-all duration-300" style="width: {{ ($currentStep / 6) * 100 }}%"></div>
+            <div style="width:100%;background:#e5e7eb;border-radius:9999px;height:8px;">
+                <div style="background:#4f46e5;height:8px;border-radius:9999px;transition:width 0.3s ease;width:{{ ($currentStep / 7) * 100 }}%;"></div>
             </div>
         </div>
 
-        <!-- Card -->
-        <div class="bg-white rounded-lg shadow-lg p-8">
+        {{-- Card --}}
+        <div style="background:#ffffff;border-radius:0.75rem;box-shadow:0 4px 24px rgba(0,0,0,0.10);padding:2rem;">
 
-            <!-- Step 1: Welcome -->
+            {{-- Step 1: Welcome --}}
             @if ($currentStep === 1)
-                <div class="text-center mb-8">
-                    <h1 class="text-3xl font-bold text-gray-900 mb-4">Welcome to Practiq</h1>
-                    <p class="text-gray-600 text-lg mb-6">Let's get your practice set up in just a few minutes.</p>
-                    <div class="space-y-4 text-left max-w-md mx-auto mb-8">
-                        <div class="flex items-start gap-3">
-                            <span class="text-2xl text-indigo-600">✓</span>
+                <div style="text-align:center;">
+                    <h1 style="font-size:1.875rem;font-weight:700;color:#111827;margin:0 0 1rem;">Welcome to Practiq</h1>
+                    <p style="color:#6b7280;font-size:1.125rem;margin:0 0 1.5rem;">Let's get your practice set up in just a few minutes.</p>
+                    <div style="display:flex;flex-direction:column;gap:1rem;text-align:left;max-width:420px;margin:0 auto 2rem;">
+                        <div style="display:flex;align-items:flex-start;gap:0.75rem;">
+                            <span style="font-size:1.375rem;color:#4f46e5;flex-shrink:0;">✓</span>
                             <div>
-                                <h3 class="font-semibold text-gray-900">Manage Your Practice</h3>
-                                <p class="text-gray-600 text-sm">Schedule appointments and manage patients</p>
+                                <p style="margin:0;font-weight:600;color:#111827;">Manage Your Practice</p>
+                                <p style="margin:0.125rem 0 0;font-size:0.875rem;color:#6b7280;">Schedule appointments and manage patients</p>
                             </div>
                         </div>
-                        <div class="flex items-start gap-3">
-                            <span class="text-2xl text-indigo-600">✓</span>
+                        <div style="display:flex;align-items:flex-start;gap:0.75rem;">
+                            <span style="font-size:1.375rem;color:#4f46e5;flex-shrink:0;">✓</span>
                             <div>
-                                <h3 class="font-semibold text-gray-900">Intake & Consent</h3>
-                                <p class="text-gray-600 text-sm">Collect patient information securely</p>
+                                <p style="margin:0;font-weight:600;color:#111827;">Intake &amp; Consent</p>
+                                <p style="margin:0.125rem 0 0;font-size:0.875rem;color:#6b7280;">Collect patient information securely</p>
                             </div>
                         </div>
-                        <div class="flex items-start gap-3">
-                            <span class="text-2xl text-indigo-600">✓</span>
+                        <div style="display:flex;align-items:flex-start;gap:0.75rem;">
+                            <span style="font-size:1.375rem;color:#4f46e5;flex-shrink:0;">✓</span>
                             <div>
-                                <h3 class="font-semibold text-gray-900">Clinical Notes</h3>
-                                <p class="text-gray-600 text-sm">Document encounters in your discipline</p>
+                                <p style="margin:0;font-weight:600;color:#111827;">Clinical Notes</p>
+                                <p style="margin:0.125rem 0 0;font-size:0.875rem;color:#6b7280;">Document encounters in your discipline</p>
                             </div>
                         </div>
                     </div>
-                    <button wire:click="nextStep" class="w-full px-6 py-3 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 transition">
+                    <button wire:click="nextStep"
+                        style="display:block;width:100%;padding:0.75rem 1.5rem;background:#1a1a1a;color:#ffffff;border:none;border-radius:0.5rem;font-size:0.9375rem;font-weight:600;cursor:pointer;">
                         Get Started
                     </button>
                 </div>
             @endif
 
-            <!-- Step 2: Practice Details -->
+            {{-- Step 2: Practice Details --}}
             @if ($currentStep === 2)
-                <h2 class="text-2xl font-bold text-gray-900 mb-6">Your Practice Details</h2>
-                <div class="space-y-4">
+                <h2 style="font-size:1.5rem;font-weight:700;color:#111827;margin:0 0 1.5rem;">Your Practice Details</h2>
+                <div style="display:flex;flex-direction:column;gap:1rem;">
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Practice Name</label>
-                        <input wire:model="practiceName" type="text" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" required>
-                        @error('practiceName') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                        <label style="display:block;font-size:0.875rem;font-weight:500;color:#374151;margin-bottom:0.25rem;">Practice Name</label>
+                        <input wire:model="practiceName" type="text"
+                            style="width:100%;padding:0.5rem 1rem;border:1px solid #d1d5db;border-radius:0.5rem;font-size:0.9375rem;box-sizing:border-box;" required>
+                        @error('practiceName') <span style="color:#ef4444;font-size:0.875rem;">{{ $message }}</span> @enderror
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Address (optional)</label>
-                        <input wire:model="practiceAddress" type="text" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" placeholder="123 Main St">
+                        <label style="display:block;font-size:0.875rem;font-weight:500;color:#374151;margin-bottom:0.25rem;">Address <span style="color:#9ca3af;">(optional)</span></label>
+                        <input wire:model="practiceAddress" type="text" placeholder="123 Main St"
+                            style="width:100%;padding:0.5rem 1rem;border:1px solid #d1d5db;border-radius:0.5rem;font-size:0.9375rem;box-sizing:border-box;">
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Phone</label>
-                        <input wire:model="practicePhone" type="tel" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" placeholder="(555) 123-4567" required>
-                        @error('practicePhone') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                        <label style="display:block;font-size:0.875rem;font-weight:500;color:#374151;margin-bottom:0.25rem;">Phone</label>
+                        <input wire:model="practicePhone" type="tel" placeholder="(555) 123-4567"
+                            style="width:100%;padding:0.5rem 1rem;border:1px solid #d1d5db;border-radius:0.5rem;font-size:0.9375rem;box-sizing:border-box;" required>
+                        @error('practicePhone') <span style="color:#ef4444;font-size:0.875rem;">{{ $message }}</span> @enderror
                     </div>
                 </div>
             @endif
 
-            <!-- Step 3: Your Profile -->
+            {{-- Step 3: Default Settings --}}
             @if ($currentStep === 3)
-                <h2 class="text-2xl font-bold text-gray-900 mb-6">Your Profile</h2>
-                <div class="space-y-4">
+                <h2 style="font-size:1.5rem;font-weight:700;color:#111827;margin:0 0 0.5rem;">Default Settings</h2>
+                <p style="color:#6b7280;font-size:0.9375rem;margin:0 0 1.5rem;">These can be changed any time in Settings.</p>
+                <div style="display:flex;flex-direction:column;gap:1.25rem;">
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Your Name</label>
-                        <input wire:model="practitionerName" type="text" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" required>
-                        @error('practitionerName') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                        <label style="display:block;font-size:0.875rem;font-weight:500;color:#374151;margin-bottom:0.25rem;">Default Appointment Duration</label>
+                        <select wire:model="defaultAppointmentDuration"
+                            style="width:100%;padding:0.5rem 1rem;border:1px solid #d1d5db;border-radius:0.5rem;font-size:0.9375rem;background:#fff;box-sizing:border-box;">
+                            <option value="15">15 minutes</option>
+                            <option value="30">30 minutes</option>
+                            <option value="45">45 minutes</option>
+                            <option value="60">60 minutes</option>
+                        </select>
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">License Number</label>
-                        <input wire:model="licenseNumber" type="text" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" placeholder="e.g., L.Ac. CA-12345" required>
-                        @error('licenseNumber') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                        <label style="display:block;font-size:0.875rem;font-weight:500;color:#374151;margin-bottom:0.25rem;">Default Appointment Reminder</label>
+                        <select wire:model="defaultReminderHours"
+                            style="width:100%;padding:0.5rem 1rem;border:1px solid #d1d5db;border-radius:0.5rem;font-size:0.9375rem;background:#fff;box-sizing:border-box;">
+                            <option value="24">24 hours before</option>
+                            <option value="48">48 hours before</option>
+                            <option value="0">No reminder</option>
+                        </select>
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Primary Discipline</label>
-                        <select wire:model="discipline" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" required>
+                        <label style="display:block;font-size:0.875rem;font-weight:500;color:#374151;margin-bottom:0.25rem;">Timezone</label>
+                        <select wire:model="timezone"
+                            style="width:100%;padding:0.5rem 1rem;border:1px solid #d1d5db;border-radius:0.5rem;font-size:0.9375rem;background:#fff;box-sizing:border-box;">
+                            <option value="America/Los_Angeles">Pacific Time (PT)</option>
+                            <option value="America/Denver">Mountain Time (MT)</option>
+                            <option value="America/Chicago">Central Time (CT)</option>
+                            <option value="America/New_York">Eastern Time (ET)</option>
+                            <option value="America/Anchorage">Alaska Time (AKT)</option>
+                            <option value="Pacific/Honolulu">Hawaii Time (HT)</option>
+                            <option value="America/Toronto">Toronto (ET)</option>
+                            <option value="America/Vancouver">Vancouver (PT)</option>
+                            <option value="Europe/London">London (GMT/BST)</option>
+                            <option value="UTC">UTC</option>
+                        </select>
+                    </div>
+                </div>
+            @endif
+
+            {{-- Step 4: Your Profile --}}
+            @if ($currentStep === 4)
+                <h2 style="font-size:1.5rem;font-weight:700;color:#111827;margin:0 0 1.5rem;">Your Profile</h2>
+                <div style="display:flex;flex-direction:column;gap:1rem;">
+                    <div>
+                        <label style="display:block;font-size:0.875rem;font-weight:500;color:#374151;margin-bottom:0.25rem;">Your Name</label>
+                        <input wire:model="practitionerName" type="text"
+                            style="width:100%;padding:0.5rem 1rem;border:1px solid #d1d5db;border-radius:0.5rem;font-size:0.9375rem;box-sizing:border-box;" required>
+                        @error('practitionerName') <span style="color:#ef4444;font-size:0.875rem;">{{ $message }}</span> @enderror
+                    </div>
+                    <div>
+                        <label style="display:block;font-size:0.875rem;font-weight:500;color:#374151;margin-bottom:0.25rem;">License Number</label>
+                        <input wire:model="licenseNumber" type="text" placeholder="e.g., L.Ac. CA-12345"
+                            style="width:100%;padding:0.5rem 1rem;border:1px solid #d1d5db;border-radius:0.5rem;font-size:0.9375rem;box-sizing:border-box;" required>
+                        @error('licenseNumber') <span style="color:#ef4444;font-size:0.875rem;">{{ $message }}</span> @enderror
+                    </div>
+                    <div>
+                        <label style="display:block;font-size:0.875rem;font-weight:500;color:#374151;margin-bottom:0.25rem;">Primary Discipline</label>
+                        <select wire:model="discipline"
+                            style="width:100%;padding:0.5rem 1rem;border:1px solid #d1d5db;border-radius:0.5rem;font-size:0.9375rem;background:#fff;box-sizing:border-box;" required>
                             <option value="">Select a discipline</option>
                             <option value="acupuncture">Acupuncture</option>
                             <option value="massage">Massage Therapy</option>
                             <option value="chiropractic">Chiropractic</option>
                             <option value="physiotherapy">Physiotherapy</option>
                         </select>
-                        @error('discipline') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                        @error('discipline') <span style="color:#ef4444;font-size:0.875rem;">{{ $message }}</span> @enderror
                     </div>
                 </div>
             @endif
 
-            <!-- Step 4: Disciplines -->
-            @if ($currentStep === 4)
-                <h2 class="text-2xl font-bold text-gray-900 mb-2">Patient Intake Template</h2>
-                <p class="text-gray-600 mb-6">Which disciplines do you treat? (Select all that apply)</p>
-                <div class="space-y-3">
-                    <label class="flex items-center p-4 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50">
-                        <input type="checkbox" wire:model="disciplines" value="acupuncture" class="w-5 h-5 text-indigo-600 rounded">
-                        <span class="ml-3 font-medium text-gray-900">Acupuncture</span>
-                    </label>
-                    <label class="flex items-center p-4 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50">
-                        <input type="checkbox" wire:model="disciplines" value="massage" class="w-5 h-5 text-indigo-600 rounded">
-                        <span class="ml-3 font-medium text-gray-900">Massage Therapy</span>
-                    </label>
-                    <label class="flex items-center p-4 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50">
-                        <input type="checkbox" wire:model="disciplines" value="chiropractic" class="w-5 h-5 text-indigo-600 rounded">
-                        <span class="ml-3 font-medium text-gray-900">Chiropractic</span>
-                    </label>
-                    <label class="flex items-center p-4 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50">
-                        <input type="checkbox" wire:model="disciplines" value="physiotherapy" class="w-5 h-5 text-indigo-600 rounded">
-                        <span class="ml-3 font-medium text-gray-900">Physiotherapy</span>
-                    </label>
-                </div>
-                @error('disciplines') <span class="text-red-500 text-sm block mt-2">{{ $message }}</span> @enderror
-            @endif
-
-            <!-- Step 5: Legal Forms -->
+            {{-- Step 5: Disciplines --}}
             @if ($currentStep === 5)
-                <h2 class="text-2xl font-bold text-gray-900 mb-6">Legal Forms Setup</h2>
-                <p class="text-gray-600 mb-6">Set up legal forms now, or configure them later?</p>
-                <div class="space-y-4">
-                    <button wire:click="skipLegalSetup" class="w-full p-6 text-left border-2 border-gray-200 rounded-lg hover:border-gray-300 transition">
-                        <h3 class="font-semibold text-gray-900 mb-2">I'll set this up later</h3>
-                        <p class="text-gray-600 text-sm">Skip for now and configure in Settings later</p>
-                    </button>
-                    <button wire:click="proceedWithLegalSetup" class="w-full p-6 text-left border-2 border-indigo-300 bg-indigo-50 rounded-lg hover:bg-indigo-100 transition">
-                        <h3 class="font-semibold text-indigo-900 mb-2">Set up forms now</h3>
-                        <p class="text-indigo-700 text-sm">Create default legal forms before seeing patients</p>
-                    </button>
+                <h2 style="font-size:1.5rem;font-weight:700;color:#111827;margin:0 0 0.5rem;">Patient Intake Template</h2>
+                <p style="color:#6b7280;font-size:0.9375rem;margin:0 0 1.5rem;">Which disciplines do you treat? (Select all that apply)</p>
+                <div style="display:flex;flex-direction:column;gap:0.75rem;">
+                    @foreach ([['acupuncture','Acupuncture'],['massage','Massage Therapy'],['chiropractic','Chiropractic'],['physiotherapy','Physiotherapy']] as [$val,$label])
+                    <label style="display:flex;align-items:center;padding:1rem;border:1px solid #e5e7eb;border-radius:0.5rem;cursor:pointer;">
+                        <input type="checkbox" wire:model="disciplines" value="{{ $val }}"
+                            style="width:1.125rem;height:1.125rem;accent-color:#4f46e5;">
+                        <span style="margin-left:0.75rem;font-weight:500;color:#111827;">{{ $label }}</span>
+                    </label>
+                    @endforeach
                 </div>
+                @error('disciplines') <span style="color:#ef4444;font-size:0.875rem;display:block;margin-top:0.5rem;">{{ $message }}</span> @enderror
             @endif
 
-            <!-- Step 6: Congratulations -->
+            {{-- Step 6: Legal Forms --}}
             @if ($currentStep === 6)
-                <div class="text-center">
-                    <div class="mb-6"><span class="text-6xl">🎉</span></div>
-                    <h2 class="text-3xl font-bold text-gray-900 mb-4">You're All Set!</h2>
-                    <p class="text-gray-600 text-lg mb-8">Your practice is ready. Start scheduling appointments and managing patients.</p>
+                <h2 style="font-size:1.5rem;font-weight:700;color:#111827;margin:0 0 0.5rem;">Legal Forms Setup</h2>
+                <p style="color:#6b7280;font-size:0.9375rem;margin:0 0 1.5rem;">Set up legal forms now, or configure them later?</p>
+                <div style="display:flex;flex-direction:column;gap:1rem;">
+                    <button wire:click="skipLegalSetup"
+                        style="width:100%;padding:1.25rem 1.5rem;text-align:left;border:2px solid #e5e7eb;border-radius:0.5rem;background:#fff;cursor:pointer;">
+                        <p style="margin:0;font-weight:600;color:#111827;">I'll set this up later</p>
+                        <p style="margin:0.25rem 0 0;font-size:0.875rem;color:#6b7280;">Skip for now and configure in Settings later</p>
+                    </button>
+                    <button wire:click="proceedWithLegalSetup"
+                        style="width:100%;padding:1.25rem 1.5rem;text-align:left;border:2px solid #a5b4fc;border-radius:0.5rem;background:#eef2ff;cursor:pointer;">
+                        <p style="margin:0;font-weight:600;color:#3730a3;">Set up forms now</p>
+                        <p style="margin:0.25rem 0 0;font-size:0.875rem;color:#4f46e5;">Create default legal forms before seeing patients</p>
+                    </button>
                 </div>
             @endif
 
-            <!-- Navigation (step 1 uses the "Get Started" button embedded above) -->
-            @if ($currentStep === 2 || $currentStep === 3 || $currentStep === 4)
-                <div class="flex gap-4 mt-8">
-                    <button wire:click="previousStep" class="flex-1 px-6 py-3 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition">Back</button>
-                    <button wire:click="nextStep" class="flex-1 px-6 py-3 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 transition">Continue</button>
+            {{-- Step 7: Congratulations --}}
+            @if ($currentStep === 7)
+                <div style="text-align:center;">
+                    <div style="font-size:4rem;margin-bottom:1.5rem;">🎉</div>
+                    <h2 style="font-size:1.875rem;font-weight:700;color:#111827;margin:0 0 1rem;">You're All Set!</h2>
+                    <p style="color:#6b7280;font-size:1.125rem;margin:0 0 2rem;">Your practice is ready. Start scheduling appointments and managing patients.</p>
                 </div>
-            @elseif ($currentStep === 5)
-                <div class="flex gap-4 mt-8">
-                    <button wire:click="previousStep" class="flex-1 px-6 py-3 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition">Back</button>
+            @endif
+
+            {{-- Navigation --}}
+            @if ($currentStep >= 2 && $currentStep <= 5)
+                <div style="display:flex;gap:0.75rem;margin-top:2rem;">
+                    <button wire:click="previousStep"
+                        style="flex:1;padding:0.75rem 1.5rem;background:#ffffff;color:#374151;border:1px solid #d1d5db;border-radius:0.5rem;font-size:0.9375rem;font-weight:600;cursor:pointer;">
+                        Back
+                    </button>
+                    <button wire:click="nextStep"
+                        style="flex:1;padding:0.75rem 1.5rem;background:#1a1a1a;color:#ffffff;border:none;border-radius:0.5rem;font-size:0.9375rem;font-weight:600;cursor:pointer;">
+                        Continue
+                    </button>
                 </div>
             @elseif ($currentStep === 6)
-                <div class="flex gap-4 mt-8">
-                    <button wire:click="previousStep" class="flex-1 px-6 py-3 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition">Back</button>
-                    <button wire:click="completeSetup" class="flex-1 px-6 py-3 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 transition">Go to Dashboard</button>
+                <div style="display:flex;gap:0.75rem;margin-top:2rem;">
+                    <button wire:click="previousStep"
+                        style="flex:1;padding:0.75rem 1.5rem;background:#ffffff;color:#374151;border:1px solid #d1d5db;border-radius:0.5rem;font-size:0.9375rem;font-weight:600;cursor:pointer;">
+                        Back
+                    </button>
+                </div>
+            @elseif ($currentStep === 7)
+                <div style="display:flex;gap:0.75rem;margin-top:2rem;">
+                    <button wire:click="previousStep"
+                        style="flex:1;padding:0.75rem 1.5rem;background:#ffffff;color:#374151;border:1px solid #d1d5db;border-radius:0.5rem;font-size:0.9375rem;font-weight:600;cursor:pointer;">
+                        Back
+                    </button>
+                    <button wire:click="completeSetup"
+                        style="flex:1;padding:0.75rem 1.5rem;background:#1a1a1a;color:#ffffff;border:none;border-radius:0.5rem;font-size:0.9375rem;font-weight:600;cursor:pointer;">
+                        Go to Dashboard
+                    </button>
                 </div>
             @endif
-        </div>
 
-        <!-- Skip link — always visible below the card -->
-        <div class="text-center mt-4">
-            <button wire:click="skipOnboarding" class="text-sm text-gray-400 hover:text-gray-600 transition">
+        </div>{{-- end card --}}
+
+        {{-- Skip link --}}
+        <div style="text-align:center;margin-top:1rem;">
+            <button wire:click="skipOnboarding"
+                style="background:none;border:none;font-size:0.875rem;color:#9ca3af;cursor:pointer;">
                 Skip for now →
             </button>
         </div>
+
     </div>
 </div>

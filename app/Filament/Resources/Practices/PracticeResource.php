@@ -27,6 +27,11 @@ class PracticeResource extends Resource
 
     protected static ?int $navigationSort = 2;
 
+    public static function shouldRegisterNavigation(): bool
+    {
+        return auth()->user()?->practice_id === null;
+    }
+
     public static function form(Schema $schema): Schema
     {
         return PracticeForm::configure($schema);

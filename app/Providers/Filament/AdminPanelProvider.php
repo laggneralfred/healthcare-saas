@@ -35,7 +35,11 @@ class AdminPanelProvider extends PanelProvider
 
         FilamentView::registerRenderHook(
             'panels::topbar.end',
-            function (): View {
+            function (): View|string {
+                if (! auth()->check() || auth()->user()->practice_id !== null) {
+                    return '';
+                }
+
                 $isSuperAdmin = PracticeContext::isSuperAdmin();
                 $selectedId   = PracticeContext::currentPracticeId();
                 $practices    = $isSuperAdmin ? Practice::orderBy('name')->get(['id', 'name']) : collect();

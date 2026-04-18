@@ -16,6 +16,7 @@ class Practice extends Model
         'stripe_id', 'pm_type', 'pm_last_four', 'trial_ends_at',
         'discipline', 'referral_source', 'setup_completed_at',
         'dismissed_onboarding_banner',
+        'default_appointment_duration', 'default_reminder_hours',
     ];
 
     protected function casts(): array
