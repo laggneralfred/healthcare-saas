@@ -6,6 +6,28 @@
     </div>
 @else
 
+{{-- Complete Setup Banner --}}
+@if($showSetupBanner ?? false)
+<div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:0.75rem;padding:1rem 1.5rem;margin-bottom:1.5rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;">
+    <div style="display:flex;align-items:center;gap:0.75rem;">
+        <span style="font-size:1.375rem;">🚀</span>
+        <div>
+            <p style="margin:0;font-size:0.9375rem;font-weight:600;color:#1e40af;">Complete your practice setup to get the most out of Practiq.</p>
+            <p style="margin:0.125rem 0 0;font-size:0.8125rem;color:#3b82f6;">Takes just a few minutes — configure your profile, intake templates, and legal forms.</p>
+        </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:0.75rem;flex-shrink:0;">
+        <a href="/onboarding" style="display:inline-block;padding:0.5rem 1.25rem;background:#2563eb;color:#ffffff;font-size:0.875rem;font-weight:600;border-radius:0.5rem;text-decoration:none;">
+            Set up now →
+        </a>
+        <form method="POST" action="{{ route('admin.dismiss-setup-banner') }}" style="margin:0;">
+            @csrf
+            <button type="submit" style="background:none;border:none;padding:0.375rem;cursor:pointer;color:#6b7280;font-size:1.25rem;line-height:1;" title="Dismiss">×</button>
+        </form>
+    </div>
+</div>
+@endif
+
 {{-- Header --}}
 <div style="background:#ffffff;border:1px solid #e2e8f0;border-radius:0.75rem;padding:1.5rem 2rem;margin-bottom:1.5rem;">
     <p style="margin:0;font-size:1.75rem;font-weight:700;color:#0f172a;">{{ $practice->name }}</p>

@@ -15,6 +15,7 @@ class Practice extends Model
         'name', 'slug', 'timezone', 'is_active', 'is_demo',
         'stripe_id', 'pm_type', 'pm_last_four', 'trial_ends_at',
         'discipline', 'referral_source', 'setup_completed_at',
+        'dismissed_onboarding_banner',
     ];
 
     protected function casts(): array
@@ -22,6 +23,7 @@ class Practice extends Model
         return [
             'is_active' => 'boolean',
             'is_demo' => 'boolean',
+            'dismissed_onboarding_banner' => 'boolean',
             'trial_ends_at' => 'datetime',
             'setup_completed_at' => 'datetime',
         ];

@@ -13,6 +13,7 @@
 
         <!-- Card -->
         <div class="bg-white rounded-lg shadow-lg p-8">
+
             <!-- Step 1: Welcome -->
             @if ($currentStep === 1)
                 <div class="text-center mb-8">
@@ -162,6 +163,13 @@
                     <button wire:click="completeSetup" class="flex-1 px-6 py-3 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 transition">Go to Dashboard</button>
                 </div>
             @endif
+        </div>
+
+        <!-- Skip link — always visible below the card -->
+        <div class="text-center mt-4">
+            <button wire:click="skipOnboarding" class="text-sm text-gray-400 hover:text-gray-600 transition">
+                Skip for now →
+            </button>
         </div>
     </div>
 </div>

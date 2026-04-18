@@ -91,6 +91,6 @@ class RegistrationController extends Controller
         // Flash welcome message
         session()->flash('welcome_message', 'Welcome to Practiq! Your 30-day free trial has started.');
 
-        return redirect('/onboarding');
+        return redirect('/admin/dashboard');
     }
 }

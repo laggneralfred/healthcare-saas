@@ -64,6 +64,12 @@ Route::get('/import/template', function () {
 // Trial user onboarding wizard
 Route::get('/onboarding', OnboardingWizard::class)->middleware(['web', 'auth'])->name('onboarding');
 
+// Dismiss the "Complete Setup" banner on the dashboard
+Route::post('/admin/dismiss-setup-banner', function () {
+    auth()->user()->practice?->update(['dismissed_onboarding_banner' => true]);
+    return back();
+})->middleware(['web', 'auth'])->name('admin.dismiss-setup-banner');
+
 // Demo instant login — public, redirects to admin
 Route::get('/demo-login', function () {
     $user = \App\Models\User::where('email', 'demo@practiqapp.com')->first();

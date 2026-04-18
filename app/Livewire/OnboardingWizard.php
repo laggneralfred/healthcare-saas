@@ -75,6 +75,11 @@ class OnboardingWizard extends Component
         }
     }
 
+    public function skipOnboarding(): void
+    {
+        $this->redirect('/admin/dashboard');
+    }
+
     public function skipLegalSetup(): void
     {
         $this->setupLegalLater = true;

@@ -26,10 +26,7 @@ class DashboardPage extends Page
 
     public function mount(): void
     {
-        $practice = auth()->user()->practice;
-        if (!$practice || (!$practice->setup_completed_at && !$practice->is_demo)) {
-            $this->redirect('/onboarding');
-        }
+        // Onboarding is now optional — no forced redirect
     }
 
     public function getViewData(): array
@@ -38,7 +35,7 @@ class DashboardPage extends Page
         $practice   = $practiceId ? Practice::find($practiceId) : null;
 
         if (! $practice) {
-            return ['practice' => null];
+            return ['practice' => null, 'showSetupBanner' => false];
         }
 
         $now = now($practice->timezone ?? 'UTC');
@@ -146,6 +143,9 @@ class DashboardPage extends Page
             'formattedRevenueThisWeek' => Number::currency($revenueThisWeek, 'USD'),
             'formattedRevenue' => Number::currency($totalRevenue, 'USD'),
             'formattedPendingRevenue' => Number::currency($pendingRevenue, 'USD'),
+            'showSetupBanner' => ! $practice->is_demo
+                && ! $practice->setup_completed_at
+                && ! $practice->dismissed_onboarding_banner,
         ];
     }
 }
