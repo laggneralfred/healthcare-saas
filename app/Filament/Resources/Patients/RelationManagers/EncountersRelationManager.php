@@ -35,9 +35,31 @@ class EncountersRelationManager extends RelationManager
         return $table
             ->recordTitleAttribute('id')
             ->columns([
-                TextColumn::make('id')
-                    ->searchable(),
+                TextColumn::make('visit_date')
+                    ->label('Date')
+                    ->date()
+                    ->sortable(),
+
+                TextColumn::make('practitioner.user.name')
+                    ->label('Practitioner')
+                    ->placeholder('—'),
+
+                TextColumn::make('chief_complaint')
+                    ->label('Chief Complaint')
+                    ->limit(40)
+                    ->placeholder('—'),
+
+                TextColumn::make('status')
+                    ->label('Status')
+                    ->badge()
+                    ->color(fn (?string $state) => match ($state) {
+                        'complete' => 'success',
+                        'draft'    => 'warning',
+                        default    => 'gray',
+                    })
+                    ->formatStateUsing(fn (?string $state) => $state ? ucfirst($state) : '—'),
             ])
+            ->defaultSort('visit_date', 'desc')
             ->filters([
                 //
             ])

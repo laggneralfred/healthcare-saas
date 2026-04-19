@@ -4,11 +4,11 @@
         {{-- Progress bar --}}
         <div style="margin-bottom:2rem;">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem;">
-                <span style="font-size:0.875rem;font-weight:500;color:#4b5563;">Step {{ $currentStep }} of 7</span>
-                <span style="font-size:0.875rem;font-weight:500;color:#4b5563;">{{ round(($currentStep / 7) * 100) }}%</span>
+                <span style="font-size:0.875rem;font-weight:500;color:#4b5563;">Step {{ $currentStep }} of 6</span>
+                <span style="font-size:0.875rem;font-weight:500;color:#4b5563;">{{ round(($currentStep / 6) * 100) }}%</span>
             </div>
             <div style="width:100%;background:#e5e7eb;border-radius:9999px;height:8px;">
-                <div style="background:#4f46e5;height:8px;border-radius:9999px;transition:width 0.3s ease;width:{{ ($currentStep / 7) * 100 }}%;"></div>
+                <div style="background:#4f46e5;height:8px;border-radius:9999px;transition:width 0.3s ease;width:{{ ($currentStep / 6) * 100 }}%;"></div>
             </div>
         </div>
 
@@ -148,24 +148,8 @@
                 </div>
             @endif
 
-            {{-- Step 5: Disciplines --}}
+            {{-- Step 5: Legal Forms --}}
             @if ($currentStep === 5)
-                <h2 style="font-size:1.5rem;font-weight:700;color:#111827;margin:0 0 0.5rem;">Patient Intake Template</h2>
-                <p style="color:#6b7280;font-size:0.9375rem;margin:0 0 1.5rem;">Which disciplines do you treat? (Select all that apply)</p>
-                <div style="display:flex;flex-direction:column;gap:0.75rem;">
-                    @foreach ([['acupuncture','Acupuncture'],['massage','Massage Therapy'],['chiropractic','Chiropractic'],['physiotherapy','Physiotherapy']] as [$val,$label])
-                    <label style="display:flex;align-items:center;padding:1rem;border:1px solid #e5e7eb;border-radius:0.5rem;cursor:pointer;">
-                        <input type="checkbox" wire:model="disciplines" value="{{ $val }}"
-                            style="width:1.125rem;height:1.125rem;accent-color:#4f46e5;">
-                        <span style="margin-left:0.75rem;font-weight:500;color:#111827;">{{ $label }}</span>
-                    </label>
-                    @endforeach
-                </div>
-                @error('disciplines') <span style="color:#ef4444;font-size:0.875rem;display:block;margin-top:0.5rem;">{{ $message }}</span> @enderror
-            @endif
-
-            {{-- Step 6: Legal Forms --}}
-            @if ($currentStep === 6)
                 <h2 style="font-size:1.5rem;font-weight:700;color:#111827;margin:0 0 0.5rem;">Legal Forms Setup</h2>
                 <p style="color:#6b7280;font-size:0.9375rem;margin:0 0 1.5rem;">Set up legal forms now, or configure them later?</p>
                 <div style="display:flex;flex-direction:column;gap:1rem;">
@@ -182,8 +166,8 @@
                 </div>
             @endif
 
-            {{-- Step 7: Congratulations --}}
-            @if ($currentStep === 7)
+            {{-- Step 6: Congratulations --}}
+            @if ($currentStep === 6)
                 <div style="text-align:center;">
                     <div style="font-size:4rem;margin-bottom:1.5rem;">🎉</div>
                     <h2 style="font-size:1.875rem;font-weight:700;color:#111827;margin:0 0 1rem;">You're All Set!</h2>
@@ -192,7 +176,7 @@
             @endif
 
             {{-- Navigation --}}
-            @if ($currentStep >= 2 && $currentStep <= 5)
+            @if ($currentStep >= 2 && $currentStep <= 4)
                 <div style="display:flex;gap:0.75rem;margin-top:2rem;">
                     <button wire:click="previousStep"
                         style="flex:1;padding:0.75rem 1.5rem;background:#ffffff;color:#374151;border:1px solid #d1d5db;border-radius:0.5rem;font-size:0.9375rem;font-weight:600;cursor:pointer;">
@@ -203,14 +187,14 @@
                         Continue
                     </button>
                 </div>
-            @elseif ($currentStep === 6)
+            @elseif ($currentStep === 5)
                 <div style="display:flex;gap:0.75rem;margin-top:2rem;">
                     <button wire:click="previousStep"
                         style="flex:1;padding:0.75rem 1.5rem;background:#ffffff;color:#374151;border:1px solid #d1d5db;border-radius:0.5rem;font-size:0.9375rem;font-weight:600;cursor:pointer;">
                         Back
                     </button>
                 </div>
-            @elseif ($currentStep === 7)
+            @elseif ($currentStep === 6)
                 <div style="display:flex;gap:0.75rem;margin-top:2rem;">
                     <button wire:click="previousStep"
                         style="flex:1;padding:0.75rem 1.5rem;background:#ffffff;color:#374151;border:1px solid #d1d5db;border-radius:0.5rem;font-size:0.9375rem;font-weight:600;cursor:pointer;">

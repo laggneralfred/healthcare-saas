@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Practitioners\Tables;
 
 use Filament\Actions\BulkActionGroup;
+use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
@@ -46,6 +47,11 @@ class PractitionersTable
                 BulkActionGroup::make([
                     DeleteBulkAction::make(),
                 ]),
+            ])
+            ->emptyStateHeading('No practitioners yet')
+            ->emptyStateDescription('Add a practitioner to start scheduling appointments.')
+            ->emptyStateActions([
+                CreateAction::make()->label('Add practitioner'),
             ]);
     }
 }

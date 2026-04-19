@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\ServiceFees\Tables;
 
 use Filament\Actions\BulkActionGroup;
+use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
@@ -50,6 +51,11 @@ class ServiceFeesTable
                     DeleteBulkAction::make(),
                 ]),
             ])
-            ->defaultSort('name');
+            ->defaultSort('name')
+            ->emptyStateHeading('No service fees yet')
+            ->emptyStateDescription('Add service fees to use them in checkouts.')
+            ->emptyStateActions([
+                CreateAction::make()->label('Add service fee'),
+            ]);
     }
 }

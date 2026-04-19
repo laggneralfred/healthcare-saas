@@ -12,6 +12,7 @@ use App\Models\States\Appointment\InProgress;
 use App\Models\States\Appointment\Scheduled;
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
+use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
@@ -127,6 +128,11 @@ class AppointmentsTable
                 BulkActionGroup::make([
                     DeleteBulkAction::make(),
                 ]),
+            ])
+            ->emptyStateHeading('No appointments yet')
+            ->emptyStateDescription('Schedule your first appointment to see it here.')
+            ->emptyStateActions([
+                CreateAction::make()->label('Schedule appointment'),
             ]);
     }
 }

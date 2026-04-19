@@ -29,6 +29,13 @@ class DashboardPage extends Page
         // Onboarding is now optional — no forced redirect
     }
 
+    protected function getHeaderWidgets(): array
+    {
+        return [
+            \App\Filament\Widgets\TodaysScheduleWidget::class,
+        ];
+    }
+
     public function getViewData(): array
     {
         $practiceId = PracticeContext::currentPracticeId();

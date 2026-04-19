@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\CommunicationRules\Tables;
 
 use Filament\Actions\BulkActionGroup;
+use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
@@ -48,6 +49,11 @@ class CommunicationRulesTable
                 BulkActionGroup::make([
                     DeleteBulkAction::make(),
                 ]),
+            ])
+            ->emptyStateHeading('No communication rules yet')
+            ->emptyStateDescription('Automate when reminders and follow-ups go out to patients.')
+            ->emptyStateActions([
+                CreateAction::make()->label('New rule'),
             ]);
     }
 }

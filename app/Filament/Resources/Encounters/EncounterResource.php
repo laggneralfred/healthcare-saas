@@ -31,6 +31,29 @@ class EncounterResource extends Resource
 
     protected static ?int $navigationSort = 2;
 
+    protected static ?string $recordTitleAttribute = 'id';
+
+    public static function getGloballySearchableAttributes(): array
+    {
+        return ['patient.first_name', 'patient.last_name', 'patient.name', 'chief_complaint'];
+    }
+
+    public static function getGlobalSearchResultTitle($record): string
+    {
+        $date = $record->visit_date?->format('M j, Y') ?? '—';
+        $name = $record->patient?->name ?? 'Visit';
+
+        return "{$name} — {$date}";
+    }
+
+    public static function getGlobalSearchResultDetails($record): array
+    {
+        return array_filter([
+            'Practitioner'    => $record->practitioner?->user?->name,
+            'Chief Complaint' => $record->chief_complaint ? \Illuminate\Support\Str::limit($record->chief_complaint, 60) : null,
+        ]);
+    }
+
     public static function form(Schema $schema): Schema
     {
         return EncounterForm::configure($schema);

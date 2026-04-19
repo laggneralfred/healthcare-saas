@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\LegalForms\Tables;
 
 use Filament\Actions\BulkActionGroup;
+use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Tables\Columns\IconColumn;
@@ -58,6 +59,11 @@ class LegalFormsTable
                 BulkActionGroup::make([
                     DeleteBulkAction::make(),
                 ]),
+            ])
+            ->emptyStateHeading('No legal forms yet')
+            ->emptyStateDescription('Create intake and consent forms required by your discipline.')
+            ->emptyStateActions([
+                CreateAction::make()->label('New legal form'),
             ]);
     }
 }

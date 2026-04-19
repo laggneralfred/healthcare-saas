@@ -34,6 +34,11 @@
     <p style="margin:0.25rem 0 0;font-size:0.875rem;color:#64748b;">Dashboard &mdash; {{ now()->format('F Y') }}</p>
 </div>
 
+{{-- Today's Schedule Widget --}}
+<div style="margin-bottom:1.5rem;">
+    @livewire(\App\Filament\Widgets\TodaysScheduleWidget::class)
+</div>
+
 {{-- Key Metrics: 4-col desktop, 2-col tablet, 1-col mobile --}}
 <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1.5rem;">
 

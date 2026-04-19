@@ -31,6 +31,21 @@ class PatientResource extends Resource
 
     protected static ?string $navigationLabel = 'Patients';
 
+    protected static ?string $recordTitleAttribute = 'name';
+
+    public static function getGloballySearchableAttributes(): array
+    {
+        return ['first_name', 'last_name', 'name', 'email', 'phone'];
+    }
+
+    public static function getGlobalSearchResultDetails($record): array
+    {
+        return array_filter([
+            'Email' => $record->email,
+            'Phone' => $record->phone,
+        ]);
+    }
+
     public static function form(Schema $schema): Schema
     {
         return PatientForm::configure($schema);

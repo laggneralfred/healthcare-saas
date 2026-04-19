@@ -105,6 +105,8 @@ class CheckoutSessionsTable
                     DeleteBulkAction::make(),
                 ]),
             ])
-            ->defaultSort('started_on', 'desc');
+            ->defaultSort('started_on', 'desc')
+            ->emptyStateHeading('No checkouts yet')
+            ->emptyStateDescription('Completed checkouts and payments will appear here.');
     }
 }

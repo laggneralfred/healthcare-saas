@@ -5,6 +5,7 @@ namespace App\Filament\Resources\InventoryProducts\Tables;
 use App\Models\InventoryProduct;
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
+use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\Textarea;
@@ -125,6 +126,11 @@ class InventoryProductsTable
                 BulkActionGroup::make([
                     DeleteBulkAction::make(),
                 ]),
+            ])
+            ->emptyStateHeading('No products yet')
+            ->emptyStateDescription('Add your first product to start tracking inventory.')
+            ->emptyStateActions([
+                CreateAction::make()->label('Add product'),
             ]);
     }
 }

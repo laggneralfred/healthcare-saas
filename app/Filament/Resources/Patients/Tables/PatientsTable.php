@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Patients\Tables;
 
 use Filament\Actions\BulkActionGroup;
+use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
@@ -47,6 +48,11 @@ class PatientsTable
                 BulkActionGroup::make([
                     DeleteBulkAction::make(),
                 ]),
+            ])
+            ->emptyStateHeading('No patients yet')
+            ->emptyStateDescription('Add your first patient to get started.')
+            ->emptyStateActions([
+                CreateAction::make()->label('Add patient'),
             ]);
     }
 }

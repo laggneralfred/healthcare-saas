@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Practices\Tables;
 
 use Filament\Actions\BulkActionGroup;
+use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
@@ -33,6 +34,11 @@ class PracticesTable
                 BulkActionGroup::make([
                     DeleteBulkAction::make(),
                 ]),
+            ])
+            ->emptyStateHeading('No practices yet')
+            ->emptyStateDescription('Create a practice to onboard a new tenant.')
+            ->emptyStateActions([
+                CreateAction::make()->label('Add practice'),
             ]);
     }
 }

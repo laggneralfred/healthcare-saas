@@ -20,18 +20,14 @@ class PatientForm
                 Hidden::make('practice_id')
                     ->default(fn () => auth()->user()->practice_id),
 
-                Section::make('Personal Information')
+                Section::make('Basic Information')
+                    ->description('Core identity and contact details.')
                     ->schema([
                         TextInput::make('first_name')
                             ->required()
                             ->maxLength(100),
                         TextInput::make('last_name')
                             ->required()
-                            ->maxLength(100),
-                        TextInput::make('middle_name')
-                            ->maxLength(100),
-                        TextInput::make('preferred_name')
-                            ->label('Preferred Name / Goes by')
                             ->maxLength(100),
                         DatePicker::make('dob')
                             ->label('Date of Birth'),
@@ -43,16 +39,6 @@ class PatientForm
                                 'Prefer not to say' => 'Prefer not to say',
                                 'Other'            => 'Other',
                             ]),
-                        TextInput::make('pronouns')
-                            ->label('Pronouns')
-                            ->placeholder('e.g. He/Him, She/Her, They/Them')
-                            ->maxLength(50)
-                            ->columnSpan(2),
-                    ])
-                    ->columns(2),
-
-                Section::make('Contact Information')
-                    ->schema([
                         TextInput::make('email')
                             ->label('Email address')
                             ->email('rfc,dns')
@@ -63,6 +49,29 @@ class PatientForm
                             ->maxLength(50)
                             ->rule('regex:/^\+?1?[-.\s]?\(?[0-9]{3}\)?[-.\s]?[0-9]{3}[-.\s]?[0-9]{4}$/')
                             ->helperText('Format: (555) 123-4567 or +1-555-123-4567'),
+                    ])
+                    ->columns(2)
+                    ->collapsible(),
+
+                Section::make('Additional Identity')
+                    ->schema([
+                        TextInput::make('middle_name')
+                            ->maxLength(100),
+                        TextInput::make('preferred_name')
+                            ->label('Preferred Name / Goes by')
+                            ->maxLength(100),
+                        TextInput::make('pronouns')
+                            ->label('Pronouns')
+                            ->placeholder('e.g. He/Him, She/Her, They/Them')
+                            ->maxLength(50)
+                            ->columnSpan(2),
+                    ])
+                    ->columns(2)
+                    ->collapsible()
+                    ->collapsed(true),
+
+                Section::make('Address')
+                    ->schema([
                         TextInput::make('address_line_1')
                             ->label('Address Line 1')
                             ->maxLength(255)
@@ -83,7 +92,9 @@ class PatientForm
                             ->maxLength(100)
                             ->default('USA'),
                     ])
-                    ->columns(2),
+                    ->columns(2)
+                    ->collapsible()
+                    ->collapsed(true),
 
                 Section::make('Emergency Contact')
                     ->schema([
@@ -99,7 +110,9 @@ class PatientForm
                             ->maxLength(50)
                             ->columnSpan(2),
                     ])
-                    ->columns(2),
+                    ->columns(2)
+                    ->collapsible()
+                    ->collapsed(true),
 
                 Section::make('Additional Information')
                     ->schema([
@@ -115,7 +128,9 @@ class PatientForm
                             ->default(true)
                             ->columnSpan(2),
                     ])
-                    ->columns(2),
+                    ->columns(2)
+                    ->collapsible()
+                    ->collapsed(true),
 
                 Section::make('Communication Preferences')
                     ->relationship('communicationPreference')
@@ -134,7 +149,9 @@ class PatientForm
                             ->label('Preferred channel')
                             ->options(['email' => 'Email', 'both' => 'Email & SMS'])
                             ->default('email'),
-                    ]),
+                    ])
+                    ->collapsible()
+                    ->collapsed(true),
             ]);
     }
 

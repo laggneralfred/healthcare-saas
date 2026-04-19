@@ -4,6 +4,7 @@ namespace App\Filament\Resources\MessageTemplates\Tables;
 
 use App\Models\MessageTemplate;
 use Filament\Actions\BulkActionGroup;
+use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
@@ -69,6 +70,11 @@ class MessageTemplatesTable
                             });
                         }),
                 ]),
+            ])
+            ->emptyStateHeading('No message templates yet')
+            ->emptyStateDescription('Create reminder or follow-up templates to send to patients.')
+            ->emptyStateActions([
+                CreateAction::make()->label('New template'),
             ]);
     }
 }

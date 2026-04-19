@@ -35,9 +35,33 @@ class CheckoutSessionsRelationManager extends RelationManager
         return $table
             ->recordTitleAttribute('id')
             ->columns([
-                TextColumn::make('id')
-                    ->searchable(),
+                TextColumn::make('created_at')
+                    ->label('Date')
+                    ->date()
+                    ->sortable(),
+
+                TextColumn::make('charge_label')
+                    ->label('Description')
+                    ->limit(40)
+                    ->placeholder('—'),
+
+                TextColumn::make('amount_total')
+                    ->label('Amount')
+                    ->money('usd'),
+
+                TextColumn::make('state')
+                    ->label('Status')
+                    ->badge()
+                    ->color(fn ($state) => match ((string) $state) {
+                        'paid'        => 'success',
+                        'open'        => 'warning',
+                        'payment_due' => 'danger',
+                        'voided'      => 'gray',
+                        default       => 'gray',
+                    })
+                    ->formatStateUsing(fn ($state) => ucfirst(str_replace('_', ' ', (string) $state))),
             ])
+            ->defaultSort('created_at', 'desc')
             ->filters([
                 //
             ])

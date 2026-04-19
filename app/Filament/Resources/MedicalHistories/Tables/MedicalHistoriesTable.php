@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\MedicalHistories\Tables;
 
 use Filament\Actions\BulkActionGroup;
+use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
@@ -126,6 +127,11 @@ class MedicalHistoriesTable
                 BulkActionGroup::make([
                     DeleteBulkAction::make(),
                 ]),
+            ])
+            ->emptyStateHeading('No medical histories yet')
+            ->emptyStateDescription('Intake submissions will appear here once patients complete their forms.')
+            ->emptyStateActions([
+                CreateAction::make()->label('New medical history'),
             ]);
     }
 }

@@ -58,9 +58,24 @@
                     <p style="font-size: 0.875rem; color: #4b5563;">Please update your payment method in the Stripe billing portal to keep your subscription active.</p>
                 </div>
 
+            @elseif ($isOnTrial)
+                <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                    <div style="display: flex; align-items: baseline; justify-content: space-between;">
+                        <div>
+                            <h3 style="font-size: 1.5rem; font-weight: 700; color: #111827;">{{ $trialRemainingLabel }}</h3>
+                            <p style="font-size: 0.875rem; color: #4b5563; margin-top: 0.25rem;">
+                                Your free trial ends on {{ $trialEndsAt }}. Choose a plan below to continue after the trial.
+                            </p>
+                        </div>
+                        <span style="display: inline-flex; align-items: center; border-radius: 9999px; background-color: #fef3c7; padding: 0.25rem 0.75rem; font-size: 0.875rem; font-weight: 500; color: #92400e;">
+                            Trial
+                        </span>
+                    </div>
+                </div>
+
             @else
                 <div style="display: flex; flex-direction: column; gap: 0.75rem;">
-                    <p style="font-size: 1.125rem; font-weight: 500; color: #4b5563;">No Active Subscription</p>
+                    <p style="font-size: 1.125rem; font-weight: 500; color: #4b5563;">No active plan</p>
                     <p style="font-size: 0.875rem; color: #4b5563;">Select a plan below to get started with your practice management.</p>
                 </div>
             @endif

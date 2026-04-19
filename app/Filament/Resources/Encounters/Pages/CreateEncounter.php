@@ -16,6 +16,15 @@ class CreateEncounter extends CreateRecord
         return EncounterResource::form($schema);
     }
 
+    public function mount(): void
+    {
+        parent::mount();
+
+        if ($patientId = request('patient_id')) {
+            $this->form->fill(['patient_id' => $patientId]);
+        }
+    }
+
     protected function mutateFormDataBeforeCreate(array $data): array
     {
         // Auto-populate discipline from practitioner if not set

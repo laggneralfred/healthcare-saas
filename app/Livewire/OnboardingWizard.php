@@ -32,9 +32,6 @@ class OnboardingWizard extends Component
     public string $licenseNumber = '';
     public string $discipline = '';
 
-    // Step 5 — Disciplines
-    public array $disciplines = [];
-
     public bool $setupLegalLater = true;
 
     protected $rules = [
@@ -47,7 +44,6 @@ class OnboardingWizard extends Component
         'practitionerName'           => 'required|string|max:255',
         'licenseNumber'              => 'required|string|max:255',
         'discipline'                 => 'required|in:acupuncture,massage,chiropractic,physiotherapy',
-        'disciplines'                => 'required|array|min:1',
     ];
 
     public function mount(): void
@@ -74,11 +70,10 @@ class OnboardingWizard extends Component
             3 => $this->validateStep3(),
             4 => $this->validateStep4(),
             5 => $this->validateStep5(),
-            6 => $this->validateStep6(),
             default => null,
         };
 
-        if ($this->currentStep < 7) {
+        if ($this->currentStep < 6) {
             $this->currentStep++;
         }
     }
@@ -104,7 +99,7 @@ class OnboardingWizard extends Component
     public function proceedWithLegalSetup(): void
     {
         $this->setupLegalLater = false;
-        $this->currentStep = 7;
+        $this->currentStep = 6;
     }
 
     public function completeSetup(): void
@@ -113,7 +108,6 @@ class OnboardingWizard extends Component
             'practiceName'               => 'required|string|max:255',
             'practitionerName'           => 'required|string|max:255',
             'discipline'                 => 'required|in:acupuncture,massage,chiropractic,physiotherapy',
-            'disciplines'                => 'required|array|min:1',
             'defaultAppointmentDuration' => 'required|in:15,30,45,60',
             'defaultReminderHours'       => 'required|in:0,24,48',
             'timezone'                   => 'required|string|max:100',
@@ -254,12 +248,7 @@ class OnboardingWizard extends Component
 
     private function validateStep5(): void
     {
-        $this->validate(['disciplines' => 'required|array|min:1']);
-    }
-
-    private function validateStep6(): void
-    {
-        // Step 6 is a choice — no input validation needed
+        // Step 5 is the legal-forms choice — no input validation needed
     }
 
     public function render()

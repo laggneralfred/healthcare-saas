@@ -40,6 +40,8 @@ class ConsentRecordsTable
                 BulkActionGroup::make([
                     DeleteBulkAction::make(),
                 ]),
-            ]);
+            ])
+            ->emptyStateHeading('No consent records yet')
+            ->emptyStateDescription('Signed consents will appear here after patients complete their forms.');
     }
 }

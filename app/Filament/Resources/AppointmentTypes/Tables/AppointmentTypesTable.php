@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\AppointmentTypes\Tables;
 
 use Filament\Actions\BulkActionGroup;
+use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
@@ -32,6 +33,11 @@ class AppointmentTypesTable
                 BulkActionGroup::make([
                     DeleteBulkAction::make(),
                 ]),
+            ])
+            ->emptyStateHeading('No appointment types yet')
+            ->emptyStateDescription('Define durations and pricing for the services you offer.')
+            ->emptyStateActions([
+                CreateAction::make()->label('Add appointment type'),
             ]);
     }
 }

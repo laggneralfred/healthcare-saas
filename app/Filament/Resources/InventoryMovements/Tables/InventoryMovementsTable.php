@@ -82,6 +82,8 @@ class InventoryMovementsTable
                     ->label('Product'),
             ])
             ->defaultSort('created_at', 'desc')
-            ->paginated([10, 25, 50]);
+            ->paginated([10, 25, 50])
+            ->emptyStateHeading('No inventory movements yet')
+            ->emptyStateDescription('Restocks, sales, and adjustments will appear here.');
     }
 }

@@ -34,13 +34,13 @@ class ViewPatient extends ViewRecord
             Action::make('new_encounter')
                 ->label('New Visit')
                 ->icon('heroicon-o-document')
-                ->url(fn () => \App\Filament\Resources\Encounters\EncounterResource::getUrl('create'))
+                ->url(fn () => \App\Filament\Resources\Encounters\EncounterResource::getUrl('create', ['patient_id' => $this->record->id]))
                 ->color('primary'),
 
             Action::make('new_appointment')
                 ->label('New Appointment')
                 ->icon('heroicon-o-calendar')
-                ->url(fn () => \App\Filament\Resources\Appointments\AppointmentResource::getUrl('create'))
+                ->url(fn () => \App\Filament\Resources\Appointments\AppointmentResource::getUrl('create', ['patient_id' => $this->record->id]))
                 ->color('success'),
         ];
     }

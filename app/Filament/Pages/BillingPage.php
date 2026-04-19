@@ -36,6 +36,12 @@ class BillingPage extends Page
 
     public bool $hasPastDueSubscription = false;
 
+    public bool $isOnTrial = false;
+
+    public ?string $trialEndsAt = null;
+
+    public ?string $trialRemainingLabel = null;
+
     public ?string $activePriceId = null;
 
     public ?string $currentPlanName = null;
@@ -94,6 +100,14 @@ class BillingPage extends Page
         $sub = $practice->subscription('default');
         $this->hasPastDueSubscription = $sub && $sub->stripe_status === 'past_due';
         $this->subscriptionEndsAt     = $sub?->ends_at?->format('M d, Y');
+
+        $this->isOnTrial           = ! $this->hasActiveSubscription
+            && $practice->trial_ends_at
+            && $practice->trial_ends_at->isFuture();
+        $this->trialEndsAt         = $this->isOnTrial ? $practice->trial_ends_at->format('M d, Y') : null;
+        $this->trialRemainingLabel = $this->isOnTrial
+            ? 'Trial — ' . $practice->trial_ends_at->diffForHumans(null, true) . ' remaining'
+            : null;
     }
 
     // ── Helpers ────────────────────────────────────────────────────────────────

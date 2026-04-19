@@ -82,6 +82,8 @@ class MessageLogsTable
                     ->modalContent(fn ($record) => view('filament.modals.message-log-body', ['log' => $record]))
                     ->modalSubmitAction(false)
                     ->modalCancelActionLabel('Close'),
-            ]);
+            ])
+            ->emptyStateHeading('No messages sent yet')
+            ->emptyStateDescription('Sent, queued, and failed messages will appear here.');
     }
 }

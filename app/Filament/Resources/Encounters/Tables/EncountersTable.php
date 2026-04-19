@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Encounters\Tables;
 
 use Filament\Actions\BulkActionGroup;
+use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
@@ -69,6 +70,11 @@ class EncountersTable
                     DeleteBulkAction::make(),
                 ]),
             ])
-            ->defaultSort('visit_date', 'desc');
+            ->defaultSort('visit_date', 'desc')
+            ->emptyStateHeading('No visits yet')
+            ->emptyStateDescription('Document your first patient visit here.')
+            ->emptyStateActions([
+                CreateAction::make()->label('New visit'),
+            ]);
     }
 }

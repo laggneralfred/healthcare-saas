@@ -29,6 +29,29 @@ class AppointmentResource extends Resource
 
     protected static ?int $navigationSort = 2;
 
+    protected static ?string $recordTitleAttribute = 'id';
+
+    public static function getGloballySearchableAttributes(): array
+    {
+        return ['patient.first_name', 'patient.last_name', 'patient.name'];
+    }
+
+    public static function getGlobalSearchResultTitle($record): string
+    {
+        $date = $record->start_datetime?->format('M j, Y g:i A') ?? '—';
+        $name = $record->patient?->name ?? 'Appointment';
+
+        return "{$name} — {$date}";
+    }
+
+    public static function getGlobalSearchResultDetails($record): array
+    {
+        return array_filter([
+            'Practitioner' => $record->practitioner?->user?->name,
+            'Status'       => is_object($record->status) ? class_basename($record->status) : $record->status,
+        ]);
+    }
+
     public static function form(Schema $schema): Schema
     {
         return AppointmentForm::configure($schema);
