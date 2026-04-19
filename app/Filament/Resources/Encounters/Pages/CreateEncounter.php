@@ -27,6 +27,8 @@ class CreateEncounter extends CreateRecord
 
     protected function mutateFormDataBeforeCreate(array $data): array
     {
+        $data['practice_id'] = auth()->user()->practice_id;
+
         // Auto-populate discipline from practitioner if not set
         if (!empty($data['practitioner_id'])) {
             $practitioner = \App\Models\Practitioner::find($data['practitioner_id']);

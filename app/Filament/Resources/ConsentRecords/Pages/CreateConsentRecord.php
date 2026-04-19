@@ -8,4 +8,10 @@ use Filament\Resources\Pages\CreateRecord;
 class CreateConsentRecord extends CreateRecord
 {
     protected static string $resource = ConsentRecordResource::class;
+
+    protected function mutateFormDataBeforeCreate(array $data): array
+    {
+        $data['practice_id'] = auth()->user()->practice_id;
+        return $data;
+    }
 }

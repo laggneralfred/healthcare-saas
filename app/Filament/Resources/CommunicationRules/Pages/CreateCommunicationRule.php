@@ -11,6 +11,7 @@ class CreateCommunicationRule extends CreateRecord
 
     protected function mutateFormDataBeforeCreate(array $data): array
     {
+        $data['practice_id'] = auth()->user()->practice_id;
         return $this->computeOffset($data);
     }
 
