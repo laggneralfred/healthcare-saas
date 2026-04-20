@@ -29,8 +29,11 @@ log "==> Pulling latest code..."
 git -C ${APP_DIR} fetch origin
 git -C ${APP_DIR} reset --hard origin/master
 
-log "==> Building app image..."
+log "==> Building app image (no cache)..."
 ${COMPOSE} build app --no-cache
+
+log "==> Building queue and scheduler images (using cached layers)..."
+${COMPOSE} build queue scheduler
 
 log "==> Stopping old containers..."
 docker stop healthcare-saas-app healthcare-saas-nginx healthcare-saas-queue healthcare-saas-scheduler 2>/dev/null || true
