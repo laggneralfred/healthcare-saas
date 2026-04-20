@@ -31,6 +31,14 @@ class ViewPatient extends ViewRecord
                 ->url(fn () => static::getResource()::getUrl('edit', ['record' => $this->record]))
                 ->color('gray'),
 
+            Action::make('intake_form')
+                ->label(fn () => $this->record->medicalHistory ? 'Edit Intake' : 'Intake Form')
+                ->icon('heroicon-o-clipboard-document-list')
+                ->color('warning')
+                ->url(fn () => $this->record->medicalHistory
+                    ? \App\Filament\Resources\MedicalHistories\MedicalHistoryResource::getUrl('edit', ['record' => $this->record->medicalHistory->id])
+                    : \App\Filament\Resources\MedicalHistories\MedicalHistoryResource::getUrl('create', ['patient_id' => $this->record->id])),
+
             Action::make('new_encounter')
                 ->label('New Visit')
                 ->icon('heroicon-o-document')
@@ -50,7 +58,8 @@ class ViewPatient extends ViewRecord
         return Patient::with([
             'encounters'        => fn ($q) => $q->with('practitioner.user')->orderByDesc('visit_date'),
             'appointments'      => fn ($q) => $q->with('practitioner.user', 'appointmentType', 'encounter')->orderByDesc('start_datetime'),
-            'medicalHistories' => fn ($q) => $q->where('status', 'complete')->latest(),
+            'medicalHistories'  => fn ($q) => $q->where('status', 'complete')->latest(),
+            'medicalHistory',
             'checkoutSessions'  => fn ($q) => $q->latest(),
             'consentRecords'    => fn ($q) => $q->where('status', 'complete')->latest(),
         ])->findOrFail($key);

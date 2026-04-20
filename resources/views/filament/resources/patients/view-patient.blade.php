@@ -21,6 +21,7 @@
     $encounterViewUrl = fn($enc) => \App\Filament\Resources\Encounters\EncounterResource::getUrl('view', ['record' => $enc->id]);
     $appointmentViewUrl = fn($appt) => \App\Filament\Resources\Appointments\AppointmentResource::getUrl('view', ['record' => $appt->id]);
     $checkoutViewUrl = fn($co) => \App\Filament\Resources\CheckoutSessions\CheckoutSessionResource::getUrl('view', ['record' => $co->id]);
+    $intakeCreateUrl = \App\Filament\Resources\MedicalHistories\MedicalHistoryResource::getUrl('create', ['patient_id' => $patient->id]);
     $encounterCreateUrl = fn($appt, $patient) => \App\Filament\Resources\Encounters\EncounterResource::getUrl('create') . '?appointment_id=' . $appt->id . '&patient_id=' . $patient->id;
     $encounterBtn = fn($appt, $patient) => $appt->encounter
         ? '<a href="' . $encounterViewUrl($appt->encounter) . '" style="color:#0d9488;text-decoration:none;font-weight:500;font-size:0.85rem;">View Visit</a>'
@@ -230,7 +231,15 @@
         {{-- ── TAB: INTAKE & HISTORY ──────────────────────────────────── --}}
         <div x-show="tab === 'intake'" x-cloak>
             @if(!$latestIntake)
-                <div style="text-align:center;padding:2rem;color:#9ca3af;">No completed intake form on file.</div>
+                <div style="text-align:center;padding:2.5rem 1.5rem;background:#fffbeb;border:1px dashed #fcd34d;border-radius:0.5rem;">
+                    <div style="font-size:1.5rem;margin-bottom:0.75rem;">📋</div>
+                    <p style="font-size:0.9375rem;font-weight:600;color:#374151;margin:0 0 0.375rem;">No intake form on file.</p>
+                    <p style="font-size:0.875rem;color:#6b7280;margin:0 0 1.25rem;">Collect the patient's medical history before their first visit.</p>
+                    <a href="{{ $intakeCreateUrl }}"
+                       style="display:inline-block;padding:0.5rem 1.25rem;background:#d97706;color:#ffffff;font-size:0.875rem;font-weight:600;border-radius:0.5rem;text-decoration:none;">
+                        Start intake →
+                    </a>
+                </div>
             @else
                 @php $i = $latestIntake; @endphp
 

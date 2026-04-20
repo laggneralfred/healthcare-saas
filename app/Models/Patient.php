@@ -144,6 +144,11 @@ class Patient extends Model
         return $this->hasMany(MedicalHistory::class);
     }
 
+    public function medicalHistory(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(MedicalHistory::class)->latestOfMany();
+    }
+
     public function encounters(): HasMany
     {
         return $this->hasMany(Encounter::class);
