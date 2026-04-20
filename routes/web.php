@@ -88,25 +88,29 @@ Route::get('/admin/calendar/events', function (Request $request) {
         'closed'      => '#6b7280',
         'checkout'    => '#7c3aed',
         'cancelled'   => '#ef4444',
+        'no_show'     => '#9ca3af',
     ];
 
     $events = Appointment::where('practice_id', $practiceId)
         ->whereBetween('start_datetime', [$start, $end])
-        ->with(['patient', 'appointmentType'])
+        ->with(['patient', 'practitioner.user', 'appointmentType'])
         ->get()
         ->map(function ($appt) use ($statusColors) {
-            $patientName = $appt->patient?->name ?? 'Unknown';
-            $typeName    = $appt->appointmentType?->name ?? '';
-            $statusKey   = $appt->getRawOriginal('status') ?? 'scheduled';
+            $patientName      = $appt->patient?->name ?? 'Unknown';
+            $practitionerName = $appt->practitioner?->user?->name ?? '';
+            $statusKey        = $appt->getRawOriginal('status') ?? 'scheduled';
 
             return [
                 'id'    => $appt->id,
-                'title' => $patientName . ($typeName ? ' — ' . $typeName : ''),
+                'title' => $patientName . ($practitionerName ? ' · ' . $practitionerName : ''),
                 'start' => $appt->start_datetime->toIso8601String(),
                 'end'   => $appt->end_datetime->toIso8601String(),
                 'url'   => route('filament.admin.resources.appointments.view', ['record' => $appt->id]),
                 'color' => $statusColors[$statusKey] ?? '#6b7280',
-                'extendedProps' => ['status' => $statusKey],
+                'extendedProps' => [
+                    'status'          => $statusKey,
+                    'appointmentType' => $appt->appointmentType?->name ?? '',
+                ],
             ];
         });
 

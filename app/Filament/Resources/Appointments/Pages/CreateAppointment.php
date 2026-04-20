@@ -13,8 +13,18 @@ class CreateAppointment extends CreateRecord
     {
         parent::mount();
 
+        $fill = [];
+
         if ($patientId = request('patient_id')) {
-            $this->form->fill(['patient_id' => $patientId]);
+            $fill['patient_id'] = $patientId;
+        }
+
+        if ($startDatetime = request('start_datetime')) {
+            $fill['start_datetime'] = \Carbon\Carbon::parse($startDatetime)->format('Y-m-d H:i:00');
+        }
+
+        if ($fill) {
+            $this->form->fill($fill);
         }
     }
 

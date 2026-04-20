@@ -1,0 +1,110 @@
+<div>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.css">
+
+    {{-- Toolbar --}}
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;">
+        <div style="display:flex;flex-wrap:wrap;gap:0.75rem;font-size:0.8125rem;color:#64748b;align-items:center;">
+            <span style="font-weight:600;color:#0f172a;">Legend:</span>
+            <span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#3b82f6;margin-right:4px;vertical-align:middle;"></span>Scheduled</span>
+            <span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#d97706;margin-right:4px;vertical-align:middle;"></span>In Progress</span>
+            <span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#16a34a;margin-right:4px;vertical-align:middle;"></span>Completed</span>
+            <span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#7c3aed;margin-right:4px;vertical-align:middle;"></span>Checkout</span>
+            <span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#ef4444;margin-right:4px;vertical-align:middle;"></span>Cancelled</span>
+            <span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#6b7280;margin-right:4px;vertical-align:middle;"></span>Closed</span>
+        </div>
+        <a href="{{ $createBaseUrl }}"
+           style="display:inline-flex;align-items:center;gap:0.375rem;padding:0.5rem 1.125rem;background:#0d9488;color:#ffffff;font-size:0.875rem;font-weight:600;border-radius:0.5rem;text-decoration:none;white-space:nowrap;">
+            + New Appointment
+        </a>
+    </div>
+
+    {{-- Calendar --}}
+    <div style="background:#ffffff;border:1px solid #e2e8f0;border-radius:0.75rem;padding:1.25rem;">
+        <div id="practiq-appt-calendar" style="min-height:640px;"></div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
+    <script>
+    (function () {
+        var CREATE_BASE_URL = @json($createBaseUrl);
+        var EVENTS_URL      = @json($eventsUrl);
+
+        function initCalendar() {
+            var el = document.getElementById('practiq-appt-calendar');
+            if (!el || el._fc) return;
+
+            var calendar = new FullCalendar.Calendar(el, {
+                initialView: 'timeGridWeek',
+                headerToolbar: {
+                    left:   'prev,next today',
+                    center: 'title',
+                    right:  'dayGridMonth,timeGridWeek,timeGridDay,listWeek'
+                },
+                height: 'auto',
+                slotMinTime: '07:00:00',
+                slotMaxTime: '20:00:00',
+                allDaySlot: false,
+                nowIndicator: true,
+                selectable: true,
+                businessHours: {
+                    daysOfWeek: [1, 2, 3, 4, 5],
+                    startTime:  '08:00',
+                    endTime:    '18:00',
+                },
+                eventTimeFormat: {
+                    hour:     'numeric',
+                    minute:   '2-digit',
+                    meridiem: 'short'
+                },
+                events: {
+                    url:     EVENTS_URL,
+                    method:  'GET',
+                    failure: function () {
+                        console.warn('Practiq: failed to load calendar events');
+                    }
+                },
+
+                // Click on empty time slot → open Create form pre-filled with that time
+                dateClick: function (info) {
+                    var dt   = info.date;
+                    var pad  = function (n) { return String(n).padStart(2, '0'); };
+                    var formatted = dt.getFullYear() + '-'
+                        + pad(dt.getMonth() + 1) + '-'
+                        + pad(dt.getDate()) + ' '
+                        + pad(dt.getHours()) + ':'
+                        + pad(dt.getMinutes()) + ':00';
+                    window.location.href = CREATE_BASE_URL + '?start_datetime=' + encodeURIComponent(formatted);
+                },
+
+                // Click on existing event → open View page
+                eventClick: function (info) {
+                    info.jsEvent.preventDefault();
+                    if (info.event.url) {
+                        window.location.href = info.event.url;
+                    }
+                },
+
+                // Tooltip with appointment type on hover
+                eventDidMount: function (info) {
+                    var type   = info.event.extendedProps.appointmentType ?? '';
+                    var status = info.event.extendedProps.status ?? '';
+                    var parts  = [info.event.title];
+                    if (type)   parts.push(type);
+                    if (status) parts.push('(' + status.replace('_', ' ') + ')');
+                    info.el.title = parts.join(' · ');
+                },
+            });
+
+            calendar.render();
+            el._fc = calendar;
+        }
+
+        document.addEventListener('DOMContentLoaded', initCalendar);
+        document.addEventListener('livewire:navigated', function () {
+            var el = document.getElementById('practiq-appt-calendar');
+            if (el) { el._fc = null; }
+            initCalendar();
+        });
+    })();
+    </script>
+</div>
