@@ -24,4 +24,10 @@ class EditAppointment extends EditRecord
 
         AuditLogger::viewed($this->getRecord());
     }
+
+    protected function mutateFormDataBeforeSave(array $data): array
+    {
+        unset($data['duration_minutes']);
+        return $data;
+    }
 }

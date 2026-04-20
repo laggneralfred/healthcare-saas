@@ -6,6 +6,10 @@ use App\Livewire\Public\BookingCalendar;
 use App\Livewire\Public\ConsentForm;
 use App\Livewire\Public\IntakeForm;
 use App\Livewire\OnboardingWizard;
+use App\Models\Appointment;
+use App\Services\PracticeContext;
+use Carbon\Carbon;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -69,6 +73,45 @@ Route::post('/admin/dismiss-setup-banner', function () {
     auth()->user()->practice?->update(['dismissed_onboarding_banner' => true]);
     return back();
 })->middleware(['web', 'auth'])->name('admin.dismiss-setup-banner');
+
+// FullCalendar events feed — authenticated, practice-scoped
+Route::get('/admin/calendar/events', function (Request $request) {
+    $practiceId = PracticeContext::currentPracticeId() ?? auth()->user()->practice_id;
+
+    $start = $request->get('start') ? Carbon::parse($request->get('start')) : now()->startOfMonth();
+    $end   = $request->get('end')   ? Carbon::parse($request->get('end'))   : now()->endOfMonth();
+
+    $statusColors = [
+        'scheduled'   => '#3b82f6',
+        'in_progress' => '#d97706',
+        'completed'   => '#16a34a',
+        'closed'      => '#6b7280',
+        'checkout'    => '#7c3aed',
+        'cancelled'   => '#ef4444',
+    ];
+
+    $events = Appointment::where('practice_id', $practiceId)
+        ->whereBetween('start_datetime', [$start, $end])
+        ->with(['patient', 'appointmentType'])
+        ->get()
+        ->map(function ($appt) use ($statusColors) {
+            $patientName = $appt->patient?->name ?? 'Unknown';
+            $typeName    = $appt->appointmentType?->name ?? '';
+            $statusKey   = $appt->getRawOriginal('status') ?? 'scheduled';
+
+            return [
+                'id'    => $appt->id,
+                'title' => $patientName . ($typeName ? ' — ' . $typeName : ''),
+                'start' => $appt->start_datetime->toIso8601String(),
+                'end'   => $appt->end_datetime->toIso8601String(),
+                'url'   => route('filament.admin.resources.appointments.view', ['record' => $appt->id]),
+                'color' => $statusColors[$statusKey] ?? '#6b7280',
+                'extendedProps' => ['status' => $statusKey],
+            ];
+        });
+
+    return response()->json($events);
+})->middleware(['web', 'auth'])->name('admin.calendar.events');
 
 // Demo instant login — public, redirects to admin
 Route::get('/demo-login', function () {

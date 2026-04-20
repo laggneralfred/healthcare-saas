@@ -21,6 +21,7 @@ class CreateAppointment extends CreateRecord
     protected function mutateFormDataBeforeCreate(array $data): array
     {
         $data['practice_id'] = auth()->user()->practice_id;
+        unset($data['duration_minutes']);
         return $data;
     }
 }
