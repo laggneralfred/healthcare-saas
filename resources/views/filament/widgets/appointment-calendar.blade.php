@@ -13,7 +13,7 @@
     </div>
 
     {{-- Calendar — no wrapper card; fills the page content area --}}
-    <div id="practiq-appt-calendar"></div>
+    <div id="practiq-appt-calendar" wire:ignore></div>
 
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
     <script>
