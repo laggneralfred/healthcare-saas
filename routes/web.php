@@ -7,7 +7,6 @@ use App\Livewire\Public\ConsentForm;
 use App\Livewire\Public\IntakeForm;
 use App\Livewire\OnboardingWizard;
 use App\Models\Appointment;
-use App\Services\PracticeContext;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -74,9 +73,9 @@ Route::post('/admin/dismiss-setup-banner', function () {
     return back();
 })->middleware(['web', 'auth'])->name('admin.dismiss-setup-banner');
 
-// FullCalendar events feed — authenticated, practice-scoped
+// FullCalendar events feed — authenticated, scoped to logged-in user's practice
 Route::get('/admin/calendar/events', function (Request $request) {
-    $practiceId = PracticeContext::currentPracticeId() ?? auth()->user()->practice_id;
+    $practiceId = auth()->user()->practice_id;
 
     $start = $request->get('start') ? Carbon::parse($request->get('start')) : now()->startOfMonth();
     $end   = $request->get('end')   ? Carbon::parse($request->get('end'))   : now()->endOfMonth();
@@ -87,11 +86,11 @@ Route::get('/admin/calendar/events', function (Request $request) {
         'completed'   => '#16a34a',
         'closed'      => '#6b7280',
         'checkout'    => '#7c3aed',
-        'cancelled'   => '#ef4444',
         'no_show'     => '#9ca3af',
     ];
 
     $events = Appointment::where('practice_id', $practiceId)
+        ->whereNotIn('status', ['cancelled'])
         ->whereBetween('start_datetime', [$start, $end])
         ->with(['patient', 'practitioner.user', 'appointmentType'])
         ->get()

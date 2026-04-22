@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Appointments\Pages;
 
+use App\Filament\Pages\SchedulePage;
 use App\Filament\Resources\Appointments\AppointmentResource;
 use Filament\Resources\Pages\CreateRecord;
 
@@ -33,5 +34,10 @@ class CreateAppointment extends CreateRecord
         $data['practice_id'] = auth()->user()->practice_id;
         unset($data['duration_minutes']);
         return $data;
+    }
+
+    protected function getRedirectUrl(): string
+    {
+        return SchedulePage::getUrl();
     }
 }

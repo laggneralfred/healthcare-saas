@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Appointments\Pages;
 
+use App\Filament\Pages\SchedulePage;
 use App\Filament\Resources\Appointments\AppointmentResource;
 use App\Services\AuditLogger;
 use Filament\Actions\DeleteAction;
@@ -29,5 +30,10 @@ class EditAppointment extends EditRecord
     {
         unset($data['duration_minutes']);
         return $data;
+    }
+
+    protected function getRedirectUrl(): string
+    {
+        return SchedulePage::getUrl();
     }
 }
