@@ -3,11 +3,6 @@
 namespace App\Filament\Resources\Appointments\Schemas;
 
 use App\Models\AppointmentType;
-use App\Models\States\Appointment\Checkout;
-use App\Models\States\Appointment\Closed;
-use App\Models\States\Appointment\Completed;
-use App\Models\States\Appointment\InProgress;
-use App\Models\States\Appointment\Scheduled;
 use Carbon\Carbon;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Hidden;
@@ -61,18 +56,6 @@ class AppointmentForm
                             $set('end_datetime', Carbon::parse($start)->addMinutes($type->duration_minutes)->format('Y-m-d H:i:00'));
                         }
                     })
-                    ->disabledOn('view'),
-
-                Select::make('status')
-                    ->options([
-                        Scheduled::$name  => 'Scheduled',
-                        InProgress::$name => 'In Progress',
-                        Completed::$name  => 'Completed',
-                        Closed::$name     => 'Closed',
-                        Checkout::$name   => 'Checkout',
-                    ])
-                    ->default(Scheduled::$name)
-                    ->required()
                     ->disabledOn('view'),
 
                 DateTimePicker::make('start_datetime')
