@@ -21,7 +21,10 @@ class CreateAppointment extends CreateRecord
         }
 
         if ($startDatetime = request('start_datetime')) {
-            $fill['start_datetime'] = \Carbon\Carbon::parse($startDatetime)->format('Y-m-d H:i:00');
+            $start                  = \Carbon\Carbon::parse($startDatetime);
+            $fill['start_datetime'] = $start->format('Y-m-d H:i:00');
+            $duration               = auth()->user()->practice?->default_appointment_duration ?? 60;
+            $fill['end_datetime']   = $start->copy()->addMinutes((int) $duration)->format('Y-m-d H:i:00');
         }
 
         if ($fill) {

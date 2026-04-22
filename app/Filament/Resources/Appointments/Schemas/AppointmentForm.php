@@ -13,6 +13,29 @@ use Filament\Schemas\Schema;
 
 class AppointmentForm
 {
+    private static function computeDefaultStart(): \Carbon\Carbon
+    {
+        $now = now();
+        $remainder = $now->minute % 30;
+        if ($remainder > 0) {
+            $now->addMinutes(30 - $remainder);
+        }
+        $now->setSecond(0);
+
+        if ($now->hour < 8) {
+            $now->setHour(8)->setMinute(0);
+        }
+
+        if ($now->hour >= 18) {
+            $now->addDay()->setHour(9)->setMinute(0)->setSecond(0);
+            while ($now->isWeekend()) {
+                $now->addDay();
+            }
+        }
+
+        return $now;
+    }
+
     public static function configure(Schema $schema): Schema
     {
         return $schema
@@ -61,11 +84,8 @@ class AppointmentForm
                 DateTimePicker::make('start_datetime')
                     ->label('Start Time')
                     ->required()
-                    ->default(function () {
-                        $now = now();
-                        $floored = (int) floor($now->minute / 15) * 15;
-                        return $now->setMinute($floored)->setSecond(0);
-                    })
+                    ->default(fn () => self::computeDefaultStart())
+                    ->minutesStep(15)
                     ->seconds(false)
                     ->live()
                     ->afterStateUpdated(function ($state, callable $set, callable $get) {
@@ -101,7 +121,13 @@ class AppointmentForm
                     ->label('End Time')
                     ->required()
                     ->after('start_datetime')
+                    ->minutesStep(15)
                     ->seconds(false)
+                    ->default(function () {
+                        $start    = self::computeDefaultStart();
+                        $duration = auth()->user()->practice?->default_appointment_duration ?? 60;
+                        return $start->addMinutes((int) $duration);
+                    })
                     ->disabledOn('view'),
 
                 Toggle::make('needs_follow_up')

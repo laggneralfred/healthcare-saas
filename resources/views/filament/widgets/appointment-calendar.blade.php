@@ -68,6 +68,18 @@
                     window.location.href = CREATE_BASE_URL + '?start_datetime=' + encodeURIComponent(formatted);
                 },
 
+                editable: true,
+
+                // Drag to reschedule
+                eventDrop: function (info) {
+                    @this.call('updateAppointmentTime', info.event.id, info.event.start.toISOString(), info.event.end ? info.event.end.toISOString() : null);
+                },
+
+                // Resize to change duration
+                eventResize: function (info) {
+                    @this.call('updateAppointmentTime', info.event.id, info.event.start.toISOString(), info.event.end ? info.event.end.toISOString() : null);
+                },
+
                 // Click on existing event → View page
                 eventClick: function (info) {
                     info.jsEvent.preventDefault();

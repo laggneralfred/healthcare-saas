@@ -20,6 +20,11 @@ class ViewAppointment extends ViewRecord
 {
     protected static string $resource = AppointmentResource::class;
 
+    public function getTitle(): string
+    {
+        return $this->record->patient->full_name ?? 'View Appointment';
+    }
+
     protected function getHeaderActions(): array
     {
         return [
