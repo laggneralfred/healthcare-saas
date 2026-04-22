@@ -42,6 +42,6 @@ class CreateAppointment extends CreateRecord
 
     protected function getRedirectUrl(): string
     {
-        return SchedulePage::getUrl();
+        return request('return_url') ?: SchedulePage::getUrl();
     }
 }

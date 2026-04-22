@@ -31,13 +31,16 @@ class ViewAppointment extends ViewRecord
             Action::make('back')
                 ->label('Back')
                 ->icon('heroicon-o-arrow-left')
-                ->url(fn () => static::getResource()::getUrl('index'))
+                ->url(fn () => request('return_url') ?: static::getResource()::getUrl('index'))
                 ->color('gray'),
 
             Action::make('edit')
                 ->label('Edit')
                 ->icon('heroicon-o-pencil')
-                ->url(fn () => static::getResource()::getUrl('edit', ['record' => $this->record]))
+                ->url(fn () => static::getResource()::getUrl('edit', [
+                    'record' => $this->record,
+                    'return_url' => request('return_url'),
+                ]))
                 ->color('gray'),
 
             // Check In: Scheduled → InProgress

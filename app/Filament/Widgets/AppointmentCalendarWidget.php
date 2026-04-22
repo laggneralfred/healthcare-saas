@@ -17,9 +17,12 @@ class AppointmentCalendarWidget extends Widget
 
     protected function getViewData(): array
     {
+        $timezone = auth()->user()->practice?->timezone ?? 'UTC';
+
         return [
             'eventsUrl'     => route('admin.calendar.events'),
             'createBaseUrl' => AppointmentResource::getUrl('create'),
+            'calendarTimezone' => $timezone,
         ];
     }
 

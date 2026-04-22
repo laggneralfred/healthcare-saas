@@ -75,7 +75,9 @@ Route::post('/admin/dismiss-setup-banner', function () {
 
 // FullCalendar events feed — authenticated, scoped to logged-in user's practice
 Route::get('/admin/calendar/events', function (Request $request) {
-    $practiceId = auth()->user()->practice_id;
+    $practice   = auth()->user()->practice;
+    $practiceId  = auth()->user()->practice_id;
+    $timezone    = $practice?->timezone ?? 'UTC';
 
     $start = $request->get('start') ? Carbon::parse($request->get('start')) : now()->startOfMonth();
     $end   = $request->get('end')   ? Carbon::parse($request->get('end'))   : now()->endOfMonth();
@@ -94,17 +96,20 @@ Route::get('/admin/calendar/events', function (Request $request) {
         ->whereBetween('start_datetime', [$start, $end])
         ->with(['patient', 'practitioner.user', 'appointmentType'])
         ->get()
-        ->map(function ($appt) use ($statusColors) {
-            $patientName      = $appt->patient?->name ?? 'Unknown';
+        ->map(function ($appt) use ($statusColors, $timezone) {
+            $patientName      = $appt->patient?->full_name ?: $appt->patient?->name ?? 'Unknown';
             $practitionerName = $appt->practitioner?->user?->name ?? '';
             $statusKey        = $appt->getRawOriginal('status') ?? 'scheduled';
 
             return [
                 'id'    => $appt->id,
                 'title' => $patientName . ($practitionerName ? ' · ' . $practitionerName : ''),
-                'start' => $appt->start_datetime->toIso8601String(),
-                'end'   => $appt->end_datetime->toIso8601String(),
-                'url'   => route('filament.admin.resources.appointments.view', ['record' => $appt->id]),
+                'start' => $appt->start_datetime->copy()->setTimezone($timezone)->toIso8601String(),
+                'end'   => $appt->end_datetime->copy()->setTimezone($timezone)->toIso8601String(),
+                'url'   => route('filament.admin.resources.appointments.view', [
+                    'record' => $appt->id,
+                    'return_url' => \App\Filament\Pages\SchedulePage::getUrl(),
+                ]),
                 'color' => $statusColors[$statusKey] ?? '#6b7280',
                 'extendedProps' => [
                     'status'          => $statusKey,
@@ -125,4 +130,3 @@ Route::get('/demo-login', function () {
     }
     return redirect('/admin/login')->with('error', 'Demo account not found. Please wait for the next reset.');
 })->middleware(['web']);
-

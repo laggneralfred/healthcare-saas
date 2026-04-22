@@ -20,6 +20,7 @@
     (function () {
         var CREATE_BASE_URL = @json($createBaseUrl);
         var EVENTS_URL      = @json($eventsUrl);
+        var CALENDAR_TZ     = @json($calendarTimezone);
 
         function initCalendar() {
             var el = document.getElementById('practiq-appt-calendar');
@@ -39,6 +40,7 @@
 
             var calendar = new FullCalendar.Calendar(el, {
                 initialView: 'timeGridWeek',
+                timeZone: CALENDAR_TZ,
                 headerToolbar: {
                     left:   'prev,next today',
                     center: 'title',
