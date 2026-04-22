@@ -25,6 +25,16 @@
             var el = document.getElementById('practiq-appt-calendar');
             if (!el || el._fc) return;
 
+            function persistAppointmentTime(info) {
+                @this.call('updateAppointmentTime', info.event.id, info.event.start.toISOString(), info.event.end ? info.event.end.toISOString() : null)
+                    .then(function () {
+                        calendar.refetchEvents();
+                    })
+                    .catch(function () {
+                        info.revert();
+                    });
+            }
+
             var calendar = new FullCalendar.Calendar(el, {
                 initialView: 'timeGridWeek',
                 headerToolbar: {
@@ -72,12 +82,12 @@
 
                 // Drag to reschedule
                 eventDrop: function (info) {
-                    @this.call('updateAppointmentTime', info.event.id, info.event.start.toISOString(), info.event.end ? info.event.end.toISOString() : null);
+                    persistAppointmentTime(info);
                 },
 
                 // Resize to change duration
                 eventResize: function (info) {
-                    @this.call('updateAppointmentTime', info.event.id, info.event.start.toISOString(), info.event.end ? info.event.end.toISOString() : null);
+                    persistAppointmentTime(info);
                 },
 
                 // Click on existing event → View page
