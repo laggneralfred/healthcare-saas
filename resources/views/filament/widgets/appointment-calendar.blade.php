@@ -28,7 +28,9 @@
             function persistAppointmentTime(info) {
                 @this.call('updateAppointmentTime', info.event.id, info.event.start.toISOString(), info.event.end ? info.event.end.toISOString() : null)
                     .then(function () {
-                        calendar.refetchEvents();
+                        setTimeout(function () {
+                            calendar.refetchEvents();
+                        }, 0);
                     })
                     .catch(function () {
                         info.revert();
