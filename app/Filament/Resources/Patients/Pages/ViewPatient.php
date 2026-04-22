@@ -62,6 +62,7 @@ class ViewPatient extends ViewRecord
             'medicalHistory',
             'checkoutSessions'  => fn ($q) => $q->latest(),
             'consentRecords'    => fn ($q) => $q->where('status', 'complete')->latest(),
+            'practice',
         ])->findOrFail($key);
     }
 
@@ -105,6 +106,8 @@ class ViewPatient extends ViewRecord
             $status = 'inactive';
         }
 
+        $discipline = $patient->practice?->discipline;
+
         return $schema->components([
             ViewEntry::make('overview')
                 ->view('filament.resources.patients.view-patient')
@@ -122,6 +125,7 @@ class ViewPatient extends ViewRecord
                     'hasOutstandingPayment' => $hasOutstandingPayment,
                     'status'                => $status,
                     'checkoutSessions'      => $patient->checkoutSessions,
+                    'discipline'            => $discipline,
                 ])
                 ->columnSpanFull(),
         ]);
