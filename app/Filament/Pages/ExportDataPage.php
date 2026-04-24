@@ -4,6 +4,8 @@ namespace App\Filament\Pages;
 
 use App\Jobs\ExportPracticeDataJob;
 use App\Models\ExportToken;
+use App\Models\Practice;
+use App\Services\PracticeContext;
 use BackedEnum;
 use Filament\Actions\Action;
 use Filament\Notifications\Notification;
@@ -26,7 +28,7 @@ class ExportDataPage extends Page
 
     public function getViewData(): array
     {
-        $practice = auth()->user()?->practice;
+        $practice = $this->resolvePractice();
 
         return [
             'recentExports' => $practice
@@ -65,7 +67,7 @@ class ExportDataPage extends Page
 
     public function requestExport(string $format): void
     {
-        $practice = auth()->user()?->practice;
+        $practice = $this->resolvePractice();
 
         if (!$practice) {
             Notification::make()
@@ -92,5 +94,16 @@ class ExportDataPage extends Page
             ->body('Your export is being prepared. You will receive an email when it is ready.')
             ->success()
             ->send();
+    }
+
+    private function resolvePractice(): ?Practice
+    {
+        $practiceId = PracticeContext::currentPracticeId();
+
+        if (!$practiceId) {
+            return null;
+        }
+
+        return Practice::find($practiceId);
     }
 }

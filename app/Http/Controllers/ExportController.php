@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Jobs\ExportPracticeDataJob;
 use App\Models\ExportToken;
+use App\Models\Practice;
+use App\Services\PracticeContext;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -15,7 +17,7 @@ class ExportController extends Controller
     {
         $request->validate(['format' => 'required|in:csv,json']);
 
-        $practice = $request->user()->practice;
+        $practice = $this->resolvePractice();
         if (!$practice) {
             return back()->with('error', 'No practice associated with your account.');
         }
@@ -37,9 +39,15 @@ class ExportController extends Controller
 
     public function download(Request $request, string $tokenId): StreamedResponse|RedirectResponse
     {
+        $practiceId = PracticeContext::currentPracticeId();
+
+        if (!$practiceId) {
+            abort(404);
+        }
+
         $token = ExportToken::withoutPracticeScope()
             ->where('id', $tokenId)
-            ->where('practice_id', $request->user()->practice_id)
+            ->where('practice_id', $practiceId)
             ->firstOrFail();
 
         if ($token->isExpired()) {
@@ -83,5 +91,16 @@ class ExportController extends Controller
         }
 
         abort(403, 'Export access not available for your account.');
+    }
+
+    private function resolvePractice(): ?Practice
+    {
+        $practiceId = PracticeContext::currentPracticeId();
+
+        if (!$practiceId) {
+            return null;
+        }
+
+        return Practice::find($practiceId);
     }
 }

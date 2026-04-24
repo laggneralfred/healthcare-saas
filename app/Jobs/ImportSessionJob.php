@@ -119,9 +119,13 @@ class ImportSessionJob implements ShouldQueue
                         'dob'           => $dobParsed,
                         'gender'        => $genderLower,
                         'address_line_1' => ($row['address_line_1'] ?? $row['address'] ?? null) ?: null,
+                        'address_line_2' => ($row['address_line_2'] ?? null) ?: null,
                         'city'          => ($row['city'] ?? null) ?: null,
                         'state'         => ($row['state'] ?? null) ?: null,
                         'postal_code'   => ($row['postal_code'] ?? $row['zip'] ?? null) ?: null,
+                        'country'       => ($row['country'] ?? null) ?: null,
+                        'emergency_contact_name' => ($row['emergency_contact_name'] ?? null) ?: null,
+                        'occupation'    => ($row['occupation'] ?? null) ?: null,
                         'is_patient'    => true,
                     ]);
 

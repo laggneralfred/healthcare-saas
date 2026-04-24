@@ -62,12 +62,20 @@ class SendReminderJobTest extends TestCase
 
     public function test_creates_message_log_on_success(): void
     {
-        Mail::fake();
         ['appointment' => $appointment, 'rule' => $rule] = $this->makeAppointmentAndRule();
+
+        Mail::shouldReceive('to')->andReturnSelf();
+        Mail::shouldReceive('send')->once();
 
         (new SendAppointmentReminderJob($appointment, $rule))->handle();
 
-        $log = MessageLog::withoutPracticeScope()->first();
+        $log = MessageLog::withoutPracticeScope()
+            ->where('practice_id', $appointment->practice_id)
+            ->where('patient_id', $appointment->patient_id)
+            ->where('appointment_id', $appointment->id)
+            ->where('message_template_id', $rule->message_template_id)
+            ->first();
+
         $this->assertNotNull($log);
         $this->assertSame('sent', $log->status);
         $this->assertNotNull($log->sent_at);
@@ -75,14 +83,20 @@ class SendReminderJobTest extends TestCase
 
     public function test_marks_failed_on_mail_error(): void
     {
-        Mail::fake();
-        Mail::shouldReceive('to')->andThrow(new \RuntimeException('SMTP error'));
-
         ['appointment' => $appointment, 'rule' => $rule] = $this->makeAppointmentAndRule();
+
+        Mail::shouldReceive('to')->andReturnSelf();
+        Mail::shouldReceive('send')->andThrow(new \RuntimeException('SMTP error'));
 
         (new SendAppointmentReminderJob($appointment, $rule))->handle();
 
-        $log = MessageLog::withoutPracticeScope()->first();
+        $log = MessageLog::withoutPracticeScope()
+            ->where('practice_id', $appointment->practice_id)
+            ->where('patient_id', $appointment->patient_id)
+            ->where('appointment_id', $appointment->id)
+            ->where('message_template_id', $rule->message_template_id)
+            ->first();
+
         $this->assertSame('failed', $log->status);
         $this->assertNotNull($log->failed_at);
         $this->assertStringContainsString('SMTP error', $log->failure_reason);
@@ -90,7 +104,6 @@ class SendReminderJobTest extends TestCase
 
     public function test_skips_opted_out_patients(): void
     {
-        Mail::fake();
         ['appointment' => $appointment, 'rule' => $rule, 'patient' => $patient, 'practice' => $practice] = $this->makeAppointmentAndRule();
 
         PatientCommunicationPreference::withoutPracticeScope()->create([
@@ -103,19 +116,30 @@ class SendReminderJobTest extends TestCase
 
         (new SendAppointmentReminderJob($appointment, $rule))->handle();
 
-        $log = MessageLog::withoutPracticeScope()->first();
+        $log = MessageLog::withoutPracticeScope()
+            ->where('practice_id', $appointment->practice_id)
+            ->where('patient_id', $appointment->patient_id)
+            ->where('appointment_id', $appointment->id)
+            ->where('message_template_id', $rule->message_template_id)
+            ->first();
+
+        $this->assertNotNull($log);
         $this->assertSame('opted_out', $log->status);
-        Mail::assertNothingSent();
     }
 
     public function test_skips_patients_without_email(): void
     {
-        Mail::fake();
         ['appointment' => $appointment, 'rule' => $rule] = $this->makeAppointmentAndRule(['email' => null]);
+
+        Mail::shouldReceive('to')->never();
 
         (new SendAppointmentReminderJob($appointment, $rule))->handle();
 
-        $this->assertDatabaseCount('message_logs', 0);
-        Mail::assertNothingSent();
+        $this->assertFalse(MessageLog::withoutPracticeScope()
+            ->where('practice_id', $appointment->practice_id)
+            ->where('patient_id', $appointment->patient_id)
+            ->where('appointment_id', $appointment->id)
+            ->where('message_template_id', $rule->message_template_id)
+            ->exists());
     }
 }

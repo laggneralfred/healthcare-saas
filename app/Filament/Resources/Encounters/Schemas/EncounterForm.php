@@ -2,12 +2,15 @@
 
 namespace App\Filament\Resources\Encounters\Schemas;
 
+use App\Services\PracticeContext;
+use Filament\Actions\Action;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
+use Filament\Schemas\Components\Actions;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Tabs;
@@ -68,7 +71,10 @@ class EncounterForm
     {
         return $schema->components([
             Hidden::make('practice_id')
-                ->default(fn () => auth()->user()->practice_id),
+                ->default(fn () => PracticeContext::currentPracticeId()),
+
+            Hidden::make('ai_suggestion_id')
+                ->dehydrated(false),
 
             Grid::make(3)->columnSpanFull()->schema([
                 // ── Left Panel: Patient Context ────────────────────────
@@ -154,6 +160,32 @@ class EncounterForm
 
                         Tabs::make('Clinical Documentation')->tabs([
                 Tab::make('Core Notes')->schema([
+                    Textarea::make('visit_notes')
+                        ->label('Encounter Note')
+                        ->helperText('Write rough notes here, then use Improve Note for an AI wording suggestion.')
+                        ->rows(5)
+                        ->columnSpanFull()
+                        ->disabledOn('view'),
+                    Actions::make([
+                        Action::make('improveNote')
+                            ->label('Improve Note')
+                            ->color('gray')
+                            ->action('improveNote'),
+                        Action::make('acceptAISuggestion')
+                            ->label('Accept AI Suggestion')
+                            ->color('primary')
+                            ->action('acceptAISuggestion'),
+                    ])
+                        ->visibleOn('edit')
+                        ->columnSpanFull(),
+                    Textarea::make('ai_suggestion')
+                        ->label('AI Suggestion')
+                        ->helperText('Review before accepting. The original note is not replaced automatically.')
+                        ->rows(5)
+                        ->readOnly()
+                        ->dehydrated(false)
+                        ->columnSpanFull()
+                        ->visibleOn('edit'),
                     Textarea::make('chief_complaint')
                         ->rows(3)
                         ->required()

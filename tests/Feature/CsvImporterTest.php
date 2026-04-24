@@ -209,9 +209,9 @@ class CsvImporterTest extends TestCase
 
     public function test_import_session_job_creates_patients_from_csv(): void
     {
-        $csv = "first_name,last_name,email,phone,dob,gender\n"
-             . "Alice,Smith,alice@example.com,(707) 555-0101,1985-06-15,female\n"
-             . "Bob,Jones,bob@example.com,(707) 555-0202,1990-03-22,male\n";
+        $csv = "first_name,last_name,email,phone,dob,gender,address_line_1,address_line_2,city,state,postal_code,country,emergency_contact_name,occupation\n"
+             . "Alice,Smith,alice@example.com,(707) 555-0101,1985-06-15,female,123 Main St,Apt 4,San Rafael,CA,94901,USA,Mary Smith,Yoga Teacher\n"
+             . "Bob,Jones,bob@example.com,(707) 555-0202,1990-03-22,male,456 Oak Ave,Suite B,Novato,CA,94945,USA,Sue Jones,Engineer\n";
 
         Storage::disk('local')->put('imports/1/import.csv', $csv);
 
@@ -222,8 +222,8 @@ class CsvImporterTest extends TestCase
             'original_filename'=> 'import.csv',
             'total_rows'       => 2,
             'valid_rows'       => 2,
-            'detected_headers' => ['first_name', 'last_name', 'email', 'phone', 'dob', 'gender'],
-            'column_mappings'  => [0 => 'first_name', 1 => 'last_name', 2 => 'email', 3 => 'phone', 4 => 'dob', 5 => 'gender'],
+            'detected_headers' => ['first_name', 'last_name', 'email', 'phone', 'dob', 'gender', 'address_line_1', 'address_line_2', 'city', 'state', 'postal_code', 'country', 'emergency_contact_name', 'occupation'],
+            'column_mappings'  => [0 => 'first_name', 1 => 'last_name', 2 => 'email', 3 => 'phone', 4 => 'dob', 5 => 'gender', 6 => 'address_line_1', 7 => 'address_line_2', 8 => 'city', 9 => 'state', 10 => 'postal_code', 11 => 'country', 12 => 'emergency_contact_name', 13 => 'occupation'],
         ]);
 
         (new ImportSessionJob($session->id))->handle();
@@ -240,6 +240,14 @@ class CsvImporterTest extends TestCase
         $this->assertEquals('Smith', $alice->last_name);
         $this->assertEquals('Female', $alice->gender);
         $this->assertEquals('1985-06-15', $alice->dob->format('Y-m-d'));
+        $this->assertEquals('123 Main St', $alice->address_line_1);
+        $this->assertEquals('Apt 4', $alice->address_line_2);
+        $this->assertEquals('San Rafael', $alice->city);
+        $this->assertEquals('CA', $alice->state);
+        $this->assertEquals('94901', $alice->postal_code);
+        $this->assertEquals('USA', $alice->country);
+        $this->assertEquals('Mary Smith', $alice->emergency_contact_name);
+        $this->assertEquals('Yoga Teacher', $alice->occupation);
 
         $session->refresh();
         $this->assertEquals('complete', $session->status);

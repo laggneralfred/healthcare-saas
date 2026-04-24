@@ -4,11 +4,14 @@ namespace Tests\Feature;
 
 use App\Jobs\ExportPracticeDataJob;
 use App\Models\ExportToken;
+use App\Models\MedicalHistory;
 use App\Models\Practice;
 use App\Models\User;
+use App\Services\PracticeContext;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Storage;
+use Livewire\Livewire;
 use Tests\TestCase;
 use ZipArchive;
 
@@ -44,6 +47,34 @@ class ExportDataTest extends TestCase
         $this->assertEquals('processing', $token->status);
 
         Queue::assertPushed(ExportPracticeDataJob::class);
+    }
+
+    public function test_selected_practice_export_request_dispatches_job_for_super_admin()
+    {
+        Queue::fake();
+
+        $selectedPractice = Practice::factory()->create(['trial_ends_at' => now()->addDays(30)]);
+        $otherPractice = Practice::factory()->create(['trial_ends_at' => now()->addDays(30)]);
+        $user = User::factory()->create(['practice_id' => null]);
+
+        $this->actingAs($user);
+        PracticeContext::setCurrentPracticeId($selectedPractice->id);
+
+        $response = $this->withoutMiddleware()->post(route('export.request'), [
+            'format' => 'csv',
+        ]);
+
+        $response->assertRedirect();
+        $response->assertSessionHas('message');
+
+        $token = ExportToken::where('practice_id', $selectedPractice->id)->first();
+        $this->assertNotNull($token);
+        $this->assertEquals('csv', $token->format);
+        $this->assertNull(ExportToken::where('practice_id', $otherPractice->id)->first());
+
+        Queue::assertPushed(ExportPracticeDataJob::class, function (ExportPracticeDataJob $job) use ($selectedPractice) {
+            return $job->practiceId === $selectedPractice->id;
+        });
     }
 
     public function test_export_validates_format()
@@ -129,6 +160,63 @@ class ExportDataTest extends TestCase
         unlink($tempZipPath);
     }
 
+    public function test_csv_export_json_encodes_array_cast_columns()
+    {
+        $practice = Practice::factory()->create(['trial_ends_at' => now()->addDays(30)]);
+        $user = User::factory()->create(['practice_id' => $practice->id]);
+
+        $patient = $practice->patients()->create([
+            'name' => 'John Doe',
+            'first_name' => 'John',
+            'last_name' => 'Doe',
+            'email' => 'john@example.com',
+            'is_patient' => true,
+        ]);
+
+        MedicalHistory::create([
+            'practice_id' => $practice->id,
+            'patient_id' => $patient->id,
+            'status' => 'complete',
+            'discipline' => 'acupuncture',
+            'discipline_responses' => [
+                'tcm' => [
+                    'sleep_issues' => ['staying_asleep'],
+                    'previous_acupuncture' => false,
+                ],
+            ],
+        ]);
+
+        $token = ExportToken::create([
+            'practice_id' => $practice->id,
+            'format' => 'csv',
+            'status' => 'processing',
+            'expires_at' => now()->addHours(24),
+        ]);
+
+        (new ExportPracticeDataJob($practice->id, $token->id, 'csv'))->handle();
+
+        $token->refresh();
+        $this->assertEquals('ready', $token->status);
+        $this->assertNotNull($token->file_path);
+
+        $zipContent = Storage::get($token->file_path);
+        $tempZipPath = tempnam(sys_get_temp_dir(), 'test_zip_') . '.zip';
+        file_put_contents($tempZipPath, $zipContent);
+
+        $zip = new ZipArchive();
+        $result = $zip->open($tempZipPath);
+        $this->assertTrue($result === true, "ZipArchive failed to open: error code {$result}");
+
+        $csv = $zip->getFromName('medical_historys.csv');
+
+        $this->assertIsString($csv);
+        $this->assertStringContainsString('discipline_responses', $csv);
+        $this->assertStringContainsString('"{""tcm"":{""sleep_issues"":[""staying_asleep""],""previous_acupuncture"":false}}"', $csv);
+
+        $zip->close();
+        unlink($tempZipPath);
+    }
+
     public function test_json_export_contains_all_expected_keys()
     {
         $practice = Practice::factory()->create(['trial_ends_at' => now()->addDays(30)]);
@@ -206,6 +294,27 @@ class ExportDataTest extends TestCase
 
         // UserA tries to download UserB's export
         $response = $this->actingAs($userA)->get(route('export.download', $tokenB->id));
+
+        $response->assertStatus(404);
+    }
+
+    public function test_selected_practice_super_admin_cannot_download_other_practice_export()
+    {
+        $selectedPractice = Practice::factory()->create();
+        $otherPractice = Practice::factory()->create();
+        $user = User::factory()->create(['practice_id' => null]);
+
+        PracticeContext::setCurrentPracticeId($selectedPractice->id);
+
+        $token = ExportToken::create([
+            'practice_id' => $otherPractice->id,
+            'format' => 'csv',
+            'file_path' => "exports/{$otherPractice->id}/test.zip",
+            'status' => 'ready',
+            'expires_at' => now()->addHours(24),
+        ]);
+
+        $response = $this->actingAs($user)->get(route('export.download', $token->id));
 
         $response->assertStatus(404);
     }
@@ -297,6 +406,30 @@ class ExportDataTest extends TestCase
 
         $response->assertStatus(200);
         $response->assertSeeText('Export Your Data');
+    }
+
+    public function test_export_page_livewire_action_uses_selected_practice_for_super_admin()
+    {
+        Queue::fake();
+
+        $selectedPractice = Practice::factory()->create(['trial_ends_at' => now()->addDays(30)]);
+        $otherPractice = Practice::factory()->create(['trial_ends_at' => now()->addDays(30)]);
+        $user = User::factory()->create(['practice_id' => null]);
+
+        $this->actingAs($user);
+        PracticeContext::setCurrentPracticeId($selectedPractice->id);
+
+        Livewire::test(\App\Filament\Pages\ExportDataPage::class)
+            ->call('requestExport', 'json');
+
+        $token = ExportToken::where('practice_id', $selectedPractice->id)->first();
+        $this->assertNotNull($token);
+        $this->assertEquals('json', $token->format);
+        $this->assertNull(ExportToken::where('practice_id', $otherPractice->id)->first());
+
+        Queue::assertPushed(ExportPracticeDataJob::class, function (ExportPracticeDataJob $job) use ($selectedPractice) {
+            return $job->practiceId === $selectedPractice->id;
+        });
     }
 
     public function test_active_subscriber_can_export()

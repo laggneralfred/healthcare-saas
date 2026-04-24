@@ -1,0 +1,5 @@
+id,practice_id,name,is_active,created_at,updated_at,default_service_fee_id,duration_minutes
+1,1,"Initial Consultation",1,"2026-04-19 05:07:47","2026-04-19 05:07:47",1,90
+2,1,"Follow-up Treatment",1,"2026-04-19 05:07:47","2026-04-19 05:07:47",2,60
+3,1,"Stress & Anxiety Protocol",1,"2026-04-19 05:07:47","2026-04-19 05:07:47",3,75
+4,1,"Community Acupuncture",1,"2026-04-19 05:07:47","2026-04-19 05:07:47",4,45

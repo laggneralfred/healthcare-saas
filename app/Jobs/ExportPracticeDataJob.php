@@ -239,6 +239,10 @@ class ExportPracticeDataJob implements ShouldQueue
             return $value ? '1' : '0';
         }
 
+        if (is_array($value) || is_object($value)) {
+            return json_encode($value, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?: '';
+        }
+
         return (string) $value;
     }
 

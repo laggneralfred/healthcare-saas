@@ -1,0 +1,3 @@
+id,practice_id,user_id,license_number,specialty,is_active,created_at,updated_at,bio
+1,1,2,"L.Ac. CA-12847","Acupuncture & Oriental Medicine",1,"2026-04-19 05:07:48","2026-04-19 05:07:48",
+2,1,3,"L.Ac. CA-09231","Traditional Chinese Medicine",1,"2026-04-19 05:07:48","2026-04-19 05:07:48",

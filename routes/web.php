@@ -10,6 +10,7 @@ use App\Models\Appointment;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Services\PracticeContext;
 
 Route::get('/', function () {
     return view('welcome');
@@ -75,8 +76,8 @@ Route::post('/admin/dismiss-setup-banner', function () {
 
 // FullCalendar events feed — authenticated, scoped to logged-in user's practice
 Route::get('/admin/calendar/events', function (Request $request) {
-    $practice   = auth()->user()->practice;
-    $practiceId  = auth()->user()->practice_id;
+    $practiceId  = PracticeContext::currentPracticeId();
+    $practice    = $practiceId ? \App\Models\Practice::find($practiceId) : null;
     $timezone    = $practice?->timezone ?? 'UTC';
 
     $start = $request->get('start') ? Carbon::parse($request->get('start')) : now()->startOfMonth();

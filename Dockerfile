@@ -79,6 +79,12 @@ ENV APP_ENV=production
 # Create non-root user
 RUN usermod -u 1000 www-data && groupmod -g 1000 www-data
 
+# Make test-time env/cache paths available to the runtime user.
+RUN mkdir -p vendor/pestphp/pest-plugin-mutate/.temp vendor/pestphp/pest/.temp \
+    && chown -R www-data:www-data vendor/pestphp/pest-plugin-mutate/.temp vendor/pestphp/pest/.temp \
+    && touch .env \
+    && chown www-data:www-data .env
+
 # Set working directory
 WORKDIR /app
 

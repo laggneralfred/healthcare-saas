@@ -26,13 +26,25 @@
             var el = document.getElementById('practiq-appt-calendar');
             if (!el || el._fc) return;
 
+            function toCalendarWallTime(date) {
+                var pad = function (n) { return String(n).padStart(2, '0'); };
+
+                return date.getUTCFullYear() + '-'
+                    + pad(date.getUTCMonth() + 1) + '-'
+                    + pad(date.getUTCDate()) + ' '
+                    + pad(date.getUTCHours()) + ':'
+                    + pad(date.getUTCMinutes()) + ':'
+                    + pad(date.getUTCSeconds());
+            }
+
             function persistAppointmentTime(info) {
-                @this.call('updateAppointmentTime', info.event.id, info.event.start.toISOString(), info.event.end ? info.event.end.toISOString() : null)
-                    .then(function () {
-                        setTimeout(function () {
-                            calendar.refetchEvents();
-                        }, 0);
-                    })
+                @this.call(
+                    'updateAppointmentTime',
+                    info.event.id,
+                    toCalendarWallTime(info.event.start),
+                    info.event.end ? toCalendarWallTime(info.event.end) : null
+                )
+                    .then(function () {})
                     .catch(function () {
                         info.revert();
                     });

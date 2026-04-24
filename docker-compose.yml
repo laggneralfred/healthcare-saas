@@ -5,6 +5,8 @@ services:
   postgres:
     image: postgres:16-alpine
     container_name: healthcare-saas-postgres
+    ports:
+      - "127.0.0.1:5433:5432"
     environment:
       POSTGRES_DB: ${DB_DATABASE:-healthcare_saas}
       POSTGRES_USER: ${DB_USERNAME:-app_user}
