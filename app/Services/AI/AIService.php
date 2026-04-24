@@ -13,6 +13,8 @@ class AIService
 
     private const IMPORT_MAPPING_SYSTEM_PROMPT = 'You are a CSV import mapping assistant for a healthcare practice management system. Map the uploaded CSV headers to supported patient fields. Only use supported fields. Do not invent fields. Return concise JSON with header-to-field mappings and confidence where possible.';
 
+    private const REMINDER_DRAFT_SYSTEM_PROMPT = 'You are a patient communication assistant for a small healthcare/acupuncture practice. Draft a short, warm, professional reminder message. Do not include diagnosis or sensitive clinical details. Do not promise outcomes. Do not mention AI. Keep it concise and suitable for SMS or email. Return only the message text.';
+
     public function improveNote(string $note, array $context = []): string
     {
         $note = trim($note);
@@ -67,6 +69,20 @@ class AIService
         };
     }
 
+    public function draftReminderMessage(array $context): string
+    {
+        $context = array_filter($context, fn ($value) => filled($value));
+
+        if ($context === []) {
+            throw new AIUnavailableException('Reminder context is required before AI can draft a message.');
+        }
+
+        return match (config('services.ai.provider', 'openai')) {
+            'openai' => $this->draftReminderMessageWithOpenAI($context),
+            default => throw new AIUnavailableException('The configured AI provider is not supported.'),
+        };
+    }
+
     private function improveNoteWithOpenAI(string $note, array $context): string
     {
         return $this->sendOpenAIRequest(
@@ -85,6 +101,14 @@ class AIService
         $decoded = json_decode($text, true);
 
         return is_array($decoded) ? $decoded : $text;
+    }
+
+    private function draftReminderMessageWithOpenAI(array $context): string
+    {
+        return $this->sendOpenAIRequest(
+            self::REMINDER_DRAFT_SYSTEM_PROMPT,
+            $this->buildReminderDraftPrompt($context)
+        );
     }
 
     private function checkMissingDocumentationWithOpenAI(string $note, array $context): string
@@ -162,6 +186,16 @@ class AIService
                     ],
                 ],
             ],
+        ], JSON_PRETTY_PRINT);
+    }
+
+    private function buildReminderDraftPrompt(array $context): string
+    {
+        return json_encode([
+            'patient_first_name' => $context['patient_first_name'] ?? null,
+            'practice_name' => $context['practice_name'] ?? null,
+            'appointment_datetime' => $context['appointment_datetime'] ?? null,
+            'reminder_reason' => $context['reminder_reason'] ?? null,
         ], JSON_PRETTY_PRINT);
     }
 }

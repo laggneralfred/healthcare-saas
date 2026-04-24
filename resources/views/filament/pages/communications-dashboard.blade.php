@@ -24,6 +24,51 @@
 
     </div>
 
+    {{-- AI reminder draft --}}
+    <div style="background: #fff; border: 1px solid #e5e7eb; border-radius: 8px; padding: 20px; margin-bottom: 24px;">
+        <h3 style="margin: 0 0 6px; font-size: 15px; font-weight: 600; color: #111827;">AI Reminder Draft</h3>
+        <p style="margin: 0 0 16px; font-size: 13px; color: #6b7280;">
+            Draft only. Review and edit this text, then send through the existing message workflow when ready.
+        </p>
+
+        <div style="display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) auto; gap: 12px; align-items: end;">
+            <label style="display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: #374151;">
+                Appointment
+                <select wire:model="selectedAppointmentId" style="padding: 8px 10px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px;">
+                    <option value="">General reminder</option>
+                    @foreach($this->getUpcomingAppointments() as $appointment)
+                        <option value="{{ $appointment->id }}">
+                            {{ $appointment->patient?->name ?? 'Patient' }} · {{ $appointment->start_datetime->format('M j, g:i A') }}
+                        </option>
+                    @endforeach
+                </select>
+            </label>
+
+            <label style="display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: #374151;">
+                Reason
+                <input wire:model="reminderReason" type="text" style="padding: 8px 10px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px;">
+            </label>
+
+            <button wire:click="draftAIReminder" type="button" style="
+                padding: 9px 14px; font-size: 14px; font-weight: 600;
+                color: #ffffff; background: #2563eb; border: 0; border-radius: 6px; cursor: pointer;
+            ">
+                Draft AI Reminder
+            </button>
+        </div>
+
+        <div wire:loading wire:target="draftAIReminder" style="margin-top: 12px; font-size: 13px; color: #2563eb;">
+            Drafting reminder…
+        </div>
+
+        @if($aiReminderDraft)
+            <label style="display: flex; flex-direction: column; gap: 6px; margin-top: 16px; font-size: 13px; color: #374151;">
+                Draft message
+                <textarea wire:model.live="aiReminderDraft" rows="4" style="width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; color: #111827;"></textarea>
+            </label>
+        @endif
+    </div>
+
     {{-- Recent log --}}
     <div style="background: #fff; border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden;">
         <div style="padding: 16px 20px; border-bottom: 1px solid #e5e7eb;">
