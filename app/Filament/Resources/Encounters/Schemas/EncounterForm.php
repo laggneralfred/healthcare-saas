@@ -13,12 +13,14 @@ use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Actions;
 use Filament\Schemas\Components\Grid;
+use Filament\Schemas\Components\Html;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Tabs;
 use Filament\Schemas\Components\Tabs\Tab;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
 use Filament\Support\Enums\Size;
+use Illuminate\Support\HtmlString;
 
 class EncounterForm
 {
@@ -82,9 +84,7 @@ class EncounterForm
                 ->hidden(fn (Get $get): bool => $get('active_ai_field') !== $field || blank($get('active_ai_suggestion')))
                 ->hiddenOn('view')
                 ->schema([
-                    Placeholder::make("active_ai_suggestion_display_{$field}")
-                        ->hiddenLabel()
-                        ->content(fn (Get $get): string => (string) $get('active_ai_suggestion')),
+                    Html::make(fn (Get $get): HtmlString => self::renderAISuggestionCard((string) $get('active_ai_suggestion'))),
                     Actions::make([
                         Action::make($actions['accept'])
                             ->label('Accept')
@@ -100,6 +100,18 @@ class EncounterForm
                 ])
                 ->columnSpanFull(),
         ];
+    }
+
+    private static function renderAISuggestionCard(string $suggestion): HtmlString
+    {
+        $suggestion = nl2br(e($suggestion), false);
+
+        return new HtmlString(<<<HTML
+<div class="rounded-lg border border-gray-200 bg-white p-4 text-sm leading-6 text-gray-950 shadow-sm dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100">
+    <div class="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">AI suggestion</div>
+    <div class="whitespace-pre-wrap">{$suggestion}</div>
+</div>
+HTML);
     }
 
     private static function aiAssistedLabel(string $label, string $field): callable

@@ -20,7 +20,7 @@ class PracticeFactory extends Factory
         $name = $faker->company();
         return [
             'name'           => $name,
-            'slug'           => Str::slug($name),
+            'slug'           => Str::slug($name) . '-' . Str::lower(Str::random(6)),
             'timezone'       => $faker->randomElement(['America/New_York', 'America/Chicago', 'America/Los_Angeles', 'America/Denver']),
             'is_active'      => true,
             'is_demo'        => false,

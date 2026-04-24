@@ -238,6 +238,7 @@ it('field-level improve writes suggestion to the selected field state only', fun
         ->assertSet('data.active_ai_field_label', 'Subjective')
         ->assertSet('data.active_ai_suggestion', 'Patient reports neck tightness improved after treatment.')
         ->assertSee('AI suggestion')
+        ->assertSee('Patient reports neck tightness improved after treatment.')
         ->assertDontSee('AI Review')
         ->assertSet('data.subjective', 'neck tight better after tx')
         ->assertSet('data.objective', 'ROM mildly limited')
