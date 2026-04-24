@@ -66,6 +66,35 @@
                 Draft message
                 <textarea wire:model.live="aiReminderDraft" rows="4" style="width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; color: #111827;"></textarea>
             </label>
+
+            <div style="display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px; align-items: end; margin-top: 16px;">
+                <label style="display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: #374151;">
+                    Target language
+                    <select wire:model="targetLanguage" style="padding: 8px 10px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px;">
+                        @foreach($this->getTranslationLanguageOptions() as $value => $label)
+                            <option value="{{ $value }}">{{ $label }}</option>
+                        @endforeach
+                    </select>
+                </label>
+
+                <button wire:click="translateReminderDraft" type="button" style="
+                    padding: 9px 14px; font-size: 14px; font-weight: 600;
+                    color: #ffffff; background: #0f766e; border: 0; border-radius: 6px; cursor: pointer;
+                ">
+                    Translate Draft
+                </button>
+            </div>
+
+            <div wire:loading wire:target="translateReminderDraft" style="margin-top: 12px; font-size: 13px; color: #0f766e;">
+                Translating draft…
+            </div>
+
+            @if($translatedReminderDraft)
+                <label style="display: flex; flex-direction: column; gap: 6px; margin-top: 16px; font-size: 13px; color: #374151;">
+                    Translated draft
+                    <textarea wire:model.live="translatedReminderDraft" rows="4" style="width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; color: #111827;"></textarea>
+                </label>
+            @endif
         @endif
     </div>
 

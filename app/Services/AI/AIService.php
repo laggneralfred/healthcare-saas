@@ -15,6 +15,8 @@ class AIService
 
     private const REMINDER_DRAFT_SYSTEM_PROMPT = 'You are a patient communication assistant for a small healthcare/acupuncture practice. Draft a short, warm, professional reminder message. Do not include diagnosis or sensitive clinical details. Do not promise outcomes. Do not mention AI. Keep it concise and suitable for SMS or email. Return only the message text.';
 
+    private const TRANSLATION_SYSTEM_PROMPT = 'You are a medical office communication translator. Translate the provided patient reminder message into the target language. Preserve the meaning and tone. Do not add new medical details. Do not remove safety or scheduling details. Do not mention AI. Return only the translated message.';
+
     public function improveNote(string $note, array $context = []): string
     {
         $note = trim($note);
@@ -83,11 +85,38 @@ class AIService
         };
     }
 
+    public function translateText(string $text, string $targetLanguage, array $context = []): string
+    {
+        $text = trim($text);
+        $targetLanguage = trim($targetLanguage);
+
+        if ($text === '') {
+            throw new AIUnavailableException('Text is required before AI can translate it.');
+        }
+
+        if ($targetLanguage === '') {
+            throw new AIUnavailableException('Target language is required before AI can translate text.');
+        }
+
+        return match (config('services.ai.provider', 'openai')) {
+            'openai' => $this->translateTextWithOpenAI($text, $targetLanguage, $context),
+            default => throw new AIUnavailableException('The configured AI provider is not supported.'),
+        };
+    }
+
     private function improveNoteWithOpenAI(string $note, array $context): string
     {
         return $this->sendOpenAIRequest(
             self::IMPROVE_NOTE_SYSTEM_PROMPT,
             $this->buildUserPrompt($note, $context, 'Note to improve:')
+        );
+    }
+
+    private function translateTextWithOpenAI(string $text, string $targetLanguage, array $context): string
+    {
+        return $this->sendOpenAIRequest(
+            self::TRANSLATION_SYSTEM_PROMPT,
+            $this->buildTranslationPrompt($text, $targetLanguage, $context)
         );
     }
 
@@ -196,6 +225,18 @@ class AIService
             'practice_name' => $context['practice_name'] ?? null,
             'appointment_datetime' => $context['appointment_datetime'] ?? null,
             'reminder_reason' => $context['reminder_reason'] ?? null,
+        ], JSON_PRETTY_PRINT);
+    }
+
+    private function buildTranslationPrompt(string $text, string $targetLanguage, array $context): string
+    {
+        return json_encode([
+            'target_language' => $targetLanguage,
+            'message_text' => $text,
+            'context' => array_filter([
+                'practice_name' => $context['practice_name'] ?? null,
+                'communication_type' => $context['communication_type'] ?? 'patient reminder',
+            ]),
         ], JSON_PRETTY_PRINT);
     }
 }

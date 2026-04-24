@@ -32,6 +32,8 @@ class CommunicationsDashboard extends Page
     public ?int $selectedAppointmentId = null;
     public string $reminderReason = 'appointment reminder';
     public ?string $aiReminderDraft = null;
+    public string $targetLanguage = 'Spanish';
+    public ?string $translatedReminderDraft = null;
 
     public function mount(): void
     {
@@ -151,6 +153,111 @@ class CommunicationsDashboard extends Page
                 ->danger()
                 ->send();
         }
+    }
+
+    public function translateReminderDraft(AIService $ai): void
+    {
+        $practiceId = PracticeContext::currentPracticeId();
+
+        if (! $practiceId) {
+            Notification::make()
+                ->title('Select a practice before using AI.')
+                ->danger()
+                ->send();
+
+            return;
+        }
+
+        $draft = trim((string) $this->aiReminderDraft);
+
+        if ($draft === '') {
+            Notification::make()
+                ->title('Enter or draft a reminder message before translating.')
+                ->danger()
+                ->send();
+
+            return;
+        }
+
+        $appointment = $this->selectedAppointmentId
+            ? Appointment::withoutPracticeScope()
+                ->with(['patient', 'practice'])
+                ->where('practice_id', $practiceId)
+                ->find($this->selectedAppointmentId)
+            : null;
+
+        $context = [
+            'target_language' => $this->targetLanguage,
+            'source_text' => $draft,
+            'practice_name' => $appointment?->practice?->name,
+            'patient_id' => $appointment?->patient_id,
+            'appointment_id' => $appointment?->id,
+        ];
+
+        $suggestion = AISuggestion::create([
+            'practice_id' => $practiceId,
+            'user_id' => auth()->id(),
+            'patient_id' => $appointment?->patient_id,
+            'appointment_id' => $appointment?->id,
+            'feature' => 'translation',
+            'original_text' => json_encode($context, JSON_PRETTY_PRINT),
+            'status' => 'pending',
+        ]);
+
+        try {
+            $translation = $ai->translateText($draft, $this->targetLanguage, [
+                'practice_name' => $appointment?->practice?->name,
+                'communication_type' => 'patient reminder',
+            ]);
+
+            $suggestion->update([
+                'suggested_text' => $translation,
+                'status' => 'pending',
+            ]);
+
+            AIUsageLog::create([
+                'practice_id' => $practiceId,
+                'user_id' => auth()->id(),
+                'feature' => 'translation',
+                'status' => 'success',
+            ]);
+
+            $this->translatedReminderDraft = $translation;
+
+            Notification::make()
+                ->title('Translation ready.')
+                ->success()
+                ->send();
+        } catch (Throwable $exception) {
+            $suggestion->update([
+                'status' => 'failed',
+            ]);
+
+            AIUsageLog::create([
+                'practice_id' => $practiceId,
+                'user_id' => auth()->id(),
+                'feature' => 'translation',
+                'status' => 'failed',
+                'error_message' => $exception->getMessage(),
+            ]);
+
+            Notification::make()
+                ->title('Translation is unavailable.')
+                ->body($exception->getMessage())
+                ->danger()
+                ->send();
+        }
+    }
+
+    public function getTranslationLanguageOptions(): array
+    {
+        return [
+            'Spanish' => 'Spanish',
+            'German' => 'German',
+            'French' => 'French',
+            'Chinese' => 'Chinese',
+            'Vietnamese' => 'Vietnamese',
+        ];
     }
 
     public function getUpcomingAppointments(): Collection
