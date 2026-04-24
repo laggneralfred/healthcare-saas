@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Encounters\Schemas;
 
+use App\Models\Patient;
 use App\Models\Practice;
 use App\Services\PracticeContext;
 use Filament\Actions\Action;
@@ -107,8 +108,8 @@ class EncounterForm
         $suggestion = nl2br(e($suggestion), false);
 
         return new HtmlString(<<<HTML
-<div class="rounded-lg border border-gray-200 bg-white p-4 text-sm leading-6 text-gray-950 shadow-sm dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100">
-    <div class="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">AI suggestion</div>
+<div class="rounded-lg border border-amber-300 bg-amber-50 p-4 text-sm leading-6 text-gray-950 shadow-sm dark:border-amber-700 dark:bg-amber-950/30 dark:text-gray-100">
+    <div class="mb-2 text-xs font-semibold uppercase tracking-wide text-amber-700 dark:text-amber-300">AI suggestion</div>
     <div class="whitespace-pre-wrap">{$suggestion}</div>
 </div>
 HTML);
@@ -145,26 +146,54 @@ HTML);
         return implode("\n", $lines);
     }
 
-    private static function formatIntakeSummary($record): string
+    private static function formatPatientContext($record, ?int $patientId = null): HtmlString
     {
-        if (!$record || !$record->patient) {
-            return '—';
+        $patient = $record?->patient;
+
+        if (! $patient && $patientId) {
+            $patient = Patient::find($patientId);
         }
 
-        $intake = $record->patient->medicalHistories()
-            ->where('status', 'complete')
-            ->latest()
+        if (! $patient) {
+            return new HtmlString('<div class="text-sm text-gray-500 dark:text-gray-400">Select a patient to show context.</div>');
+        }
+
+        $lines = [];
+        $name = trim((string) ($patient->name ?: $patient->full_name));
+
+        if ($name !== '') {
+            $lines[] = '<div><span class="font-medium">Patient:</span> ' . e($name) . '</div>';
+        }
+
+        if ($patient->dob) {
+            $lines[] = '<div><span class="font-medium">DOB:</span> ' . e($patient->dob->format('M j, Y')) . ' (' . $patient->dob->age . ')</div>';
+        }
+
+        if ($patient->phone) {
+            $lines[] = '<div><span class="font-medium">Phone:</span> ' . e($patient->phone) . '</div>';
+        }
+
+        if ($patient->email) {
+            $lines[] = '<div><span class="font-medium">Email:</span> ' . e($patient->email) . '</div>';
+        }
+
+        $lastVisit = $patient->encounters()
+            ->when($record?->id, fn ($query) => $query->where('id', '!=', $record->id))
+            ->latest('visit_date')
             ->first();
 
-        if (!$intake) {
-            return '—';
+        if ($lastVisit?->visit_date) {
+            $summary = $lastVisit->chief_complaint ? ' - ' . e(str($lastVisit->chief_complaint)->limit(40)) : '';
+            $lines[] = '<div><span class="font-medium">Last visit:</span> ' . e($lastVisit->visit_date->format('M j, Y')) . $summary . '</div>';
         }
 
-        $chief = $intake->chief_complaint ?? '—';
-        $painLabel = $intake->pain_scale_label ?? '—';
-        $redFlags = $intake->hasRedFlags() ? '⚠ Red flags detected' : '✓ No red flags';
+        $content = implode("\n", $lines);
 
-        return "Chief: $chief\nPain: $painLabel\n$redFlags";
+        return new HtmlString(<<<HTML
+<div class="space-y-1 text-sm text-gray-700 dark:text-gray-200">
+    {$content}
+</div>
+HTML);
     }
 
     public static function configure(Schema $schema): Schema
@@ -185,26 +214,16 @@ HTML);
                 ->dehydrated(false),
 
             Grid::make(3)->columnSpanFull()->schema([
-                // ── Left Panel: Patient Context ────────────────────────
-                Section::make('Patient Context')
+                Grid::make(1)
                     ->columnSpan(1)
                     ->schema([
-                        Placeholder::make('last_visits')
-                            ->label('Last Visits')
-                            ->hiddenLabel()
-                            ->content(fn ($record) => self::formatLastVisits($record)),
-
-                        Placeholder::make('intake_summary')
-                            ->label('Intake Summary')
-                            ->hiddenLabel()
-                            ->content(fn ($record) => self::formatIntakeSummary($record))
-                            ->columnSpanFull(),
-                    ]),
-
-                // ── Right Panel: Encounter Details + Clinical Notes ────
-                Section::make('')
-                    ->columnSpan(2)
-                    ->schema([
+                        Section::make('Patient Context')
+                            ->schema([
+                                Html::make(fn ($record, Get $get): HtmlString => self::formatPatientContext(
+                                    $record,
+                                    $get('patient_id') ? (int) $get('patient_id') : null,
+                                )),
+                            ]),
                         Section::make('Encounter Details')
                             ->schema([
                                 Select::make('patient_id')
@@ -212,6 +231,7 @@ HTML);
                                     ->required()
                                     ->searchable()
                                     ->preload()
+                                    ->live()
                                     ->disabledOn('view'),
                                 Select::make('practitioner_id')
                                     ->relationship('practitioner', 'id')
@@ -264,9 +284,12 @@ HTML);
                                     ->default('draft')
                                     ->required()
                                     ->disabledOn('view'),
-                            ])->columns(2),
+                            ]),
+                    ]),
 
-                        Tabs::make('Clinical Documentation')->tabs([
+                Tabs::make('Clinical Documentation')
+                    ->columnSpan(2)
+                    ->tabs([
                 Tab::make('Core Notes')->schema([
                     Section::make('Encounter Notes')
                         ->schema([
@@ -281,9 +304,11 @@ HTML);
                                     Action::make('checkMissingDocumentation')
                                         ->label('Check Missing Documentation')
                                         ->color('gray')
+                                        ->size(Size::Small)
                                         ->action('checkMissingDocumentation')
-                                        ->hidden(fn (): bool => ! self::insuranceBillingEnabled()),
+                                        ->visible(fn (): bool => self::insuranceBillingEnabled()),
                                 ])
+                                    ->visible(fn (): bool => self::insuranceBillingEnabled())
                                     ->hiddenOn('view')
                                     ->columnSpanFull(),
                                 Textarea::make('documentation_check_result')
@@ -294,6 +319,7 @@ HTML);
                                     ->readOnly()
                                     ->dehydrated(false)
                                     ->columnSpanFull()
+                                    ->visible(fn (): bool => self::insuranceBillingEnabled())
                                     ->hiddenOn('view'),
                                 Textarea::make('chief_complaint')
                                     ->rows(3)
@@ -433,9 +459,8 @@ HTML);
                         ->disabledOn('view'),
                 ])->visible(fn ($record) => $record?->discipline === 'physiotherapy'),
 
+                ]),
             ]),
-        ]),
-        ]),
         ]);
     }
 }

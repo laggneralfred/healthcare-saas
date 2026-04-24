@@ -239,6 +239,8 @@ it('field-level improve writes suggestion to the selected field state only', fun
         ->assertSet('data.active_ai_suggestion', 'Patient reports neck tightness improved after treatment.')
         ->assertSee('AI suggestion')
         ->assertSee('Patient reports neck tightness improved after treatment.')
+        ->assertSee('Accept')
+        ->assertSee('Dismiss')
         ->assertDontSee('AI Review')
         ->assertSet('data.subjective', 'neck tight better after tx')
         ->assertSet('data.objective', 'ROM mildly limited')
@@ -275,6 +277,27 @@ it('field-level improve writes suggestion to the selected field state only', fun
         'feature' => 'improve_field',
         'status' => 'success',
     ]);
+});
+
+it('does not accept a field-level suggestion before one exists', function () {
+    $practice = Practice::factory()->create();
+    $user = User::factory()->create(['practice_id' => $practice->id]);
+    $encounter = createEncounterForPractice($practice, [
+        'subjective' => 'original subjective text',
+    ]);
+
+    $this->actingAs($user);
+
+    Livewire::test(EditEncounter::class, ['record' => $encounter->id])
+        ->set('data.subjective', 'original subjective text')
+        ->call('acceptSubjectiveFieldSuggestion')
+        ->assertSet('data.subjective', 'original subjective text')
+        ->assertSet('data.active_ai_field', null)
+        ->assertSet('data.active_ai_suggestion', null);
+
+    $encounter->refresh();
+
+    expect($encounter->subjective)->toBe('original subjective text');
 });
 
 it('accepting field-level suggestion updates only that field', function () {
