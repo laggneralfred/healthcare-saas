@@ -234,7 +234,10 @@ it('field-level improve writes suggestion to the selected field state only', fun
         ->set('data.assessment', 'responding')
         ->set('data.plan', 'return next week')
         ->call('improveSubjectiveField')
-        ->assertSet('data.ai_field_suggestions.subjective.suggested_text', 'Patient reports neck tightness improved after treatment.')
+        ->assertSet('data.active_ai_field', 'subjective')
+        ->assertSet('data.active_ai_field_label', 'Subjective')
+        ->assertSet('data.active_ai_suggestion', 'Patient reports neck tightness improved after treatment.')
+        ->assertSee('AI Review')
         ->assertSet('data.subjective', 'neck tight better after tx')
         ->assertSet('data.objective', 'ROM mildly limited')
         ->assertSet('data.assessment', 'responding')
@@ -298,13 +301,19 @@ it('accepting field-level suggestion updates only that field', function () {
     $this->actingAs($user);
 
     Livewire::test(EditEncounter::class, ['record' => $encounter->id])
-        ->set('data.ai_field_suggestions.subjective.suggested_text', 'Improved subjective text.')
-        ->set('data.ai_field_suggestions.subjective.suggestion_id', $suggestion->id)
-        ->call('acceptSubjectiveFieldSuggestion')
+        ->set('data.active_ai_field', 'subjective')
+        ->set('data.active_ai_field_label', 'Subjective')
+        ->set('data.active_ai_suggestion', 'Improved subjective text.')
+        ->set('data.active_ai_suggestion_id', $suggestion->id)
+        ->call('acceptActiveFieldSuggestion')
         ->assertSet('data.subjective', 'Improved subjective text.')
         ->assertSet('data.objective', 'ROM mildly limited')
         ->assertSet('data.assessment', 'responding')
-        ->assertSet('data.plan', 'return next week');
+        ->assertSet('data.plan', 'return next week')
+        ->assertSet('data.active_ai_field', null)
+        ->assertSet('data.active_ai_suggestion', null)
+        ->assertSet('data.active_ai_suggestion_id', null)
+        ->assertSet('data.ai_assisted_fields.subjective', true);
 
     $encounter->refresh();
     $suggestion->refresh();
@@ -315,6 +324,46 @@ it('accepting field-level suggestion updates only that field', function () {
     expect($encounter->plan)->toBe('return next week');
     expect($suggestion->status)->toBe('accepted');
     expect($suggestion->accepted_text)->toBe('Improved subjective text.');
+});
+
+it('dismissing field-level suggestion clears the panel without changing the field', function () {
+    $practice = Practice::factory()->create();
+    $user = User::factory()->create(['practice_id' => $practice->id]);
+    $encounter = createEncounterForPractice($practice, [
+        'objective' => 'ROM mildly limited',
+    ]);
+
+    $suggestion = AISuggestion::create([
+        'practice_id' => $practice->id,
+        'user_id' => $user->id,
+        'patient_id' => $encounter->patient_id,
+        'appointment_id' => $encounter->appointment_id,
+        'encounter_id' => $encounter->id,
+        'feature' => 'improve_field',
+        'context_json' => ['field' => 'objective', 'field_label' => 'Objective'],
+        'original_text' => 'ROM mildly limited',
+        'suggested_text' => 'Objective range of motion is mildly limited.',
+        'status' => 'pending',
+    ]);
+
+    $this->actingAs($user);
+
+    Livewire::test(EditEncounter::class, ['record' => $encounter->id])
+        ->set('data.active_ai_field', 'objective')
+        ->set('data.active_ai_field_label', 'Objective')
+        ->set('data.active_ai_suggestion', 'Objective range of motion is mildly limited.')
+        ->set('data.active_ai_suggestion_id', $suggestion->id)
+        ->call('dismissActiveFieldSuggestion')
+        ->assertSet('data.objective', 'ROM mildly limited')
+        ->assertSet('data.active_ai_field', null)
+        ->assertSet('data.active_ai_suggestion', null)
+        ->assertSet('data.active_ai_suggestion_id', null);
+
+    $encounter->refresh();
+    $suggestion->refresh();
+
+    expect($encounter->objective)->toBe('ROM mildly limited');
+    expect($suggestion->status)->toBe('dismissed');
 });
 
 it('field-level improve uses selected practice context for a super admin', function () {
@@ -338,7 +387,8 @@ it('field-level improve uses selected practice context for a super admin', funct
     Livewire::test(EditEncounter::class, ['record' => $encounter->id])
         ->set('data.plan', 'return one week')
         ->call('improvePlanField')
-        ->assertSet('data.ai_field_suggestions.plan.suggested_text', 'Return in one week for follow-up.');
+        ->assertSet('data.active_ai_field', 'plan')
+        ->assertSet('data.active_ai_suggestion', 'Return in one week for follow-up.');
 
     $this->assertDatabaseHas('ai_suggestions', [
         'practice_id' => $practice->id,

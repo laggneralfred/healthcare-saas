@@ -337,8 +337,10 @@ trait HandlesEncounterAIActions
             ]);
 
             $this->updateEncounterAIFormState([
-                "ai_field_suggestions.{$field}.suggested_text" => $suggestedText,
-                "ai_field_suggestions.{$field}.suggestion_id" => $suggestion->id,
+                'active_ai_field' => $field,
+                'active_ai_field_label' => $fieldLabel,
+                'active_ai_suggestion' => $suggestedText,
+                'active_ai_suggestion_id' => $suggestion->id,
             ]);
 
             Log::info('Encounter AI field suggestion state updated.', [
@@ -377,6 +379,12 @@ trait HandlesEncounterAIActions
 
     public function acceptFieldSuggestion(string $field): void
     {
+        $activeField = data_get($this->data, 'active_ai_field');
+
+        if (array_key_exists((string) $activeField, self::AI_IMPROVABLE_FIELDS)) {
+            $field = (string) $activeField;
+        }
+
         if (! array_key_exists($field, self::AI_IMPROVABLE_FIELDS)) {
             Notification::make()
                 ->title('This encounter field cannot accept AI suggestions.')
@@ -386,7 +394,10 @@ trait HandlesEncounterAIActions
             return;
         }
 
-        $suggestedText = trim((string) data_get($this->data, "ai_field_suggestions.{$field}.suggested_text", ''));
+        $suggestedText = trim((string) (
+            data_get($this->data, 'active_ai_suggestion')
+            ?? data_get($this->data, "ai_field_suggestions.{$field}.suggested_text", '')
+        ));
 
         if ($suggestedText === '') {
             Notification::make()
@@ -406,7 +417,8 @@ trait HandlesEncounterAIActions
             $record->update([$field => $suggestedText]);
         }
 
-        $suggestionId = data_get($this->data, "ai_field_suggestions.{$field}.suggestion_id");
+        $suggestionId = data_get($this->data, 'active_ai_suggestion_id')
+            ?? data_get($this->data, "ai_field_suggestions.{$field}.suggestion_id");
         if ($suggestionId) {
             AISuggestion::whereKey($suggestionId)->update([
                 'accepted_text' => $suggestedText,
@@ -414,6 +426,12 @@ trait HandlesEncounterAIActions
                 'accepted_at' => now(),
             ]);
         }
+
+        $this->clearActiveAIFieldSuggestion($field);
+
+        $this->updateEncounterAIFormState([
+            "ai_assisted_fields.{$field}" => true,
+        ]);
 
         Notification::make()
             ->title('AI field suggestion accepted.')
@@ -423,26 +441,44 @@ trait HandlesEncounterAIActions
 
     public function dismissFieldSuggestion(string $field): void
     {
+        $activeField = data_get($this->data, 'active_ai_field');
+
+        if (array_key_exists((string) $activeField, self::AI_IMPROVABLE_FIELDS)) {
+            $field = (string) $activeField;
+        }
+
         if (! array_key_exists($field, self::AI_IMPROVABLE_FIELDS)) {
             return;
         }
 
-        $suggestionId = data_get($this->data, "ai_field_suggestions.{$field}.suggestion_id");
+        $suggestionId = data_get($this->data, 'active_ai_suggestion_id')
+            ?? data_get($this->data, "ai_field_suggestions.{$field}.suggestion_id");
         if ($suggestionId) {
             AISuggestion::whereKey($suggestionId)->update([
                 'status' => 'dismissed',
             ]);
         }
 
-        $this->updateEncounterAIFormState([
-            "ai_field_suggestions.{$field}.suggested_text" => null,
-            "ai_field_suggestions.{$field}.suggestion_id" => null,
-        ]);
+        $this->clearActiveAIFieldSuggestion($field);
 
         Notification::make()
             ->title('AI field suggestion dismissed.')
             ->success()
             ->send();
+    }
+
+    public function acceptActiveFieldSuggestion(): void
+    {
+        $field = (string) data_get($this->data, 'active_ai_field', '');
+
+        $this->acceptFieldSuggestion($field);
+    }
+
+    public function dismissActiveFieldSuggestion(): void
+    {
+        $field = (string) data_get($this->data, 'active_ai_field', '');
+
+        $this->dismissFieldSuggestion($field);
     }
 
     public function insuranceBillingEnabledForAI(): bool
@@ -485,6 +521,18 @@ trait HandlesEncounterAIActions
     private function encounterAIValue(string $key): mixed
     {
         return data_get($this->data, $key) ?? data_get($this->encounterAIRecord(), $key);
+    }
+
+    private function clearActiveAIFieldSuggestion(string $field): void
+    {
+        $this->updateEncounterAIFormState([
+            'active_ai_field' => null,
+            'active_ai_field_label' => null,
+            'active_ai_suggestion' => null,
+            'active_ai_suggestion_id' => null,
+            "ai_field_suggestions.{$field}.suggested_text" => null,
+            "ai_field_suggestions.{$field}.suggestion_id" => null,
+        ]);
     }
 
     /**

@@ -16,6 +16,7 @@ use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Tabs;
 use Filament\Schemas\Components\Tabs\Tab;
+use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
 
 class EncounterForm
@@ -23,28 +24,18 @@ class EncounterForm
     private const AI_FIELD_ACTIONS = [
         'visit_notes' => [
             'improve' => 'improveVisitNotesField',
-            'accept' => 'acceptVisitNotesFieldSuggestion',
-            'dismiss' => 'dismissVisitNotesFieldSuggestion',
         ],
         'subjective' => [
             'improve' => 'improveSubjectiveField',
-            'accept' => 'acceptSubjectiveFieldSuggestion',
-            'dismiss' => 'dismissSubjectiveFieldSuggestion',
         ],
         'objective' => [
             'improve' => 'improveObjectiveField',
-            'accept' => 'acceptObjectiveFieldSuggestion',
-            'dismiss' => 'dismissObjectiveFieldSuggestion',
         ],
         'assessment' => [
             'improve' => 'improveAssessmentField',
-            'accept' => 'acceptAssessmentFieldSuggestion',
-            'dismiss' => 'dismissAssessmentFieldSuggestion',
         ],
         'plan' => [
             'improve' => 'improvePlanField',
-            'accept' => 'acceptPlanFieldSuggestion',
-            'dismiss' => 'dismissPlanFieldSuggestion',
         ],
     ];
 
@@ -61,7 +52,7 @@ class EncounterForm
             ->value('insurance_billing_enabled');
     }
 
-    private static function aiFieldReview(string $field, string $label): array
+    private static function aiFieldAssist(string $field): array
     {
         $actions = self::AI_FIELD_ACTIONS[$field];
 
@@ -74,30 +65,43 @@ class EncounterForm
             ])
                 ->hiddenOn('view')
                 ->columnSpanFull(),
-            Textarea::make("ai_field_suggestions.{$field}.suggested_text")
-                ->label("AI suggestion for {$label}")
-                ->helperText('Review before accepting. This does not replace the original field automatically.')
-                ->rows(4)
-                ->live()
-                ->readOnly()
-                ->dehydrated(false)
-                ->columnSpanFull()
-                ->hiddenOn('view'),
-            Hidden::make("ai_field_suggestions.{$field}.suggestion_id")
-                ->dehydrated(false),
-            Actions::make([
-                Action::make($actions['accept'])
-                    ->label('Accept into this field')
-                    ->color('primary')
-                    ->action($actions['accept']),
-                Action::make($actions['dismiss'])
-                    ->label('Dismiss')
-                    ->color('gray')
-                    ->action($actions['dismiss']),
-            ])
+            Placeholder::make("ai_assisted_marker_{$field}")
+                ->label('')
+                ->content('AI-assisted')
+                ->visible(fn (Get $get): bool => (bool) $get("ai_assisted_fields.{$field}"))
                 ->hiddenOn('view')
                 ->columnSpanFull(),
         ];
+    }
+
+    private static function aiReviewPanel(): Section
+    {
+        return Section::make('AI Review')
+            ->description('Suggestions are advisory. Accepting updates only the active field.')
+            ->columnSpan(1)
+            ->hidden(fn (Get $get): bool => blank($get('active_ai_suggestion')))
+            ->hiddenOn('view')
+            ->schema([
+                Placeholder::make('active_ai_field_display')
+                    ->label('Field')
+                    ->content(fn (Get $get): string => (string) ($get('active_ai_field_label') ?: 'Selected field')),
+                Textarea::make('active_ai_suggestion')
+                    ->label('Suggested text')
+                    ->rows(12)
+                    ->live()
+                    ->readOnly()
+                    ->dehydrated(false),
+                Actions::make([
+                    Action::make('acceptActiveFieldSuggestion')
+                        ->label('Accept into this field')
+                        ->color('primary')
+                        ->action('acceptActiveFieldSuggestion'),
+                    Action::make('dismissActiveFieldSuggestion')
+                        ->label('Dismiss')
+                        ->color('gray')
+                        ->action('dismissActiveFieldSuggestion'),
+                ]),
+            ]);
     }
 
     private static function formatLastVisits($record): string
@@ -155,6 +159,12 @@ class EncounterForm
                 ->default(fn () => PracticeContext::currentPracticeId()),
 
             Hidden::make('ai_suggestion_id')
+                ->dehydrated(false),
+            Hidden::make('active_ai_field')
+                ->dehydrated(false),
+            Hidden::make('active_ai_field_label')
+                ->dehydrated(false),
+            Hidden::make('active_ai_suggestion_id')
                 ->dehydrated(false),
 
             Grid::make(3)->columnSpanFull()->schema([
@@ -241,65 +251,63 @@ class EncounterForm
 
                         Tabs::make('Clinical Documentation')->tabs([
                 Tab::make('Core Notes')->schema([
-                    Textarea::make('visit_notes')
-                        ->label('Encounter Note')
-                        ->helperText('Write rough notes here, then use field-level AI for a wording suggestion.')
-                        ->rows(5)
-                        ->columnSpanFull()
-                        ->disabledOn('view'),
-                    ...self::aiFieldReview('visit_notes', 'Encounter Note'),
-                    Actions::make([
-                        Action::make('checkMissingDocumentation')
-                            ->label('Check Missing Documentation')
-                            ->color('gray')
-                            ->action('checkMissingDocumentation')
-                            ->hidden(fn (): bool => ! self::insuranceBillingEnabled()),
-                    ])
-                        ->hiddenOn('view')
-                        ->columnSpanFull(),
-                    Textarea::make('ai_suggestion')
-                        ->label('AI Suggestion')
-                        ->helperText('Review before accepting. The original note is not replaced automatically.')
-                        ->rows(5)
-                        ->live()
-                        ->readOnly()
-                        ->dehydrated(false)
-                        ->columnSpanFull()
-                        ->hiddenOn('view'),
-                    Textarea::make('documentation_check_result')
-                        ->label('AI Documentation Check')
-                        ->helperText('Completeness review only. This does not modify the encounter note.')
-                        ->rows(5)
-                        ->live()
-                        ->readOnly()
-                        ->dehydrated(false)
-                        ->columnSpanFull()
-                        ->hiddenOn('view'),
-                    Textarea::make('chief_complaint')
-                        ->rows(3)
-                        ->required()
-                        ->disabledOn('view'),
-                    Textarea::make('subjective')
-                        ->label('Subjective (S)')
-                        ->rows(5)
-                        ->disabledOn('view'),
-                    ...self::aiFieldReview('subjective', 'Subjective'),
-                    Textarea::make('objective')
-                        ->label('Objective (O)')
-                        ->rows(5)
-                        ->disabledOn('view'),
-                    ...self::aiFieldReview('objective', 'Objective'),
-                    Textarea::make('assessment')
-                        ->label('Assessment (A)')
-                        ->rows(5)
-                        ->disabledOn('view'),
-                    ...self::aiFieldReview('assessment', 'Assessment'),
-                    Textarea::make('plan')
-                        ->label('Plan (P)')
-                        ->rows(5)
-                        ->columnSpanFull()
-                        ->disabledOn('view'),
-                    ...self::aiFieldReview('plan', 'Plan'),
+                    Grid::make(3)->schema([
+                        Section::make('Encounter Notes')
+                            ->columnSpan(2)
+                            ->schema([
+                                Textarea::make('visit_notes')
+                                    ->label('Encounter Note')
+                                    ->helperText('Write rough notes here, then use field-level AI for a wording suggestion.')
+                                    ->rows(5)
+                                    ->columnSpanFull()
+                                    ->disabledOn('view'),
+                                ...self::aiFieldAssist('visit_notes'),
+                                Actions::make([
+                                    Action::make('checkMissingDocumentation')
+                                        ->label('Check Missing Documentation')
+                                        ->color('gray')
+                                        ->action('checkMissingDocumentation')
+                                        ->hidden(fn (): bool => ! self::insuranceBillingEnabled()),
+                                ])
+                                    ->hiddenOn('view')
+                                    ->columnSpanFull(),
+                                Textarea::make('documentation_check_result')
+                                    ->label('AI Documentation Check')
+                                    ->helperText('Completeness review only. This does not modify the encounter note.')
+                                    ->rows(5)
+                                    ->live()
+                                    ->readOnly()
+                                    ->dehydrated(false)
+                                    ->columnSpanFull()
+                                    ->hiddenOn('view'),
+                                Textarea::make('chief_complaint')
+                                    ->rows(3)
+                                    ->required()
+                                    ->disabledOn('view'),
+                                Textarea::make('subjective')
+                                    ->label('Subjective (S)')
+                                    ->rows(5)
+                                    ->disabledOn('view'),
+                                ...self::aiFieldAssist('subjective'),
+                                Textarea::make('objective')
+                                    ->label('Objective (O)')
+                                    ->rows(5)
+                                    ->disabledOn('view'),
+                                ...self::aiFieldAssist('objective'),
+                                Textarea::make('assessment')
+                                    ->label('Assessment (A)')
+                                    ->rows(5)
+                                    ->disabledOn('view'),
+                                ...self::aiFieldAssist('assessment'),
+                                Textarea::make('plan')
+                                    ->label('Plan (P)')
+                                    ->rows(5)
+                                    ->columnSpanFull()
+                                    ->disabledOn('view'),
+                                ...self::aiFieldAssist('plan'),
+                            ]),
+                        self::aiReviewPanel(),
+                    ])->columnSpanFull(),
                 ]),
 
                 Tab::make('Acupuncture')->schema([
