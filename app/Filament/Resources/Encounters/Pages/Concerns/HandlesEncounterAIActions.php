@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Encounters\Pages\Concerns;
 use App\Models\AISuggestion;
 use App\Models\AIUsageLog;
 use App\Models\Encounter;
+use App\Models\Practice;
 use App\Services\AI\AIService;
 use App\Services\PracticeContext;
 use Filament\Notifications\Notification;
@@ -13,6 +14,14 @@ use Throwable;
 
 trait HandlesEncounterAIActions
 {
+    private const AI_IMPROVABLE_FIELDS = [
+        'visit_notes' => 'Encounter note',
+        'subjective' => 'Subjective',
+        'objective' => 'Objective',
+        'assessment' => 'Assessment',
+        'plan' => 'Plan',
+    ];
+
     public function improveNote(AIService $ai): void
     {
         $practiceId = PracticeContext::currentPracticeId();
@@ -137,6 +146,15 @@ trait HandlesEncounterAIActions
             return;
         }
 
+        if (! $this->insuranceBillingEnabledForAI()) {
+            Notification::make()
+                ->title('Documentation check requires insurance billing to be enabled.')
+                ->danger()
+                ->send();
+
+            return;
+        }
+
         $suggestion = $this->createAISuggestion($practiceId, $note, 'pending', 'documentation_check');
 
         try {
@@ -195,7 +213,252 @@ trait HandlesEncounterAIActions
         }
     }
 
-    private function createAISuggestion(int $practiceId, string $note, string $status, string $feature): AISuggestion
+    public function improveVisitNotesField(AIService $ai): void
+    {
+        $this->improveField($ai, 'visit_notes');
+    }
+
+    public function improveSubjectiveField(AIService $ai): void
+    {
+        $this->improveField($ai, 'subjective');
+    }
+
+    public function improveObjectiveField(AIService $ai): void
+    {
+        $this->improveField($ai, 'objective');
+    }
+
+    public function improveAssessmentField(AIService $ai): void
+    {
+        $this->improveField($ai, 'assessment');
+    }
+
+    public function improvePlanField(AIService $ai): void
+    {
+        $this->improveField($ai, 'plan');
+    }
+
+    public function acceptVisitNotesFieldSuggestion(): void
+    {
+        $this->acceptFieldSuggestion('visit_notes');
+    }
+
+    public function acceptSubjectiveFieldSuggestion(): void
+    {
+        $this->acceptFieldSuggestion('subjective');
+    }
+
+    public function acceptObjectiveFieldSuggestion(): void
+    {
+        $this->acceptFieldSuggestion('objective');
+    }
+
+    public function acceptAssessmentFieldSuggestion(): void
+    {
+        $this->acceptFieldSuggestion('assessment');
+    }
+
+    public function acceptPlanFieldSuggestion(): void
+    {
+        $this->acceptFieldSuggestion('plan');
+    }
+
+    public function dismissVisitNotesFieldSuggestion(): void
+    {
+        $this->dismissFieldSuggestion('visit_notes');
+    }
+
+    public function dismissSubjectiveFieldSuggestion(): void
+    {
+        $this->dismissFieldSuggestion('subjective');
+    }
+
+    public function dismissObjectiveFieldSuggestion(): void
+    {
+        $this->dismissFieldSuggestion('objective');
+    }
+
+    public function dismissAssessmentFieldSuggestion(): void
+    {
+        $this->dismissFieldSuggestion('assessment');
+    }
+
+    public function dismissPlanFieldSuggestion(): void
+    {
+        $this->dismissFieldSuggestion('plan');
+    }
+
+    public function improveField(AIService $ai, string $field): void
+    {
+        if (! array_key_exists($field, self::AI_IMPROVABLE_FIELDS)) {
+            Notification::make()
+                ->title('This encounter field cannot be improved with AI.')
+                ->danger()
+                ->send();
+
+            return;
+        }
+
+        $practiceId = PracticeContext::currentPracticeId();
+        $fieldLabel = self::AI_IMPROVABLE_FIELDS[$field];
+        $originalText = trim((string) data_get($this->data, $field, ''));
+
+        if (! $practiceId) {
+            Notification::make()
+                ->title('Select a practice before using AI.')
+                ->danger()
+                ->send();
+
+            return;
+        }
+
+        $suggestion = $this->createAISuggestion($practiceId, $originalText, 'pending', 'improve_field', [
+            'field' => $field,
+            'field_label' => $fieldLabel,
+        ]);
+
+        try {
+            $suggestedText = $ai->improveField($originalText, $fieldLabel, [
+                'field' => $field,
+                'discipline' => $this->encounterAIValue('discipline'),
+                'chief_complaint' => data_get($this->data, 'chief_complaint'),
+            ]);
+
+            $suggestion->update([
+                'suggested_text' => $suggestedText,
+                'status' => 'pending',
+            ]);
+
+            AIUsageLog::create([
+                'practice_id' => $practiceId,
+                'user_id' => auth()->id(),
+                'feature' => 'improve_field',
+                'status' => 'success',
+            ]);
+
+            $this->updateEncounterAIFormState([
+                "ai_field_suggestions.{$field}.suggested_text" => $suggestedText,
+                "ai_field_suggestions.{$field}.suggestion_id" => $suggestion->id,
+            ]);
+
+            Log::info('Encounter AI field suggestion state updated.', [
+                'feature' => 'improve_field',
+                'field' => $field,
+                'practice_id' => $practiceId,
+                'user_id' => auth()->id(),
+                'suggestion_id' => $suggestion->id,
+                'suggestion_length' => strlen($suggestedText),
+            ]);
+
+            Notification::make()
+                ->title("AI suggestion ready for {$fieldLabel}.")
+                ->success()
+                ->send();
+        } catch (Throwable $exception) {
+            $suggestion->update([
+                'status' => 'failed',
+            ]);
+
+            AIUsageLog::create([
+                'practice_id' => $practiceId,
+                'user_id' => auth()->id(),
+                'feature' => 'improve_field',
+                'status' => 'failed',
+                'error_message' => $exception->getMessage(),
+            ]);
+
+            Notification::make()
+                ->title('Improve field is unavailable.')
+                ->body($exception->getMessage())
+                ->danger()
+                ->send();
+        }
+    }
+
+    public function acceptFieldSuggestion(string $field): void
+    {
+        if (! array_key_exists($field, self::AI_IMPROVABLE_FIELDS)) {
+            Notification::make()
+                ->title('This encounter field cannot accept AI suggestions.')
+                ->danger()
+                ->send();
+
+            return;
+        }
+
+        $suggestedText = trim((string) data_get($this->data, "ai_field_suggestions.{$field}.suggested_text", ''));
+
+        if ($suggestedText === '') {
+            Notification::make()
+                ->title('Generate an AI suggestion for this field before accepting.')
+                ->danger()
+                ->send();
+
+            return;
+        }
+
+        $this->updateEncounterAIFormState([
+            $field => $suggestedText,
+        ]);
+
+        $record = $this->encounterAIRecord();
+        if ($record?->exists) {
+            $record->update([$field => $suggestedText]);
+        }
+
+        $suggestionId = data_get($this->data, "ai_field_suggestions.{$field}.suggestion_id");
+        if ($suggestionId) {
+            AISuggestion::whereKey($suggestionId)->update([
+                'accepted_text' => $suggestedText,
+                'status' => 'accepted',
+                'accepted_at' => now(),
+            ]);
+        }
+
+        Notification::make()
+            ->title('AI field suggestion accepted.')
+            ->success()
+            ->send();
+    }
+
+    public function dismissFieldSuggestion(string $field): void
+    {
+        if (! array_key_exists($field, self::AI_IMPROVABLE_FIELDS)) {
+            return;
+        }
+
+        $suggestionId = data_get($this->data, "ai_field_suggestions.{$field}.suggestion_id");
+        if ($suggestionId) {
+            AISuggestion::whereKey($suggestionId)->update([
+                'status' => 'dismissed',
+            ]);
+        }
+
+        $this->updateEncounterAIFormState([
+            "ai_field_suggestions.{$field}.suggested_text" => null,
+            "ai_field_suggestions.{$field}.suggestion_id" => null,
+        ]);
+
+        Notification::make()
+            ->title('AI field suggestion dismissed.')
+            ->success()
+            ->send();
+    }
+
+    public function insuranceBillingEnabledForAI(): bool
+    {
+        $practiceId = PracticeContext::currentPracticeId();
+
+        if (! $practiceId) {
+            return false;
+        }
+
+        return (bool) Practice::query()
+            ->whereKey($practiceId)
+            ->value('insurance_billing_enabled');
+    }
+
+    private function createAISuggestion(int $practiceId, string $note, string $status, string $feature, array $context = []): AISuggestion
     {
         $record = $this->encounterAIRecord();
 
@@ -206,6 +469,7 @@ trait HandlesEncounterAIActions
             'appointment_id' => $record?->appointment_id ?? data_get($this->data, 'appointment_id'),
             'encounter_id' => $record?->id,
             'feature' => $feature,
+            'context_json' => $context ?: null,
             'original_text' => $note,
             'status' => $status,
         ]);

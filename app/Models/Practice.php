@@ -17,6 +17,7 @@ class Practice extends Model
         'discipline', 'referral_source', 'setup_completed_at',
         'dismissed_onboarding_banner',
         'default_appointment_duration', 'default_reminder_hours',
+        'insurance_billing_enabled',
     ];
 
     protected function casts(): array
@@ -25,6 +26,7 @@ class Practice extends Model
             'is_active' => 'boolean',
             'is_demo' => 'boolean',
             'dismissed_onboarding_banner' => 'boolean',
+            'insurance_billing_enabled' => 'boolean',
             'trial_ends_at' => 'datetime',
             'setup_completed_at' => 'datetime',
         ];

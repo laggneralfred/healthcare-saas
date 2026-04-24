@@ -92,6 +92,31 @@ it('AIService reads text from nested OpenAI responses output content', function 
     expect($result)->toBe('Patient reports neck tightness improved after treatment.');
 });
 
+it('AIService improves a specific encounter field with field context', function () {
+    config([
+        'services.ai.provider' => 'openai',
+        'services.ai.openai.api_key' => 'test-key',
+        'services.ai.openai.model' => 'gpt-test',
+    ]);
+
+    Http::fake([
+        'api.openai.com/v1/responses' => Http::response([
+            'output_text' => 'Patient reports neck tightness improved after treatment.',
+        ]),
+    ]);
+
+    $result = app(AIService::class)->improveField('neck tight better after tx', 'Subjective');
+
+    expect($result)->toBe('Patient reports neck tightness improved after treatment.');
+
+    Http::assertSent(fn ($request) => $request->hasHeader('Authorization', 'Bearer test-key')
+        && $request['model'] === 'gpt-test'
+        && str_contains($request['instructions'], 'provided Subjective text')
+        && str_contains($request['instructions'], 'Do not assign billing codes')
+        && str_contains($request['input'], 'Subjective text to improve:')
+        && str_contains($request['input'], 'neck tight better after tx'));
+});
+
 it('AIService is unavailable when no API key is configured', function () {
     config(['services.ai.openai.api_key' => null]);
 
@@ -179,6 +204,196 @@ it('can improve and accept an unsaved note on the create encounter screen', func
         'user_id' => $user->id,
         'feature' => 'improve_note',
         'status' => 'success',
+    ]);
+});
+
+it('field-level improve writes suggestion to the selected field state only', function () {
+    $practice = Practice::factory()->create();
+    $user = User::factory()->create(['practice_id' => $practice->id]);
+    $encounter = createEncounterForPractice($practice, [
+        'subjective' => 'neck tight better after tx',
+        'objective' => 'ROM mildly limited',
+        'assessment' => 'responding',
+        'plan' => 'return next week',
+    ]);
+
+    app()->instance(AIService::class, new class extends AIService {
+        public function improveField(string $text, string $fieldName, array $context = []): string
+        {
+            expect($fieldName)->toBe('Subjective');
+
+            return 'Patient reports neck tightness improved after treatment.';
+        }
+    });
+
+    $this->actingAs($user);
+
+    Livewire::test(EditEncounter::class, ['record' => $encounter->id])
+        ->set('data.subjective', 'neck tight better after tx')
+        ->set('data.objective', 'ROM mildly limited')
+        ->set('data.assessment', 'responding')
+        ->set('data.plan', 'return next week')
+        ->call('improveSubjectiveField')
+        ->assertSet('data.ai_field_suggestions.subjective.suggested_text', 'Patient reports neck tightness improved after treatment.')
+        ->assertSet('data.subjective', 'neck tight better after tx')
+        ->assertSet('data.objective', 'ROM mildly limited')
+        ->assertSet('data.assessment', 'responding')
+        ->assertSet('data.plan', 'return next week');
+
+    $encounter->refresh();
+
+    expect($encounter->subjective)->toBe('neck tight better after tx');
+    expect($encounter->objective)->toBe('ROM mildly limited');
+
+    $suggestion = AISuggestion::where('practice_id', $practice->id)
+        ->where('feature', 'improve_field')
+        ->firstOrFail();
+
+    expect($suggestion->context_json)->toMatchArray([
+        'field' => 'subjective',
+        'field_label' => 'Subjective',
+    ]);
+
+    $this->assertDatabaseHas('ai_suggestions', [
+        'practice_id' => $practice->id,
+        'user_id' => $user->id,
+        'encounter_id' => $encounter->id,
+        'feature' => 'improve_field',
+        'original_text' => 'neck tight better after tx',
+        'suggested_text' => 'Patient reports neck tightness improved after treatment.',
+        'status' => 'pending',
+    ]);
+
+    $this->assertDatabaseHas('ai_usage_logs', [
+        'practice_id' => $practice->id,
+        'user_id' => $user->id,
+        'feature' => 'improve_field',
+        'status' => 'success',
+    ]);
+});
+
+it('accepting field-level suggestion updates only that field', function () {
+    $practice = Practice::factory()->create();
+    $user = User::factory()->create(['practice_id' => $practice->id]);
+    $encounter = createEncounterForPractice($practice, [
+        'subjective' => 'neck tight better after tx',
+        'objective' => 'ROM mildly limited',
+        'assessment' => 'responding',
+        'plan' => 'return next week',
+    ]);
+
+    $suggestion = AISuggestion::create([
+        'practice_id' => $practice->id,
+        'user_id' => $user->id,
+        'patient_id' => $encounter->patient_id,
+        'appointment_id' => $encounter->appointment_id,
+        'encounter_id' => $encounter->id,
+        'feature' => 'improve_field',
+        'context_json' => ['field' => 'subjective', 'field_label' => 'Subjective'],
+        'original_text' => 'neck tight better after tx',
+        'suggested_text' => 'Improved subjective text.',
+        'status' => 'pending',
+    ]);
+
+    $this->actingAs($user);
+
+    Livewire::test(EditEncounter::class, ['record' => $encounter->id])
+        ->set('data.ai_field_suggestions.subjective.suggested_text', 'Improved subjective text.')
+        ->set('data.ai_field_suggestions.subjective.suggestion_id', $suggestion->id)
+        ->call('acceptSubjectiveFieldSuggestion')
+        ->assertSet('data.subjective', 'Improved subjective text.')
+        ->assertSet('data.objective', 'ROM mildly limited')
+        ->assertSet('data.assessment', 'responding')
+        ->assertSet('data.plan', 'return next week');
+
+    $encounter->refresh();
+    $suggestion->refresh();
+
+    expect($encounter->subjective)->toBe('Improved subjective text.');
+    expect($encounter->objective)->toBe('ROM mildly limited');
+    expect($encounter->assessment)->toBe('responding');
+    expect($encounter->plan)->toBe('return next week');
+    expect($suggestion->status)->toBe('accepted');
+    expect($suggestion->accepted_text)->toBe('Improved subjective text.');
+});
+
+it('field-level improve uses selected practice context for a super admin', function () {
+    $practice = Practice::factory()->create();
+    $otherPractice = Practice::factory()->create();
+    $superAdmin = User::factory()->create(['practice_id' => null]);
+    $encounter = createEncounterForPractice($practice, [
+        'plan' => 'return one week',
+    ]);
+
+    app()->instance(AIService::class, new class extends AIService {
+        public function improveField(string $text, string $fieldName, array $context = []): string
+        {
+            return 'Return in one week for follow-up.';
+        }
+    });
+
+    $this->actingAs($superAdmin);
+    PracticeContext::setCurrentPracticeId($practice->id);
+
+    Livewire::test(EditEncounter::class, ['record' => $encounter->id])
+        ->set('data.plan', 'return one week')
+        ->call('improvePlanField')
+        ->assertSet('data.ai_field_suggestions.plan.suggested_text', 'Return in one week for follow-up.');
+
+    $this->assertDatabaseHas('ai_suggestions', [
+        'practice_id' => $practice->id,
+        'user_id' => $superAdmin->id,
+        'encounter_id' => $encounter->id,
+        'feature' => 'improve_field',
+        'suggested_text' => 'Return in one week for follow-up.',
+    ]);
+
+    $this->assertDatabaseMissing('ai_suggestions', [
+        'practice_id' => $otherPractice->id,
+        'user_id' => $superAdmin->id,
+        'feature' => 'improve_field',
+    ]);
+});
+
+it('logs failed field-level AI calls cleanly', function () {
+    $practice = Practice::factory()->create();
+    $user = User::factory()->create(['practice_id' => $practice->id]);
+    $encounter = createEncounterForPractice($practice, [
+        'objective' => 'ROM limited',
+    ]);
+
+    app()->instance(AIService::class, new class extends AIService {
+        public function improveField(string $text, string $fieldName, array $context = []): string
+        {
+            throw new AIUnavailableException('Field AI offline');
+        }
+    });
+
+    $this->actingAs($user);
+
+    Livewire::test(EditEncounter::class, ['record' => $encounter->id])
+        ->set('data.objective', 'ROM limited')
+        ->call('improveObjectiveField');
+
+    $encounter->refresh();
+    expect($encounter->objective)->toBe('ROM limited');
+
+    $this->assertDatabaseHas('ai_suggestions', [
+        'practice_id' => $practice->id,
+        'user_id' => $user->id,
+        'encounter_id' => $encounter->id,
+        'feature' => 'improve_field',
+        'original_text' => 'ROM limited',
+        'suggested_text' => null,
+        'status' => 'failed',
+    ]);
+
+    $this->assertDatabaseHas('ai_usage_logs', [
+        'practice_id' => $practice->id,
+        'user_id' => $user->id,
+        'feature' => 'improve_field',
+        'status' => 'failed',
+        'error_message' => 'Field AI offline',
     ]);
 });
 

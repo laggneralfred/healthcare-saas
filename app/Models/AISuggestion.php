@@ -19,6 +19,7 @@ class AISuggestion extends Model
         'appointment_id',
         'encounter_id',
         'feature',
+        'context_json',
         'original_text',
         'suggested_text',
         'accepted_text',
@@ -30,6 +31,7 @@ class AISuggestion extends Model
     {
         return [
             'accepted_at' => 'datetime',
+            'context_json' => 'array',
         ];
     }
 

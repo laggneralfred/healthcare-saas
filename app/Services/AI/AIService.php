@@ -9,6 +9,8 @@ class AIService
 {
     private const IMPROVE_NOTE_SYSTEM_PROMPT = 'You are a clinical documentation assistant for an acupuncture/wellness practice. Improve the wording of the provided note. Do not add facts that are not present. Do not diagnose. Do not assign billing codes. If important details are missing, mention them as "not documented". Return only the improved note text.';
 
+    private const IMPROVE_FIELD_SYSTEM_PROMPT = 'You are a clinical documentation assistant for an acupuncture/wellness practice. Improve the wording of the provided FIELD_NAME text. Do not add facts that are not present. Do not diagnose. Do not assign billing codes. If details are missing, say "not documented" rather than inventing them. Return only the improved text.';
+
     private const DOCUMENTATION_CHECK_SYSTEM_PROMPT = 'You are a clinical documentation completeness assistant for an acupuncture/wellness practice. Review the provided encounter note and identify missing or unclear documentation elements. Do not diagnose. Do not assign billing codes. Do not invent facts. Return a concise checklist. If the note is adequate, say so briefly. Focus on items such as chief complaint, onset/duration, severity, treatment performed, points/techniques if mentioned, treatment time, patient response, follow-up plan, and missing objective findings. Use "not documented" where appropriate.';
 
     private const IMPORT_MAPPING_SYSTEM_PROMPT = 'You are a CSV import mapping assistant for a healthcare practice management system. Map the uploaded CSV headers to supported patient fields. Only use supported fields. Do not invent fields. Return concise JSON with header-to-field mappings and confidence where possible.';
@@ -27,6 +29,25 @@ class AIService
 
         return match (config('services.ai.provider', 'openai')) {
             'openai' => $this->improveNoteWithOpenAI($note, $context),
+            default => throw new AIUnavailableException('The configured AI provider is not supported.'),
+        };
+    }
+
+    public function improveField(string $text, string $fieldName, array $context = []): string
+    {
+        $text = trim($text);
+        $fieldName = trim($fieldName);
+
+        if ($text === '') {
+            throw new AIUnavailableException('Field text is required before AI can improve it.');
+        }
+
+        if ($fieldName === '') {
+            throw new AIUnavailableException('Field name is required before AI can improve it.');
+        }
+
+        return match (config('services.ai.provider', 'openai')) {
+            'openai' => $this->improveFieldWithOpenAI($text, $fieldName, $context),
             default => throw new AIUnavailableException('The configured AI provider is not supported.'),
         };
     }
@@ -112,6 +133,16 @@ class AIService
         );
     }
 
+    private function improveFieldWithOpenAI(string $text, string $fieldName, array $context): string
+    {
+        $instructions = str_replace('FIELD_NAME', $fieldName, self::IMPROVE_FIELD_SYSTEM_PROMPT);
+
+        return $this->sendOpenAIRequest(
+            $instructions,
+            $this->buildUserPrompt($text, $context, "{$fieldName} text to improve:")
+        );
+    }
+
     private function translateTextWithOpenAI(string $text, string $targetLanguage, array $context): string
     {
         return $this->sendOpenAIRequest(
@@ -174,13 +205,40 @@ class AIService
             throw new AIUnavailableException('AI request failed. Please try again later.', previous: $exception);
         }
 
-        $text = trim((string) data_get($response, 'output_text', ''));
+        $text = $this->extractOpenAIText($response);
 
         if ($text === '') {
             throw new AIUnavailableException('AI returned an empty suggestion.');
         }
 
         return $text;
+    }
+
+    private function extractOpenAIText(array $response): string
+    {
+        $text = trim((string) data_get($response, 'output_text', ''));
+
+        if ($text !== '') {
+            return $text;
+        }
+
+        foreach ((array) data_get($response, 'output', []) as $output) {
+            foreach ((array) data_get($output, 'content', []) as $content) {
+                $contentText = trim((string) data_get($content, 'text', ''));
+
+                if ($contentText !== '') {
+                    return $contentText;
+                }
+            }
+        }
+
+        $choiceText = trim((string) data_get($response, 'choices.0.message.content', ''));
+
+        if ($choiceText !== '') {
+            return $choiceText;
+        }
+
+        return trim((string) data_get($response, 'choices.0.text', ''));
     }
 
     private function buildUserPrompt(string $note, array $context, string $noteLabel): string

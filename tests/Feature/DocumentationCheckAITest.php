@@ -1,6 +1,7 @@
 <?php
 
 use App\Filament\Resources\Encounters\Pages\EditEncounter;
+use App\Filament\Resources\Encounters\Pages\CreateEncounter;
 use App\Models\Appointment;
 use App\Models\AppointmentType;
 use App\Models\Encounter;
@@ -63,7 +64,7 @@ it('AIService returns a documentation completeness checklist when configured', f
 });
 
 it('creates documentation check suggestion and usage log without changing visit notes', function () {
-    $practice = Practice::factory()->create();
+    $practice = Practice::factory()->create(['insurance_billing_enabled' => true]);
     $user = User::factory()->create(['practice_id' => $practice->id]);
     $encounter = createEncounterForDocumentationCheck($practice, [
         'visit_notes' => 'Shoulder pain 6/10. Needles placed. Felt better.',
@@ -103,8 +104,88 @@ it('creates documentation check suggestion and usage log without changing visit 
     ]);
 });
 
+it('can check missing documentation on the create encounter screen without creating an encounter', function () {
+    $practice = Practice::factory()->create(['insurance_billing_enabled' => true]);
+    $user = User::factory()->create(['practice_id' => $practice->id]);
+
+    app()->instance(AIService::class, new class extends AIService {
+        public function checkMissingDocumentation(string $note, array $context = []): string
+        {
+            return "- Follow-up plan: not documented\n- Objective findings: not documented";
+        }
+    });
+
+    $this->actingAs($user);
+
+    Livewire::test(CreateEncounter::class)
+        ->set('data.visit_notes', 'Neck tension 5/10. Acupuncture performed.')
+        ->set('data.discipline', 'acupuncture')
+        ->call('checkMissingDocumentation')
+        ->assertSet('data.documentation_check_result', "- Follow-up plan: not documented\n- Objective findings: not documented");
+
+    expect(Encounter::withoutPracticeScope()->where('practice_id', $practice->id)->count())->toBe(0);
+
+    $this->assertDatabaseHas('ai_suggestions', [
+        'practice_id' => $practice->id,
+        'user_id' => $user->id,
+        'encounter_id' => null,
+        'feature' => 'documentation_check',
+        'original_text' => 'Neck tension 5/10. Acupuncture performed.',
+        'suggested_text' => "- Follow-up plan: not documented\n- Objective findings: not documented",
+        'status' => 'pending',
+    ]);
+
+    $this->assertDatabaseHas('ai_usage_logs', [
+        'practice_id' => $practice->id,
+        'user_id' => $user->id,
+        'feature' => 'documentation_check',
+        'status' => 'success',
+    ]);
+});
+
+it('hides and blocks documentation checks when insurance billing is disabled', function () {
+    $practice = Practice::factory()->create(['insurance_billing_enabled' => false]);
+    $user = User::factory()->create(['practice_id' => $practice->id]);
+    $encounter = createEncounterForDocumentationCheck($practice);
+
+    app()->instance(AIService::class, new class extends AIService {
+        public function checkMissingDocumentation(string $note, array $context = []): string
+        {
+            throw new RuntimeException('AI should not be called when insurance billing is disabled.');
+        }
+    });
+
+    $this->actingAs($user);
+
+    Livewire::test(EditEncounter::class, ['record' => $encounter->id])
+        ->assertDontSee('Check Missing Documentation')
+        ->set('data.visit_notes', 'Documentation note.')
+        ->call('checkMissingDocumentation');
+
+    $this->assertDatabaseMissing('ai_suggestions', [
+        'practice_id' => $practice->id,
+        'feature' => 'documentation_check',
+    ]);
+
+    $this->assertDatabaseMissing('ai_usage_logs', [
+        'practice_id' => $practice->id,
+        'feature' => 'documentation_check',
+    ]);
+});
+
+it('shows documentation checks when insurance billing is enabled', function () {
+    $practice = Practice::factory()->create(['insurance_billing_enabled' => true]);
+    $user = User::factory()->create(['practice_id' => $practice->id]);
+    $encounter = createEncounterForDocumentationCheck($practice);
+
+    $this->actingAs($user);
+
+    Livewire::test(EditEncounter::class, ['record' => $encounter->id])
+        ->assertSee('Check Missing Documentation');
+});
+
 it('uses selected practice context for documentation checks by super admin', function () {
-    $practice = Practice::factory()->create();
+    $practice = Practice::factory()->create(['insurance_billing_enabled' => true]);
     $otherPractice = Practice::factory()->create();
     $superAdmin = User::factory()->create(['practice_id' => null]);
     $encounter = createEncounterForDocumentationCheck($practice);
@@ -139,7 +220,7 @@ it('uses selected practice context for documentation checks by super admin', fun
 });
 
 it('logs failed documentation checks cleanly', function () {
-    $practice = Practice::factory()->create();
+    $practice = Practice::factory()->create(['insurance_billing_enabled' => true]);
     $user = User::factory()->create(['practice_id' => $practice->id]);
     $encounter = createEncounterForDocumentationCheck($practice);
 

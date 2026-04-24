@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Encounters\Schemas;
 
+use App\Models\Practice;
 use App\Services\PracticeContext;
 use Filament\Actions\Action;
 use Filament\Forms\Components\DatePicker;
@@ -19,6 +20,86 @@ use Filament\Schemas\Schema;
 
 class EncounterForm
 {
+    private const AI_FIELD_ACTIONS = [
+        'visit_notes' => [
+            'improve' => 'improveVisitNotesField',
+            'accept' => 'acceptVisitNotesFieldSuggestion',
+            'dismiss' => 'dismissVisitNotesFieldSuggestion',
+        ],
+        'subjective' => [
+            'improve' => 'improveSubjectiveField',
+            'accept' => 'acceptSubjectiveFieldSuggestion',
+            'dismiss' => 'dismissSubjectiveFieldSuggestion',
+        ],
+        'objective' => [
+            'improve' => 'improveObjectiveField',
+            'accept' => 'acceptObjectiveFieldSuggestion',
+            'dismiss' => 'dismissObjectiveFieldSuggestion',
+        ],
+        'assessment' => [
+            'improve' => 'improveAssessmentField',
+            'accept' => 'acceptAssessmentFieldSuggestion',
+            'dismiss' => 'dismissAssessmentFieldSuggestion',
+        ],
+        'plan' => [
+            'improve' => 'improvePlanField',
+            'accept' => 'acceptPlanFieldSuggestion',
+            'dismiss' => 'dismissPlanFieldSuggestion',
+        ],
+    ];
+
+    private static function insuranceBillingEnabled(): bool
+    {
+        $practiceId = PracticeContext::currentPracticeId();
+
+        if (! $practiceId) {
+            return false;
+        }
+
+        return (bool) Practice::query()
+            ->whereKey($practiceId)
+            ->value('insurance_billing_enabled');
+    }
+
+    private static function aiFieldReview(string $field, string $label): array
+    {
+        $actions = self::AI_FIELD_ACTIONS[$field];
+
+        return [
+            Actions::make([
+                Action::make($actions['improve'])
+                    ->label('Improve this field')
+                    ->color('gray')
+                    ->action($actions['improve']),
+            ])
+                ->hiddenOn('view')
+                ->columnSpanFull(),
+            Textarea::make("ai_field_suggestions.{$field}.suggested_text")
+                ->label("AI suggestion for {$label}")
+                ->helperText('Review before accepting. This does not replace the original field automatically.')
+                ->rows(4)
+                ->live()
+                ->readOnly()
+                ->dehydrated(false)
+                ->columnSpanFull()
+                ->hiddenOn('view'),
+            Hidden::make("ai_field_suggestions.{$field}.suggestion_id")
+                ->dehydrated(false),
+            Actions::make([
+                Action::make($actions['accept'])
+                    ->label('Accept into this field')
+                    ->color('primary')
+                    ->action($actions['accept']),
+                Action::make($actions['dismiss'])
+                    ->label('Dismiss')
+                    ->color('gray')
+                    ->action($actions['dismiss']),
+            ])
+                ->hiddenOn('view')
+                ->columnSpanFull(),
+        ];
+    }
+
     private static function formatLastVisits($record): string
     {
         if (!$record || !$record->patient) {
@@ -162,23 +243,17 @@ class EncounterForm
                 Tab::make('Core Notes')->schema([
                     Textarea::make('visit_notes')
                         ->label('Encounter Note')
-                        ->helperText('Write rough notes here, then use Improve Note for an AI wording suggestion.')
+                        ->helperText('Write rough notes here, then use field-level AI for a wording suggestion.')
                         ->rows(5)
                         ->columnSpanFull()
                         ->disabledOn('view'),
+                    ...self::aiFieldReview('visit_notes', 'Encounter Note'),
                     Actions::make([
-                        Action::make('improveNote')
-                            ->label('Improve Note')
-                            ->color('gray')
-                            ->action('improveNote'),
                         Action::make('checkMissingDocumentation')
                             ->label('Check Missing Documentation')
                             ->color('gray')
-                            ->action('checkMissingDocumentation'),
-                        Action::make('acceptAISuggestion')
-                            ->label('Accept AI Suggestion')
-                            ->color('primary')
-                            ->action('acceptAISuggestion'),
+                            ->action('checkMissingDocumentation')
+                            ->hidden(fn (): bool => ! self::insuranceBillingEnabled()),
                     ])
                         ->hiddenOn('view')
                         ->columnSpanFull(),
@@ -208,19 +283,23 @@ class EncounterForm
                         ->label('Subjective (S)')
                         ->rows(5)
                         ->disabledOn('view'),
+                    ...self::aiFieldReview('subjective', 'Subjective'),
                     Textarea::make('objective')
                         ->label('Objective (O)')
                         ->rows(5)
                         ->disabledOn('view'),
+                    ...self::aiFieldReview('objective', 'Objective'),
                     Textarea::make('assessment')
                         ->label('Assessment (A)')
                         ->rows(5)
                         ->disabledOn('view'),
+                    ...self::aiFieldReview('assessment', 'Assessment'),
                     Textarea::make('plan')
                         ->label('Plan (P)')
                         ->rows(5)
                         ->columnSpanFull()
                         ->disabledOn('view'),
+                    ...self::aiFieldReview('plan', 'Plan'),
                 ]),
 
                 Tab::make('Acupuncture')->schema([

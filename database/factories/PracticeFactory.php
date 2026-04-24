@@ -24,6 +24,7 @@ class PracticeFactory extends Factory
             'timezone'       => $faker->randomElement(['America/New_York', 'America/Chicago', 'America/Los_Angeles', 'America/Denver']),
             'is_active'      => true,
             'is_demo'        => false,
+            'insurance_billing_enabled' => false,
             'discipline'     => $faker->randomElement(['acupuncture', 'massage', 'chiropractic', 'physical_therapy', 'other']),
             'referral_source' => $faker->optional(0.5)->randomElement(['Google', 'Word of Mouth', 'Facebook', 'Yelp', 'Direct']),
             'trial_ends_at'  => now()->addDays(30),
