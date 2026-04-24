@@ -180,24 +180,26 @@ class EncounterForm
                             ->color('primary')
                             ->action('acceptAISuggestion'),
                     ])
-                        ->visibleOn('edit')
+                        ->hiddenOn('view')
                         ->columnSpanFull(),
                     Textarea::make('ai_suggestion')
                         ->label('AI Suggestion')
                         ->helperText('Review before accepting. The original note is not replaced automatically.')
                         ->rows(5)
+                        ->live()
                         ->readOnly()
                         ->dehydrated(false)
                         ->columnSpanFull()
-                        ->visibleOn('edit'),
+                        ->hiddenOn('view'),
                     Textarea::make('documentation_check_result')
                         ->label('AI Documentation Check')
                         ->helperText('Completeness review only. This does not modify the encounter note.')
                         ->rows(5)
+                        ->live()
                         ->readOnly()
                         ->dehydrated(false)
                         ->columnSpanFull()
-                        ->visibleOn('edit'),
+                        ->hiddenOn('view'),
                     Textarea::make('chief_complaint')
                         ->rows(3)
                         ->required()

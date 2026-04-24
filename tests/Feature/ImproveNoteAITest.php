@@ -1,6 +1,7 @@
 <?php
 
 use App\Filament\Resources\Encounters\Pages\EditEncounter;
+use App\Filament\Resources\Encounters\Pages\CreateEncounter;
 use App\Models\AIUsageLog;
 use App\Models\AISuggestion;
 use App\Models\Appointment;
@@ -62,6 +63,35 @@ it('AIService returns an improved note from OpenAI when configured', function ()
         && str_contains($request['input'], 'neck tight better after tx'));
 });
 
+it('AIService reads text from nested OpenAI responses output content', function () {
+    config([
+        'services.ai.provider' => 'openai',
+        'services.ai.openai.api_key' => 'test-key',
+        'services.ai.openai.model' => 'gpt-test',
+    ]);
+
+    Http::fake([
+        'api.openai.com/v1/responses' => Http::response([
+            'output' => [
+                [
+                    'type' => 'message',
+                    'role' => 'assistant',
+                    'content' => [
+                        [
+                            'type' => 'output_text',
+                            'text' => 'Patient reports neck tightness improved after treatment.',
+                        ],
+                    ],
+                ],
+            ],
+        ]),
+    ]);
+
+    $result = app(AIService::class)->improveNote('neck tight better after tx');
+
+    expect($result)->toBe('Patient reports neck tightness improved after treatment.');
+});
+
 it('AIService is unavailable when no API key is configured', function () {
     config(['services.ai.openai.api_key' => null]);
 
@@ -85,7 +115,9 @@ it('creates a practice-scoped AI suggestion and preserves the original note unti
 
     Livewire::test(EditEncounter::class, ['record' => $encounter->id])
         ->set('data.visit_notes', 'neck tight better after tx')
-        ->call('improveNote');
+        ->call('improveNote')
+        ->assertSet('data.ai_suggestion', 'Patient reports neck tightness improved after treatment.')
+        ->assertSet('data.visit_notes', 'neck tight better after tx');
 
     $encounter->refresh();
     expect($encounter->visit_notes)->toBe('pt says neck tight better after tx');
@@ -98,6 +130,48 @@ it('creates a practice-scoped AI suggestion and preserves the original note unti
         'original_text' => 'neck tight better after tx',
         'suggested_text' => 'Patient reports neck tightness improved after treatment.',
         'status' => 'pending',
+    ]);
+
+    $this->assertDatabaseHas('ai_usage_logs', [
+        'practice_id' => $practice->id,
+        'user_id' => $user->id,
+        'feature' => 'improve_note',
+        'status' => 'success',
+    ]);
+});
+
+it('can improve and accept an unsaved note on the create encounter screen', function () {
+    $practice = Practice::factory()->create();
+    $user = User::factory()->create(['practice_id' => $practice->id]);
+
+    app()->instance(AIService::class, new class extends AIService {
+        public function improveNote(string $note, array $context = []): string
+        {
+            return 'Patient reports neck tightness improved after treatment.';
+        }
+    });
+
+    $this->actingAs($user);
+
+    Livewire::test(CreateEncounter::class)
+        ->set('data.visit_notes', 'neck tight better after tx')
+        ->set('data.discipline', 'acupuncture')
+        ->call('improveNote')
+        ->assertSet('data.ai_suggestion', 'Patient reports neck tightness improved after treatment.')
+        ->call('acceptAISuggestion')
+        ->assertSet('data.visit_notes', 'Patient reports neck tightness improved after treatment.');
+
+    expect(Encounter::withoutPracticeScope()->where('practice_id', $practice->id)->count())->toBe(0);
+
+    $this->assertDatabaseHas('ai_suggestions', [
+        'practice_id' => $practice->id,
+        'user_id' => $user->id,
+        'encounter_id' => null,
+        'feature' => 'improve_note',
+        'original_text' => 'neck tight better after tx',
+        'suggested_text' => 'Patient reports neck tightness improved after treatment.',
+        'accepted_text' => 'Patient reports neck tightness improved after treatment.',
+        'status' => 'accepted',
     ]);
 
     $this->assertDatabaseHas('ai_usage_logs', [
