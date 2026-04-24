@@ -105,7 +105,7 @@ class EditEncounter extends EditRecord
             return;
         }
 
-        $suggestion = $this->createAISuggestion($practiceId, $note, 'pending');
+        $suggestion = $this->createAISuggestion($practiceId, $note, 'pending', 'improve_note');
 
         try {
             $suggestedText = $ai->improveNote($note, [
@@ -186,6 +186,68 @@ class EditEncounter extends EditRecord
             ->send();
     }
 
+    public function checkMissingDocumentation(AIService $ai): void
+    {
+        $practiceId = PracticeContext::currentPracticeId();
+        $note = trim((string) data_get($this->data, 'visit_notes', ''));
+
+        if (! $practiceId) {
+            Notification::make()
+                ->title('Select a practice before using AI.')
+                ->danger()
+                ->send();
+
+            return;
+        }
+
+        $suggestion = $this->createAISuggestion($practiceId, $note, 'pending', 'documentation_check');
+
+        try {
+            $checklist = $ai->checkMissingDocumentation($note, [
+                'discipline' => $this->record->discipline,
+                'chief_complaint' => data_get($this->data, 'chief_complaint'),
+            ]);
+
+            $suggestion->update([
+                'suggested_text' => $checklist,
+                'status' => 'pending',
+            ]);
+
+            AIUsageLog::create([
+                'practice_id' => $practiceId,
+                'user_id' => auth()->id(),
+                'feature' => 'documentation_check',
+                'status' => 'success',
+            ]);
+
+            data_set($this->data, 'documentation_check_result', $checklist);
+            $this->form->fill($this->data);
+
+            Notification::make()
+                ->title('Documentation check ready.')
+                ->success()
+                ->send();
+        } catch (Throwable $exception) {
+            $suggestion->update([
+                'status' => 'failed',
+            ]);
+
+            AIUsageLog::create([
+                'practice_id' => $practiceId,
+                'user_id' => auth()->id(),
+                'feature' => 'documentation_check',
+                'status' => 'failed',
+                'error_message' => $exception->getMessage(),
+            ]);
+
+            Notification::make()
+                ->title('Documentation check is unavailable.')
+                ->body($exception->getMessage())
+                ->danger()
+                ->send();
+        }
+    }
+
     protected function getHeaderWidgets(): array
     {
         return [
@@ -212,7 +274,7 @@ class EditEncounter extends EditRecord
         return $data;
     }
 
-    private function createAISuggestion(int $practiceId, string $note, string $status): AISuggestion
+    private function createAISuggestion(int $practiceId, string $note, string $status, string $feature): AISuggestion
     {
         return AISuggestion::create([
             'practice_id' => $practiceId,
@@ -220,7 +282,7 @@ class EditEncounter extends EditRecord
             'patient_id' => $this->record->patient_id,
             'appointment_id' => $this->record->appointment_id,
             'encounter_id' => $this->record->id,
-            'feature' => 'improve_note',
+            'feature' => $feature,
             'original_text' => $note,
             'status' => $status,
         ]);

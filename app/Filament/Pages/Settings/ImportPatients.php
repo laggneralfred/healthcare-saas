@@ -4,17 +4,22 @@ namespace App\Filament\Pages\Settings;
 
 use App\Jobs\DryRunImportJob;
 use App\Jobs\ImportSessionJob;
+use App\Models\AISuggestion;
+use App\Models\AIUsageLog;
 use App\Models\ImportHistory;
 use App\Models\ImportSession;
 use App\Services\CSVImportService;
 use App\Services\CsvColumnMapper;
+use App\Services\AI\AIService;
 use App\Services\PracticeContext;
+use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Livewire\WithFileUploads;
 use BackedEnum;
+use Throwable;
 
 class ImportPatients extends Page
 {
@@ -39,6 +44,7 @@ class ImportPatients extends Page
     // ── Map step ──────────────────────────────────────────────────────────────
     public array $detectedHeaders = [];
     public array $mappings = []; // [column_index => field_key]
+    public ?string $aiMappingSuggestion = null;
 
     // ── Session tracking ──────────────────────────────────────────────────────
     public ?int $importSessionId = null;
@@ -159,6 +165,81 @@ class ImportPatients extends Page
         $this->step = 'confirm';
     }
 
+    public function suggestColumnMapping(AIService $ai): void
+    {
+        $practiceId = PracticeContext::currentPracticeId();
+
+        if (! $practiceId) {
+            Notification::make()
+                ->title('Select a practice before using AI.')
+                ->danger()
+                ->send();
+
+            return;
+        }
+
+        if ($this->detectedHeaders === []) {
+            $this->addError('mappings', 'Upload a CSV file before requesting AI mapping suggestions.');
+            return;
+        }
+
+        $supportedFields = array_keys(CsvColumnMapper::PATIENT_FIELDS);
+        $originalText = json_encode([
+            'headers' => $this->detectedHeaders,
+            'supported_fields' => $supportedFields,
+        ], JSON_PRETTY_PRINT);
+
+        $suggestion = AISuggestion::create([
+            'practice_id' => $practiceId,
+            'user_id' => auth()->id(),
+            'feature' => 'import_mapping',
+            'original_text' => $originalText,
+            'status' => 'pending',
+        ]);
+
+        try {
+            $mapping = $ai->suggestImportMapping($this->detectedHeaders, $supportedFields);
+            $suggestedText = $this->formatAISuggestion($mapping);
+
+            $suggestion->update([
+                'suggested_text' => $suggestedText,
+                'status' => 'pending',
+            ]);
+
+            AIUsageLog::create([
+                'practice_id' => $practiceId,
+                'user_id' => auth()->id(),
+                'feature' => 'import_mapping',
+                'status' => 'success',
+            ]);
+
+            $this->aiMappingSuggestion = $suggestedText;
+
+            Notification::make()
+                ->title('AI mapping suggestion ready.')
+                ->success()
+                ->send();
+        } catch (Throwable $exception) {
+            $suggestion->update([
+                'status' => 'failed',
+            ]);
+
+            AIUsageLog::create([
+                'practice_id' => $practiceId,
+                'user_id' => auth()->id(),
+                'feature' => 'import_mapping',
+                'status' => 'failed',
+                'error_message' => $exception->getMessage(),
+            ]);
+
+            Notification::make()
+                ->title('AI mapping suggestion is unavailable.')
+                ->body($exception->getMessage())
+                ->danger()
+                ->send();
+        }
+    }
+
     /** Polled every 2 s on the Confirm step to check dry-run completion. */
     public function checkDryRun(): void
     {
@@ -235,6 +316,7 @@ class ImportPatients extends Page
         $this->uploadedFile    = null;
         $this->detectedHeaders = [];
         $this->mappings        = [];
+        $this->aiMappingSuggestion = null;
         $this->importSessionId = null;
         $this->sessionStatus   = 'pending';
         $this->totalRows       = 0;
@@ -284,5 +366,14 @@ class ImportPatients extends Page
             ->orderByDesc('created_at')
             ->limit(5)
             ->get();
+    }
+
+    private function formatAISuggestion(array|string $mapping): string
+    {
+        if (is_array($mapping)) {
+            return json_encode($mapping, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+        }
+
+        return trim($mapping);
     }
 }

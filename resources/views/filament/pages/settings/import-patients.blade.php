@@ -97,6 +97,33 @@
             Map each one to a patient field. Unmapped columns are ignored.
         </p>
 
+        <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem; flex-wrap: wrap;">
+            <button wire:click="suggestColumnMapping" type="button" style="
+                display: inline-flex; align-items: center; gap: 0.5rem;
+                padding: 0.5rem 1rem; font-size: 0.875rem; font-weight: 500;
+                color: #374151; background-color: #ffffff;
+                border: 1px solid #d1d5db; border-radius: 0.5rem; cursor: pointer;
+            ">
+                Suggest Column Mapping
+            </button>
+            <span wire:loading wire:target="suggestColumnMapping"
+                style="font-size: 0.875rem; color: #2563eb;">
+                Asking AI to review headers…
+            </span>
+        </div>
+
+        @if ($aiMappingSuggestion)
+        <div style="background-color: #f8fafc; border: 1px solid #cbd5e1; border-radius: 0.5rem; padding: 1rem; margin-bottom: 1rem;">
+            <h3 style="font-size: 0.875rem; font-weight: 600; color: #0f172a; margin-bottom: 0.5rem;">
+                AI Mapping Suggestion
+            </h3>
+            <p style="font-size: 0.75rem; color: #475569; margin-bottom: 0.5rem;">
+                Advisory only. Review this suggestion, then choose mappings manually before analysis.
+            </p>
+            <pre style="white-space: pre-wrap; font-size: 0.8125rem; color: #334155; margin: 0; font-family: ui-monospace, monospace;">{{ $aiMappingSuggestion }}</pre>
+        </div>
+        @endif
+
         @foreach ($detectedHeaders as $i => $header)
         <div style="display: flex; align-items: center; gap: 1rem; padding: 0.75rem 0;
                     {{ !$loop->last ? 'border-bottom: 1px solid #f3f4f6;' : '' }}">

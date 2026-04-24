@@ -171,6 +171,10 @@ class EncounterForm
                             ->label('Improve Note')
                             ->color('gray')
                             ->action('improveNote'),
+                        Action::make('checkMissingDocumentation')
+                            ->label('Check Missing Documentation')
+                            ->color('gray')
+                            ->action('checkMissingDocumentation'),
                         Action::make('acceptAISuggestion')
                             ->label('Accept AI Suggestion')
                             ->color('primary')
@@ -181,6 +185,14 @@ class EncounterForm
                     Textarea::make('ai_suggestion')
                         ->label('AI Suggestion')
                         ->helperText('Review before accepting. The original note is not replaced automatically.')
+                        ->rows(5)
+                        ->readOnly()
+                        ->dehydrated(false)
+                        ->columnSpanFull()
+                        ->visibleOn('edit'),
+                    Textarea::make('documentation_check_result')
+                        ->label('AI Documentation Check')
+                        ->helperText('Completeness review only. This does not modify the encounter note.')
                         ->rows(5)
                         ->readOnly()
                         ->dehydrated(false)
