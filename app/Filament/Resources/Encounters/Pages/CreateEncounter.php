@@ -3,12 +3,16 @@
 namespace App\Filament\Resources\Encounters\Pages;
 
 use App\Filament\Resources\Encounters\EncounterResource;
+use App\Filament\Resources\Encounters\Pages\Concerns\HandlesEncounterAIActions;
 use App\Filament\Resources\Encounters\Schemas\EncounterForm;
+use App\Services\PracticeContext;
 use Filament\Resources\Pages\CreateRecord;
 use Filament\Schemas\Schema;
 
 class CreateEncounter extends CreateRecord
 {
+    use HandlesEncounterAIActions;
+
     protected static string $resource = EncounterResource::class;
 
     public function form(Schema $schema): Schema
@@ -27,7 +31,7 @@ class CreateEncounter extends CreateRecord
 
     protected function mutateFormDataBeforeCreate(array $data): array
     {
-        $data['practice_id'] = auth()->user()->practice_id;
+        $data['practice_id'] = PracticeContext::currentPracticeId();
 
         // Auto-populate discipline from practitioner if not set
         if (!empty($data['practitioner_id'])) {

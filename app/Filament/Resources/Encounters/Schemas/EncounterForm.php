@@ -18,24 +18,35 @@ use Filament\Schemas\Components\Tabs;
 use Filament\Schemas\Components\Tabs\Tab;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
+use Filament\Support\Enums\Size;
 
 class EncounterForm
 {
     private const AI_FIELD_ACTIONS = [
         'visit_notes' => [
             'improve' => 'improveVisitNotesField',
+            'accept' => 'acceptVisitNotesFieldSuggestion',
+            'dismiss' => 'dismissVisitNotesFieldSuggestion',
         ],
         'subjective' => [
             'improve' => 'improveSubjectiveField',
+            'accept' => 'acceptSubjectiveFieldSuggestion',
+            'dismiss' => 'dismissSubjectiveFieldSuggestion',
         ],
         'objective' => [
             'improve' => 'improveObjectiveField',
+            'accept' => 'acceptObjectiveFieldSuggestion',
+            'dismiss' => 'dismissObjectiveFieldSuggestion',
         ],
         'assessment' => [
             'improve' => 'improveAssessmentField',
+            'accept' => 'acceptAssessmentFieldSuggestion',
+            'dismiss' => 'dismissAssessmentFieldSuggestion',
         ],
         'plan' => [
             'improve' => 'improvePlanField',
+            'accept' => 'acceptPlanFieldSuggestion',
+            'dismiss' => 'dismissPlanFieldSuggestion',
         ],
     ];
 
@@ -59,49 +70,41 @@ class EncounterForm
         return [
             Actions::make([
                 Action::make($actions['improve'])
-                    ->label('Improve this field')
+                    ->label('Improve with AI')
                     ->color('gray')
+                    ->size(Size::Small)
                     ->action($actions['improve']),
             ])
                 ->hiddenOn('view')
                 ->columnSpanFull(),
-            Placeholder::make("ai_assisted_marker_{$field}")
-                ->label('')
-                ->content('AI-assisted')
-                ->visible(fn (Get $get): bool => (bool) $get("ai_assisted_fields.{$field}"))
+            Section::make('AI suggestion')
+                ->description('Review before accepting. This will only update this field.')
+                ->hidden(fn (Get $get): bool => $get('active_ai_field') !== $field || blank($get('active_ai_suggestion')))
                 ->hiddenOn('view')
+                ->schema([
+                    Placeholder::make("active_ai_suggestion_display_{$field}")
+                        ->hiddenLabel()
+                        ->content(fn (Get $get): string => (string) $get('active_ai_suggestion')),
+                    Actions::make([
+                        Action::make($actions['accept'])
+                            ->label('Accept')
+                            ->color('primary')
+                            ->size(Size::Small)
+                            ->action($actions['accept']),
+                        Action::make($actions['dismiss'])
+                            ->label('Dismiss')
+                            ->color('gray')
+                            ->size(Size::Small)
+                            ->action($actions['dismiss']),
+                    ]),
+                ])
                 ->columnSpanFull(),
         ];
     }
 
-    private static function aiReviewPanel(): Section
+    private static function aiAssistedLabel(string $label, string $field): callable
     {
-        return Section::make('AI Review')
-            ->description('Suggestions are advisory. Accepting updates only the active field.')
-            ->columnSpan(1)
-            ->hidden(fn (Get $get): bool => blank($get('active_ai_suggestion')))
-            ->hiddenOn('view')
-            ->schema([
-                Placeholder::make('active_ai_field_display')
-                    ->label('Field')
-                    ->content(fn (Get $get): string => (string) ($get('active_ai_field_label') ?: 'Selected field')),
-                Textarea::make('active_ai_suggestion')
-                    ->label('Suggested text')
-                    ->rows(12)
-                    ->live()
-                    ->readOnly()
-                    ->dehydrated(false),
-                Actions::make([
-                    Action::make('acceptActiveFieldSuggestion')
-                        ->label('Accept into this field')
-                        ->color('primary')
-                        ->action('acceptActiveFieldSuggestion'),
-                    Action::make('dismissActiveFieldSuggestion')
-                        ->label('Dismiss')
-                        ->color('gray')
-                        ->action('dismissActiveFieldSuggestion'),
-                ]),
-            ]);
+        return fn (Get $get): string => $label . ((bool) $get("ai_assisted_fields.{$field}") ? ' · AI-assisted' : '');
     }
 
     private static function formatLastVisits($record): string
@@ -163,6 +166,8 @@ class EncounterForm
             Hidden::make('active_ai_field')
                 ->dehydrated(false),
             Hidden::make('active_ai_field_label')
+                ->dehydrated(false),
+            Hidden::make('active_ai_suggestion')
                 ->dehydrated(false),
             Hidden::make('active_ai_suggestion_id')
                 ->dehydrated(false),
@@ -251,12 +256,10 @@ class EncounterForm
 
                         Tabs::make('Clinical Documentation')->tabs([
                 Tab::make('Core Notes')->schema([
-                    Grid::make(3)->schema([
-                        Section::make('Encounter Notes')
-                            ->columnSpan(2)
-                            ->schema([
+                    Section::make('Encounter Notes')
+                        ->schema([
                                 Textarea::make('visit_notes')
-                                    ->label('Encounter Note')
+                                    ->label(self::aiAssistedLabel('Encounter Note', 'visit_notes'))
                                     ->helperText('Write rough notes here, then use field-level AI for a wording suggestion.')
                                     ->rows(5)
                                     ->columnSpanFull()
@@ -285,29 +288,28 @@ class EncounterForm
                                     ->required()
                                     ->disabledOn('view'),
                                 Textarea::make('subjective')
-                                    ->label('Subjective (S)')
+                                    ->label(self::aiAssistedLabel('Subjective (S)', 'subjective'))
                                     ->rows(5)
                                     ->disabledOn('view'),
                                 ...self::aiFieldAssist('subjective'),
                                 Textarea::make('objective')
-                                    ->label('Objective (O)')
+                                    ->label(self::aiAssistedLabel('Objective (O)', 'objective'))
                                     ->rows(5)
                                     ->disabledOn('view'),
                                 ...self::aiFieldAssist('objective'),
                                 Textarea::make('assessment')
-                                    ->label('Assessment (A)')
+                                    ->label(self::aiAssistedLabel('Assessment (A)', 'assessment'))
                                     ->rows(5)
                                     ->disabledOn('view'),
                                 ...self::aiFieldAssist('assessment'),
                                 Textarea::make('plan')
-                                    ->label('Plan (P)')
+                                    ->label(self::aiAssistedLabel('Plan (P)', 'plan'))
                                     ->rows(5)
                                     ->columnSpanFull()
                                     ->disabledOn('view'),
                                 ...self::aiFieldAssist('plan'),
-                            ]),
-                        self::aiReviewPanel(),
-                    ])->columnSpanFull(),
+                        ])
+                        ->columnSpanFull(),
                 ]),
 
                 Tab::make('Acupuncture')->schema([

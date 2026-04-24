@@ -237,7 +237,8 @@ it('field-level improve writes suggestion to the selected field state only', fun
         ->assertSet('data.active_ai_field', 'subjective')
         ->assertSet('data.active_ai_field_label', 'Subjective')
         ->assertSet('data.active_ai_suggestion', 'Patient reports neck tightness improved after treatment.')
-        ->assertSee('AI Review')
+        ->assertSee('AI suggestion')
+        ->assertDontSee('AI Review')
         ->assertSet('data.subjective', 'neck tight better after tx')
         ->assertSet('data.objective', 'ROM mildly limited')
         ->assertSet('data.assessment', 'responding')
@@ -313,7 +314,8 @@ it('accepting field-level suggestion updates only that field', function () {
         ->assertSet('data.active_ai_field', null)
         ->assertSet('data.active_ai_suggestion', null)
         ->assertSet('data.active_ai_suggestion_id', null)
-        ->assertSet('data.ai_assisted_fields.subjective', true);
+        ->assertSet('data.ai_assisted_fields.subjective', true)
+        ->assertSee('AI-assisted');
 
     $encounter->refresh();
     $suggestion->refresh();
@@ -324,6 +326,38 @@ it('accepting field-level suggestion updates only that field', function () {
     expect($encounter->plan)->toBe('return next week');
     expect($suggestion->status)->toBe('accepted');
     expect($suggestion->accepted_text)->toBe('Improved subjective text.');
+});
+
+it('only keeps one active field-level suggestion at a time', function () {
+    $practice = Practice::factory()->create();
+    $user = User::factory()->create(['practice_id' => $practice->id]);
+    $encounter = createEncounterForPractice($practice, [
+        'subjective' => 'neck tight',
+        'plan' => 'return next week',
+    ]);
+
+    app()->instance(AIService::class, new class extends AIService {
+        public function improveField(string $text, string $fieldName, array $context = []): string
+        {
+            return $fieldName === 'Plan'
+                ? 'Return next week for follow-up.'
+                : 'Patient reports neck tightness.';
+        }
+    });
+
+    $this->actingAs($user);
+
+    Livewire::test(EditEncounter::class, ['record' => $encounter->id])
+        ->set('data.subjective', 'neck tight')
+        ->set('data.plan', 'return next week')
+        ->call('improveSubjectiveField')
+        ->assertSet('data.active_ai_field', 'subjective')
+        ->assertSet('data.active_ai_suggestion', 'Patient reports neck tightness.')
+        ->call('improvePlanField')
+        ->assertSet('data.active_ai_field', 'plan')
+        ->assertSet('data.active_ai_suggestion', 'Return next week for follow-up.')
+        ->assertSet('data.subjective', 'neck tight')
+        ->assertSet('data.plan', 'return next week');
 });
 
 it('dismissing field-level suggestion clears the panel without changing the field', function () {
