@@ -66,6 +66,11 @@ class EncounterForm
             ->value('insurance_billing_enabled');
     }
 
+    private static function simpleVisitNoteMode(): bool
+    {
+        return ! self::insuranceBillingEnabled();
+    }
+
     private static function aiFieldAssist(string $field): array
     {
         $actions = self::AI_FIELD_ACTIONS[$field];
@@ -74,7 +79,7 @@ class EncounterForm
             Actions::make([
                 Action::make($actions['improve'])
                     ->label('Improve with AI')
-                    ->color('gray')
+                    ->color(fn (Get $get): string => $get('active_ai_field') === $field && filled($get('active_ai_suggestion')) ? 'gray' : 'success')
                     ->size(Size::Small)
                     ->action($actions['improve']),
             ])
@@ -89,7 +94,7 @@ class EncounterForm
                     Actions::make([
                         Action::make($actions['accept'])
                             ->label('Accept')
-                            ->color('primary')
+                            ->color('success')
                             ->size(Size::Small)
                             ->action($actions['accept']),
                         Action::make($actions['dismiss'])
@@ -287,19 +292,36 @@ HTML);
                             ]),
                     ]),
 
-                Tabs::make('Clinical Documentation')
+                Tabs::make('Visit Documentation')
                     ->columnSpan(2)
                     ->tabs([
                 Tab::make('Core Notes')->schema([
-                    Section::make('Encounter Notes')
+                    Section::make('Simple Visit Note')
+                        ->visible(fn (): bool => self::simpleVisitNoteMode())
                         ->schema([
+                                Textarea::make('chief_complaint')
+                                    ->label('Chief Complaint')
+                                    ->rows(2)
+                                    ->required()
+                                    ->disabledOn('view'),
                                 Textarea::make('visit_notes')
-                                    ->label(self::aiAssistedLabel('Encounter Note', 'visit_notes'))
-                                    ->helperText('Write rough notes here, then use field-level AI for a wording suggestion.')
-                                    ->rows(5)
+                                    ->label(self::aiAssistedLabel('Visit Note / General Note', 'visit_notes'))
+                                    ->rows(9)
                                     ->columnSpanFull()
                                     ->disabledOn('view'),
                                 ...self::aiFieldAssist('visit_notes'),
+                                Textarea::make('plan')
+                                    ->label(self::aiAssistedLabel('Plan / Follow-up', 'plan'))
+                                    ->rows(4)
+                                    ->columnSpanFull()
+                                    ->disabledOn('view'),
+                                ...self::aiFieldAssist('plan'),
+                        ])
+                        ->columnSpanFull(),
+
+                    Section::make('Insurance SOAP Note')
+                        ->visible(fn (): bool => self::insuranceBillingEnabled())
+                        ->schema([
                                 Actions::make([
                                     Action::make('checkMissingDocumentation')
                                         ->label('Check Missing Documentation')
@@ -311,6 +333,38 @@ HTML);
                                     ->visible(fn (): bool => self::insuranceBillingEnabled())
                                     ->hiddenOn('view')
                                     ->columnSpanFull(),
+                                Textarea::make('chief_complaint')
+                                    ->label('Chief Complaint')
+                                    ->rows(2)
+                                    ->required()
+                                    ->disabledOn('view'),
+                                Textarea::make('subjective')
+                                    ->label(self::aiAssistedLabel('Subjective', 'subjective'))
+                                    ->rows(4)
+                                    ->disabledOn('view'),
+                                ...self::aiFieldAssist('subjective'),
+                                Textarea::make('objective')
+                                    ->label(self::aiAssistedLabel('Objective', 'objective'))
+                                    ->rows(4)
+                                    ->disabledOn('view'),
+                                ...self::aiFieldAssist('objective'),
+                                Textarea::make('assessment')
+                                    ->label(self::aiAssistedLabel('Assessment', 'assessment'))
+                                    ->rows(4)
+                                    ->disabledOn('view'),
+                                ...self::aiFieldAssist('assessment'),
+                                Textarea::make('plan')
+                                    ->label(self::aiAssistedLabel('Plan', 'plan'))
+                                    ->rows(4)
+                                    ->columnSpanFull()
+                                    ->disabledOn('view'),
+                                ...self::aiFieldAssist('plan'),
+                                Textarea::make('visit_notes')
+                                    ->label(self::aiAssistedLabel('General Visit Note (Optional)', 'visit_notes'))
+                                    ->rows(3)
+                                    ->columnSpanFull()
+                                    ->disabledOn('view'),
+                                ...self::aiFieldAssist('visit_notes'),
                                 Textarea::make('documentation_check_result')
                                     ->label('AI Documentation Check')
                                     ->helperText('Completeness review only. This does not modify the encounter note.')
@@ -321,31 +375,6 @@ HTML);
                                     ->columnSpanFull()
                                     ->visible(fn (): bool => self::insuranceBillingEnabled())
                                     ->hiddenOn('view'),
-                                Textarea::make('chief_complaint')
-                                    ->rows(3)
-                                    ->required()
-                                    ->disabledOn('view'),
-                                Textarea::make('subjective')
-                                    ->label(self::aiAssistedLabel('Subjective (S)', 'subjective'))
-                                    ->rows(5)
-                                    ->disabledOn('view'),
-                                ...self::aiFieldAssist('subjective'),
-                                Textarea::make('objective')
-                                    ->label(self::aiAssistedLabel('Objective (O)', 'objective'))
-                                    ->rows(5)
-                                    ->disabledOn('view'),
-                                ...self::aiFieldAssist('objective'),
-                                Textarea::make('assessment')
-                                    ->label(self::aiAssistedLabel('Assessment (A)', 'assessment'))
-                                    ->rows(5)
-                                    ->disabledOn('view'),
-                                ...self::aiFieldAssist('assessment'),
-                                Textarea::make('plan')
-                                    ->label(self::aiAssistedLabel('Plan (P)', 'plan'))
-                                    ->rows(5)
-                                    ->columnSpanFull()
-                                    ->disabledOn('view'),
-                                ...self::aiFieldAssist('plan'),
                         ])
                         ->columnSpanFull(),
                 ]),

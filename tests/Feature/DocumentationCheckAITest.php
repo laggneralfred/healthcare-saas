@@ -158,6 +158,13 @@ it('hides and blocks documentation checks when insurance billing is disabled', f
     $this->actingAs($user);
 
     Livewire::test(EditEncounter::class, ['record' => $encounter->id])
+        ->assertSee('Simple Visit Note')
+        ->assertSee('Visit Note / General Note')
+        ->assertSee('Plan / Follow-up')
+        ->assertDontSee('Insurance SOAP Note')
+        ->assertDontSee('Subjective')
+        ->assertDontSee('Objective')
+        ->assertDontSee('Assessment')
         ->assertDontSee('Check Missing Documentation')
         ->assertDontSee('AI Documentation Check')
         ->set('data.visit_notes', 'Documentation note.')
@@ -182,6 +189,12 @@ it('shows documentation checks when insurance billing is enabled', function () {
     $this->actingAs($user);
 
     Livewire::test(EditEncounter::class, ['record' => $encounter->id])
+        ->assertSee('Insurance SOAP Note')
+        ->assertSee('Subjective')
+        ->assertSee('Objective')
+        ->assertSee('Assessment')
+        ->assertDontSee('Simple Visit Note')
+        ->assertDontSee('Visit Note / General Note')
         ->assertSee('Check Missing Documentation')
         ->assertSee('AI Documentation Check');
 });

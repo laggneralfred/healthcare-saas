@@ -125,7 +125,7 @@ it('AIService is unavailable when no API key is configured', function () {
 });
 
 it('creates a practice-scoped AI suggestion and preserves the original note until accepted', function () {
-    $practice = Practice::factory()->create();
+    $practice = Practice::factory()->create(['insurance_billing_enabled' => true]);
     $user = User::factory()->create(['practice_id' => $practice->id]);
     $encounter = createEncounterForPractice($practice);
 
@@ -166,7 +166,7 @@ it('creates a practice-scoped AI suggestion and preserves the original note unti
 });
 
 it('can improve and accept an unsaved note on the create encounter screen', function () {
-    $practice = Practice::factory()->create();
+    $practice = Practice::factory()->create(['insurance_billing_enabled' => true]);
     $user = User::factory()->create(['practice_id' => $practice->id]);
 
     app()->instance(AIService::class, new class extends AIService {
@@ -208,7 +208,7 @@ it('can improve and accept an unsaved note on the create encounter screen', func
 });
 
 it('field-level improve writes suggestion to the selected field state only', function () {
-    $practice = Practice::factory()->create();
+    $practice = Practice::factory()->create(['insurance_billing_enabled' => true]);
     $user = User::factory()->create(['practice_id' => $practice->id]);
     $encounter = createEncounterForPractice($practice, [
         'subjective' => 'neck tight better after tx',
@@ -280,7 +280,7 @@ it('field-level improve writes suggestion to the selected field state only', fun
 });
 
 it('does not accept a field-level suggestion before one exists', function () {
-    $practice = Practice::factory()->create();
+    $practice = Practice::factory()->create(['insurance_billing_enabled' => true]);
     $user = User::factory()->create(['practice_id' => $practice->id]);
     $encounter = createEncounterForPractice($practice, [
         'subjective' => 'original subjective text',
@@ -301,7 +301,7 @@ it('does not accept a field-level suggestion before one exists', function () {
 });
 
 it('accepting field-level suggestion updates only that field', function () {
-    $practice = Practice::factory()->create();
+    $practice = Practice::factory()->create(['insurance_billing_enabled' => true]);
     $user = User::factory()->create(['practice_id' => $practice->id]);
     $encounter = createEncounterForPractice($practice, [
         'subjective' => 'neck tight better after tx',
@@ -353,7 +353,7 @@ it('accepting field-level suggestion updates only that field', function () {
 });
 
 it('only keeps one active field-level suggestion at a time', function () {
-    $practice = Practice::factory()->create();
+    $practice = Practice::factory()->create(['insurance_billing_enabled' => true]);
     $user = User::factory()->create(['practice_id' => $practice->id]);
     $encounter = createEncounterForPractice($practice, [
         'subjective' => 'neck tight',
@@ -385,7 +385,7 @@ it('only keeps one active field-level suggestion at a time', function () {
 });
 
 it('dismissing field-level suggestion clears the panel without changing the field', function () {
-    $practice = Practice::factory()->create();
+    $practice = Practice::factory()->create(['insurance_billing_enabled' => true]);
     $user = User::factory()->create(['practice_id' => $practice->id]);
     $encounter = createEncounterForPractice($practice, [
         'objective' => 'ROM mildly limited',
@@ -464,7 +464,7 @@ it('field-level improve uses selected practice context for a super admin', funct
 });
 
 it('logs failed field-level AI calls cleanly', function () {
-    $practice = Practice::factory()->create();
+    $practice = Practice::factory()->create(['insurance_billing_enabled' => true]);
     $user = User::factory()->create(['practice_id' => $practice->id]);
     $encounter = createEncounterForPractice($practice, [
         'objective' => 'ROM limited',
