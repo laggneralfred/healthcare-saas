@@ -20,6 +20,8 @@ class EncountersRelationManager extends RelationManager
 {
     protected static string $relationship = 'encounters';
 
+    protected static ?string $title = 'Visits';
+
     public function form(Schema $schema): Schema
     {
         return $schema
@@ -54,8 +56,8 @@ class EncountersRelationManager extends RelationManager
                     ->badge()
                     ->color(fn (?string $state) => match ($state) {
                         'complete' => 'success',
-                        'draft'    => 'warning',
-                        default    => 'gray',
+                        'draft' => 'warning',
+                        default => 'gray',
                     })
                     ->formatStateUsing(fn (?string $state) => $state ? ucfirst($state) : '—'),
             ])
@@ -64,8 +66,10 @@ class EncountersRelationManager extends RelationManager
                 //
             ])
             ->headerActions([
-                CreateAction::make(),
-                AssociateAction::make(),
+                CreateAction::make()
+                    ->label('New Visit'),
+                AssociateAction::make()
+                    ->label('Attach Visit'),
             ])
             ->recordActions([
                 EditAction::make(),

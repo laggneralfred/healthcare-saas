@@ -57,7 +57,7 @@
                         </li>
                         <li class="flex items-center gap-2">
                             <span class="text-[#0D7377] text-xl">→</span>
-                            <span>Clinical encounter documentation</span>
+                            <span>Clinical visit documentation</span>
                         </li>
                         <li class="flex items-center gap-2">
                             <span class="text-[#0D7377] text-xl">→</span>

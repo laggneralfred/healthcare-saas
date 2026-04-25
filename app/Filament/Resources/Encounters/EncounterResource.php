@@ -15,13 +15,21 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
+use Illuminate\Contracts\Support\Htmlable;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
 
 class EncounterResource extends Resource
 {
     use BelongsToPractice;
+
     protected static ?string $model = Encounter::class;
 
     protected static ?string $navigationLabel = 'Visits';
+
+    protected static ?string $modelLabel = 'Visit';
+
+    protected static ?string $pluralModelLabel = 'Visits';
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedClipboardDocument;
 
@@ -32,6 +40,25 @@ class EncounterResource extends Resource
     protected static ?int $navigationSort = 2;
 
     protected static ?string $recordTitleAttribute = 'id';
+
+    public static function getRecordTitle(?Model $record): string|Htmlable|null
+    {
+        if (! $record instanceof Encounter) {
+            return static::getModelLabel();
+        }
+
+        $patientName = trim((string) ($record->patient?->name ?: $record->patient?->full_name));
+
+        if ($patientName === '') {
+            return "Visit #{$record->getKey()}";
+        }
+
+        $date = $record->visit_date?->format('M j, Y');
+
+        return $date
+            ? "Visit — {$patientName} — {$date}"
+            : "Visit — {$patientName}";
+    }
 
     public static function getGloballySearchableAttributes(): array
     {
@@ -49,8 +76,8 @@ class EncounterResource extends Resource
     public static function getGlobalSearchResultDetails($record): array
     {
         return array_filter([
-            'Practitioner'    => $record->practitioner?->user?->name,
-            'Chief Complaint' => $record->chief_complaint ? \Illuminate\Support\Str::limit($record->chief_complaint, 60) : null,
+            'Practitioner' => $record->practitioner?->user?->name,
+            'Chief Complaint' => $record->chief_complaint ? Str::limit($record->chief_complaint, 60) : null,
         ]);
     }
 
@@ -72,10 +99,10 @@ class EncounterResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index'  => ListEncounters::route('/'),
+            'index' => ListEncounters::route('/'),
             'create' => CreateEncounter::route('/create'),
-            'view'   => ViewEncounter::route('/{record}'),
-            'edit'   => EditEncounter::route('/{record}/edit'),
+            'view' => ViewEncounter::route('/{record}'),
+            'edit' => EditEncounter::route('/{record}/edit'),
         ];
     }
 }

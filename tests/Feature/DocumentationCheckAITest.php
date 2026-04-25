@@ -1,7 +1,7 @@
 <?php
 
-use App\Filament\Resources\Encounters\Pages\EditEncounter;
 use App\Filament\Resources\Encounters\Pages\CreateEncounter;
+use App\Filament\Resources\Encounters\Pages\EditEncounter;
 use App\Models\Appointment;
 use App\Models\AppointmentType;
 use App\Models\Encounter;
@@ -70,7 +70,8 @@ it('creates documentation check suggestion and usage log without changing visit 
         'visit_notes' => 'Shoulder pain 6/10. Needles placed. Felt better.',
     ]);
 
-    app()->instance(AIService::class, new class extends AIService {
+    app()->instance(AIService::class, new class extends AIService
+    {
         public function checkMissingDocumentation(string $note, array $context = []): string
         {
             return "- Onset/duration: not documented\n- Follow-up plan: not documented";
@@ -108,7 +109,8 @@ it('can check missing documentation on the create encounter screen without creat
     $practice = Practice::factory()->create(['insurance_billing_enabled' => true]);
     $user = User::factory()->create(['practice_id' => $practice->id]);
 
-    app()->instance(AIService::class, new class extends AIService {
+    app()->instance(AIService::class, new class extends AIService
+    {
         public function checkMissingDocumentation(string $note, array $context = []): string
         {
             return "- Follow-up plan: not documented\n- Objective findings: not documented";
@@ -148,7 +150,8 @@ it('hides and blocks documentation checks when insurance billing is disabled', f
     $user = User::factory()->create(['practice_id' => $practice->id]);
     $encounter = createEncounterForDocumentationCheck($practice);
 
-    app()->instance(AIService::class, new class extends AIService {
+    app()->instance(AIService::class, new class extends AIService
+    {
         public function checkMissingDocumentation(string $note, array $context = []): string
         {
             throw new RuntimeException('AI should not be called when insurance billing is disabled.');
@@ -159,8 +162,10 @@ it('hides and blocks documentation checks when insurance billing is disabled', f
 
     Livewire::test(EditEncounter::class, ['record' => $encounter->id])
         ->assertSee('Simple Visit Note')
-        ->assertSee('Visit Note / General Note')
-        ->assertSee('Plan / Follow-up')
+        ->assertSee('Simple Visit Note Mode')
+        ->assertSee('Visit Note')
+        ->assertDontSee('Visit Note / General Note')
+        ->assertDontSee('Plan / Follow-up')
         ->assertDontSee('Insurance SOAP Note')
         ->assertDontSee('Subjective')
         ->assertDontSee('Objective')
@@ -190,6 +195,7 @@ it('shows documentation checks when insurance billing is enabled', function () {
 
     Livewire::test(EditEncounter::class, ['record' => $encounter->id])
         ->assertSee('Insurance SOAP Note')
+        ->assertSee('SOAP / Insurance Mode')
         ->assertSee('Subjective')
         ->assertSee('Objective')
         ->assertSee('Assessment')
@@ -205,7 +211,8 @@ it('uses selected practice context for documentation checks by super admin', fun
     $superAdmin = User::factory()->create(['practice_id' => null]);
     $encounter = createEncounterForDocumentationCheck($practice);
 
-    app()->instance(AIService::class, new class extends AIService {
+    app()->instance(AIService::class, new class extends AIService
+    {
         public function checkMissingDocumentation(string $note, array $context = []): string
         {
             return '- Documentation appears adequate for the provided note.';
@@ -239,7 +246,8 @@ it('logs failed documentation checks cleanly', function () {
     $user = User::factory()->create(['practice_id' => $practice->id]);
     $encounter = createEncounterForDocumentationCheck($practice);
 
-    app()->instance(AIService::class, new class extends AIService {
+    app()->instance(AIService::class, new class extends AIService
+    {
         public function checkMissingDocumentation(string $note, array $context = []): string
         {
             throw new AIUnavailableException('Documentation AI offline');

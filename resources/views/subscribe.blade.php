@@ -232,7 +232,7 @@
                 <ul class="pricing-features">
                     <li>Online booking wizard</li>
                     <li>Patient intake forms</li>
-                    <li>Clinical encounter notes</li>
+                    <li>Clinical visit notes</li>
                     <li>Checkout & payments</li>
                     <li>Email support</li>
                 </ul>

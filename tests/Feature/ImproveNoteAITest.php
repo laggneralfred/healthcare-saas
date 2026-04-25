@@ -1,8 +1,7 @@
 <?php
 
-use App\Filament\Resources\Encounters\Pages\EditEncounter;
 use App\Filament\Resources\Encounters\Pages\CreateEncounter;
-use App\Models\AIUsageLog;
+use App\Filament\Resources\Encounters\Pages\EditEncounter;
 use App\Models\AISuggestion;
 use App\Models\Appointment;
 use App\Models\AppointmentType;
@@ -13,6 +12,7 @@ use App\Models\Practitioner;
 use App\Models\User;
 use App\Services\AI\AIService;
 use App\Services\AI\AIUnavailableException;
+use App\Services\EncounterNoteDocument;
 use App\Services\PracticeContext;
 use Illuminate\Support\Facades\Http;
 use Livewire\Livewire;
@@ -129,7 +129,8 @@ it('creates a practice-scoped AI suggestion and preserves the original note unti
     $user = User::factory()->create(['practice_id' => $practice->id]);
     $encounter = createEncounterForPractice($practice);
 
-    app()->instance(AIService::class, new class extends AIService {
+    app()->instance(AIService::class, new class extends AIService
+    {
         public function improveNote(string $note, array $context = []): string
         {
             return 'Patient reports neck tightness improved after treatment.';
@@ -169,7 +170,8 @@ it('can improve and accept an unsaved note on the create encounter screen', func
     $practice = Practice::factory()->create(['insurance_billing_enabled' => true]);
     $user = User::factory()->create(['practice_id' => $practice->id]);
 
-    app()->instance(AIService::class, new class extends AIService {
+    app()->instance(AIService::class, new class extends AIService
+    {
         public function improveNote(string $note, array $context = []): string
         {
             return 'Patient reports neck tightness improved after treatment.';
@@ -217,7 +219,8 @@ it('field-level improve writes suggestion to the selected field state only', fun
         'plan' => 'return next week',
     ]);
 
-    app()->instance(AIService::class, new class extends AIService {
+    app()->instance(AIService::class, new class extends AIService
+    {
         public function improveField(string $text, string $fieldName, array $context = []): string
         {
             expect($fieldName)->toBe('Subjective');
@@ -360,7 +363,8 @@ it('only keeps one active field-level suggestion at a time', function () {
         'plan' => 'return next week',
     ]);
 
-    app()->instance(AIService::class, new class extends AIService {
+    app()->instance(AIService::class, new class extends AIService
+    {
         public function improveField(string $text, string $fieldName, array $context = []): string
         {
             return $fieldName === 'Plan'
@@ -432,7 +436,8 @@ it('field-level improve uses selected practice context for a super admin', funct
         'plan' => 'return one week',
     ]);
 
-    app()->instance(AIService::class, new class extends AIService {
+    app()->instance(AIService::class, new class extends AIService
+    {
         public function improveField(string $text, string $fieldName, array $context = []): string
         {
             return 'Return in one week for follow-up.';
@@ -470,7 +475,8 @@ it('logs failed field-level AI calls cleanly', function () {
         'objective' => 'ROM limited',
     ]);
 
-    app()->instance(AIService::class, new class extends AIService {
+    app()->instance(AIService::class, new class extends AIService
+    {
         public function improveField(string $text, string $fieldName, array $context = []): string
         {
             throw new AIUnavailableException('Field AI offline');
@@ -511,7 +517,8 @@ it('uses selected practice context for a super admin with no practice_id', funct
     $superAdmin = User::factory()->create(['practice_id' => null]);
     $encounter = createEncounterForPractice($practice);
 
-    app()->instance(AIService::class, new class extends AIService {
+    app()->instance(AIService::class, new class extends AIService
+    {
         public function improveNote(string $note, array $context = []): string
         {
             return 'Improved selected-practice note.';
@@ -539,7 +546,7 @@ it('uses selected practice context for a super admin with no practice_id', funct
 });
 
 it('copies the suggestion into the note only after explicit accept', function () {
-    $practice = Practice::factory()->create();
+    $practice = Practice::factory()->create(['insurance_billing_enabled' => true]);
     $user = User::factory()->create(['practice_id' => $practice->id]);
     $encounter = createEncounterForPractice($practice, [
         'visit_notes' => 'original rough note',
@@ -579,7 +586,8 @@ it('logs failed AI calls and stores failed suggestions', function () {
     $user = User::factory()->create(['practice_id' => $practice->id]);
     $encounter = createEncounterForPractice($practice);
 
-    app()->instance(AIService::class, new class extends AIService {
+    app()->instance(AIService::class, new class extends AIService
+    {
         public function improveNote(string $note, array $context = []): string
         {
             throw new AIUnavailableException('AI offline');
@@ -589,14 +597,14 @@ it('logs failed AI calls and stores failed suggestions', function () {
     $this->actingAs($user);
 
     Livewire::test(EditEncounter::class, ['record' => $encounter->id])
-        ->set('data.visit_notes', 'rough failed note')
+        ->set('data.visit_note_document', "Chief Complaint:\n\nTreatment Notes:\nrough failed note\n\nPlan / Follow-up:\n")
         ->call('improveNote');
 
     $this->assertDatabaseHas('ai_suggestions', [
         'practice_id' => $practice->id,
         'user_id' => $user->id,
         'encounter_id' => $encounter->id,
-        'original_text' => 'rough failed note',
+        'original_text' => "Chief Complaint:\n\nTreatment Notes:\nrough failed note\n\nPlan / Follow-up:",
         'suggested_text' => null,
         'status' => 'failed',
     ]);
@@ -607,5 +615,53 @@ it('logs failed AI calls and stores failed suggestions', function () {
         'feature' => 'improve_note',
         'status' => 'failed',
         'error_message' => 'AI offline',
+    ]);
+});
+
+it('improves the unified simple visit note document', function () {
+    $practice = Practice::factory()->create(['insurance_billing_enabled' => false]);
+    $user = User::factory()->create(['practice_id' => $practice->id]);
+    $encounter = createEncounterForPractice($practice, [
+        'chief_complaint' => 'neck tight',
+        'visit_notes' => 'tx helped',
+        'plan' => 'return prn',
+    ]);
+
+    app()->instance(AIService::class, new class extends AIService
+    {
+        public function improveNote(string $note, array $context = []): string
+        {
+            expect($note)->toContain('Chief Complaint:');
+            expect($note)->toContain('Treatment Notes:');
+            expect($note)->toContain('Plan / Follow-up:');
+
+            return "Chief Complaint:\nNeck tightness.\n\nTreatment Notes:\nTreatment was tolerated well.\n\nPlan / Follow-up:\nReturn as needed.";
+        }
+    });
+
+    $this->actingAs($user);
+
+    Livewire::test(EditEncounter::class, ['record' => $encounter->id])
+        ->assertSee('AI Assist / Improve with AI')
+        ->call('improveNote')
+        ->assertSet('data.ai_suggestion', "Chief Complaint:\nNeck tightness.\n\nTreatment Notes:\nTreatment was tolerated well.\n\nPlan / Follow-up:\nReturn as needed.")
+        ->call('acceptAISuggestion')
+        ->assertSet('data.visit_note_document', "Chief Complaint:\nNeck tightness.\n\nTreatment Notes:\nTreatment was tolerated well.\n\nPlan / Follow-up:\nReturn as needed.")
+        ->call('saveDraft');
+
+    $encounter->refresh();
+
+    expect($encounter->chief_complaint)->toBe('Neck tightness.');
+    expect($encounter->visit_notes)->toBe('Treatment was tolerated well.');
+    expect($encounter->plan)->toBe('Return as needed.');
+
+    $this->assertDatabaseHas('ai_suggestions', [
+        'practice_id' => $practice->id,
+        'user_id' => $user->id,
+        'encounter_id' => $encounter->id,
+        'feature' => 'improve_note',
+        'original_text' => EncounterNoteDocument::fromFields('neck tight', 'tx helped', 'return prn', 'acupuncture'),
+        'accepted_text' => "Chief Complaint:\nNeck tightness.\n\nTreatment Notes:\nTreatment was tolerated well.\n\nPlan / Follow-up:\nReturn as needed.",
+        'status' => 'accepted',
     ]);
 });

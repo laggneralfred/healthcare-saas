@@ -36,8 +36,8 @@ class EncountersTable
                     ->badge()
                     ->color(fn (string $state): string => match ($state) {
                         'complete' => 'success',
-                        'draft'    => 'warning',
-                        default    => 'gray',
+                        'draft' => 'warning',
+                        default => 'gray',
                     }),
 
                 TextColumn::make('visit_date')
@@ -57,7 +57,7 @@ class EncountersTable
             ->filters([
                 SelectFilter::make('status')
                     ->options([
-                        'draft'    => 'Draft',
+                        'draft' => 'Draft',
                         'complete' => 'Complete',
                     ]),
             ])
@@ -74,7 +74,7 @@ class EncountersTable
             ->emptyStateHeading('No visits yet')
             ->emptyStateDescription('Document your first patient visit here.')
             ->emptyStateActions([
-                CreateAction::make()->label('New visit'),
+                CreateAction::make()->label('New Visit'),
             ]);
     }
 }

@@ -7,6 +7,7 @@ use App\Models\AIUsageLog;
 use App\Models\Encounter;
 use App\Models\Practice;
 use App\Services\AI\AIService;
+use App\Services\EncounterNoteDocument;
 use App\Services\PracticeContext;
 use Filament\Notifications\Notification;
 use Illuminate\Support\Facades\Log;
@@ -15,7 +16,7 @@ use Throwable;
 trait HandlesEncounterAIActions
 {
     private const AI_IMPROVABLE_FIELDS = [
-        'visit_notes' => 'Encounter note',
+        'visit_notes' => 'Visit note',
         'subjective' => 'Subjective',
         'objective' => 'Objective',
         'assessment' => 'Assessment',
@@ -25,7 +26,7 @@ trait HandlesEncounterAIActions
     public function improveNote(AIService $ai): void
     {
         $practiceId = PracticeContext::currentPracticeId();
-        $note = trim((string) data_get($this->data, 'visit_notes', ''));
+        $note = $this->encounterAINoteText();
 
         if (! $practiceId) {
             Notification::make()
@@ -108,13 +109,25 @@ trait HandlesEncounterAIActions
             return;
         }
 
-        $this->updateEncounterAIFormState([
-            'visit_notes' => $suggestedText,
-        ]);
+        if ($this->isSimpleVisitNoteDocumentMode()) {
+            $this->updateEncounterAIFormState([
+                'visit_note_document' => $suggestedText,
+            ]);
+        } else {
+            $this->updateEncounterAIFormState([
+                'visit_notes' => $suggestedText,
+            ]);
+            $this->syncVisitNoteDocumentState('visit_notes', $suggestedText);
+        }
 
         $record = $this->encounterAIRecord();
         if ($record?->exists) {
-            $record->update(['visit_notes' => $suggestedText]);
+            $record->update($this->isSimpleVisitNoteDocumentMode()
+                ? EncounterNoteDocument::applyToEncounterData([
+                    'discipline' => data_get($this->data, 'discipline') ?? $record->discipline,
+                    'visit_note_document' => $suggestedText,
+                ])
+                : ['visit_notes' => $suggestedText]);
         }
 
         $suggestionId = data_get($this->data, 'ai_suggestion_id');
@@ -292,7 +305,7 @@ trait HandlesEncounterAIActions
     {
         if (! array_key_exists($field, self::AI_IMPROVABLE_FIELDS)) {
             Notification::make()
-                ->title('This encounter field cannot be improved with AI.')
+                ->title('This visit note field cannot be improved with AI.')
                 ->danger()
                 ->send();
 
@@ -387,7 +400,7 @@ trait HandlesEncounterAIActions
 
         if (! array_key_exists($field, self::AI_IMPROVABLE_FIELDS)) {
             Notification::make()
-                ->title('This encounter field cannot accept AI suggestions.')
+                ->title('This visit note field cannot accept AI suggestions.')
                 ->danger()
                 ->send();
 
@@ -411,6 +424,7 @@ trait HandlesEncounterAIActions
         $this->updateEncounterAIFormState([
             $field => $suggestedText,
         ]);
+        $this->syncVisitNoteDocumentState($field, $suggestedText);
 
         $record = $this->encounterAIRecord();
         if ($record?->exists) {
@@ -523,6 +537,25 @@ trait HandlesEncounterAIActions
         return data_get($this->data, $key) ?? data_get($this->encounterAIRecord(), $key);
     }
 
+    private function encounterAINoteText(): string
+    {
+        if ($this->isSimpleVisitNoteDocumentMode()) {
+            return trim((string) data_get($this->data, 'visit_note_document', ''));
+        }
+
+        return trim((string) data_get($this->data, 'visit_notes', ''));
+    }
+
+    private function hasVisitNoteDocumentState(): bool
+    {
+        return array_key_exists('visit_note_document', $this->data ?? []);
+    }
+
+    private function isSimpleVisitNoteDocumentMode(): bool
+    {
+        return $this->hasVisitNoteDocumentState() && ! $this->insuranceBillingEnabledForAI();
+    }
+
     private function clearActiveAIFieldSuggestion(string $field): void
     {
         $this->updateEncounterAIFormState([
@@ -532,6 +565,33 @@ trait HandlesEncounterAIActions
             'active_ai_suggestion_id' => null,
             "ai_field_suggestions.{$field}.suggested_text" => null,
             "ai_field_suggestions.{$field}.suggestion_id" => null,
+        ]);
+    }
+
+    private function syncVisitNoteDocumentState(string $field, string $value): void
+    {
+        if (! array_key_exists('visit_note_document', $this->data ?? [])) {
+            return;
+        }
+
+        $chiefComplaint = (string) data_get($this->data, 'chief_complaint', '');
+        $visitNotes = (string) data_get($this->data, 'visit_notes', '');
+        $plan = (string) data_get($this->data, 'plan', '');
+
+        match ($field) {
+            'chief_complaint' => $chiefComplaint = $value,
+            'visit_notes' => $visitNotes = $value,
+            'plan' => $plan = $value,
+            default => null,
+        };
+
+        $this->updateEncounterAIFormState([
+            'visit_note_document' => EncounterNoteDocument::fromFields(
+                $chiefComplaint,
+                $visitNotes,
+                $plan,
+                data_get($this->data, 'discipline') ?? $this->encounterAIRecord()?->discipline,
+            ),
         ]);
     }
 

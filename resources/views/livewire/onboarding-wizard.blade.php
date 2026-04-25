@@ -39,7 +39,7 @@
                             <span style="font-size:1.375rem;color:#4f46e5;flex-shrink:0;">✓</span>
                             <div>
                                 <p style="margin:0;font-weight:600;color:#111827;">Clinical Notes</p>
-                                <p style="margin:0.125rem 0 0;font-size:0.875rem;color:#6b7280;">Document encounters in your discipline</p>
+                                <p style="margin:0.125rem 0 0;font-size:0.875rem;color:#6b7280;">Document visits in your discipline</p>
                             </div>
                         </div>
                     </div>

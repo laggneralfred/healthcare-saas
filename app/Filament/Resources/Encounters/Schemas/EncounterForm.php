@@ -4,6 +4,9 @@ namespace App\Filament\Resources\Encounters\Schemas;
 
 use App\Models\Patient;
 use App\Models\Practice;
+use App\Models\Practitioner;
+use App\Services\EncounterDisciplineTemplate;
+use App\Services\EncounterNoteDocument;
 use App\Services\PracticeContext;
 use Filament\Actions\Action;
 use Filament\Forms\Components\DatePicker;
@@ -71,6 +74,15 @@ class EncounterForm
         return ! self::insuranceBillingEnabled();
     }
 
+    private static function applyDisciplineTemplate(callable $set, Get $get, ?string $discipline): void
+    {
+        $document = (string) $get('visit_note_document');
+
+        if (EncounterDisciplineTemplate::isBlankOrTemplate($document)) {
+            $set('visit_note_document', EncounterNoteDocument::template($discipline));
+        }
+    }
+
     private static function aiFieldAssist(string $field): array
     {
         $actions = self::AI_FIELD_ACTIONS[$field];
@@ -114,20 +126,65 @@ class EncounterForm
 
         return new HtmlString(<<<HTML
 <div class="rounded-lg border border-amber-300 bg-amber-50 p-4 text-sm leading-6 text-gray-950 shadow-sm dark:border-amber-700 dark:bg-amber-950/30 dark:text-gray-100">
-    <div class="mb-2 text-xs font-semibold uppercase tracking-wide text-amber-700 dark:text-amber-300">AI suggestion</div>
+    <div class="mb-2 text-xs font-semibold uppercase tracking-wide text-amber-700 dark:text-amber-300">AI Suggestion</div>
     <div class="whitespace-pre-wrap">{$suggestion}</div>
 </div>
 HTML);
     }
 
+    private static function renderModeIndicator(bool $insuranceBillingEnabled): HtmlString
+    {
+        $label = $insuranceBillingEnabled ? 'SOAP / Insurance Mode' : 'Simple Visit Note Mode';
+        $description = $insuranceBillingEnabled
+            ? 'This practice has insurance billing enabled, so visit notes use structured SOAP fields.'
+            : 'This practice has insurance billing disabled, so visit notes use one unified writing surface.';
+
+        return new HtmlString(<<<HTML
+<div style="display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; font-size: 0.8125rem; color: #6b7280;">
+    <span style="display: inline-flex; align-items: center; border: 1px solid #d1d5db; background-color: #f9fafb; border-radius: 0.375rem; padding: 0.2rem 0.45rem; font-weight: 600; color: #374151;">{$label}</span>
+    <span style="line-height: 1.35;">{$description}</span>
+</div>
+HTML);
+    }
+
+    private static function simpleNoteAssist(): array
+    {
+        return [
+            Actions::make([
+                Action::make('improveNote')
+                    ->label('AI Assist / Improve with AI')
+                    ->color('gray')
+                    ->size(Size::Small)
+                    ->action('improveNote'),
+            ])
+                ->hiddenOn('view')
+                ->columnSpanFull(),
+            Section::make('AI Suggestion')
+                ->description('Review before accepting. This draft is assistive and must be reviewed by the practitioner.')
+                ->hidden(fn (Get $get): bool => blank($get('ai_suggestion')))
+                ->hiddenOn('view')
+                ->schema([
+                    Html::make(fn (Get $get): HtmlString => self::renderAISuggestionCard((string) $get('ai_suggestion'))),
+                    Actions::make([
+                        Action::make('acceptAISuggestion')
+                            ->label('Accept Draft')
+                            ->color('success')
+                            ->size(Size::Small)
+                            ->action('acceptAISuggestion'),
+                    ]),
+                ])
+                ->columnSpanFull(),
+        ];
+    }
+
     private static function aiAssistedLabel(string $label, string $field): callable
     {
-        return fn (Get $get): string => $label . ((bool) $get("ai_assisted_fields.{$field}") ? ' · AI-assisted' : '');
+        return fn (Get $get): string => $label.((bool) $get("ai_assisted_fields.{$field}") ? ' · AI-assisted' : '');
     }
 
     private static function formatLastVisits($record): string
     {
-        if (!$record || !$record->patient) {
+        if (! $record || ! $record->patient) {
             return '—';
         }
 
@@ -167,19 +224,19 @@ HTML);
         $name = trim((string) ($patient->name ?: $patient->full_name));
 
         if ($name !== '') {
-            $lines[] = '<div><span class="font-medium">Patient:</span> ' . e($name) . '</div>';
+            $lines[] = '<div class="pb-1"><span class="block text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Patient</span><span class="text-base font-semibold leading-6 text-gray-950 dark:text-gray-50">'.e($name).'</span></div>';
         }
 
         if ($patient->dob) {
-            $lines[] = '<div><span class="font-medium">DOB:</span> ' . e($patient->dob->format('M j, Y')) . ' (' . $patient->dob->age . ')</div>';
+            $lines[] = '<div><span class="text-xs font-medium text-gray-500 dark:text-gray-400">DOB / Age</span><span class="block text-sm text-gray-700 dark:text-gray-200">'.e($patient->dob->format('M j, Y')).' ('.$patient->dob->age.')</span></div>';
         }
 
         if ($patient->phone) {
-            $lines[] = '<div><span class="font-medium">Phone:</span> ' . e($patient->phone) . '</div>';
+            $lines[] = '<div><span class="text-xs font-medium text-gray-500 dark:text-gray-400">Phone</span><span class="block text-sm text-gray-700 dark:text-gray-200">'.e($patient->phone).'</span></div>';
         }
 
         if ($patient->email) {
-            $lines[] = '<div><span class="font-medium">Email:</span> ' . e($patient->email) . '</div>';
+            $lines[] = '<div><span class="text-xs font-medium text-gray-500 dark:text-gray-400">Email</span><span class="block break-words text-sm text-gray-700 dark:text-gray-200">'.e($patient->email).'</span></div>';
         }
 
         $lastVisit = $patient->encounters()
@@ -188,14 +245,14 @@ HTML);
             ->first();
 
         if ($lastVisit?->visit_date) {
-            $summary = $lastVisit->chief_complaint ? ' - ' . e(str($lastVisit->chief_complaint)->limit(40)) : '';
-            $lines[] = '<div><span class="font-medium">Last visit:</span> ' . e($lastVisit->visit_date->format('M j, Y')) . $summary . '</div>';
+            $summary = $lastVisit->chief_complaint ? ' - '.e(str($lastVisit->chief_complaint)->limit(40)) : '';
+            $lines[] = '<div><span class="text-xs font-medium text-gray-500 dark:text-gray-400">Last visit</span><span class="block text-sm text-gray-700 dark:text-gray-200">'.e($lastVisit->visit_date->format('M j, Y')).$summary.'</span></div>';
         }
 
         $content = implode("\n", $lines);
 
         return new HtmlString(<<<HTML
-<div class="space-y-1 text-sm text-gray-700 dark:text-gray-200">
+<div class="space-y-2">
     {$content}
 </div>
 HTML);
@@ -206,6 +263,7 @@ HTML);
         return $schema->components([
             Hidden::make('practice_id')
                 ->default(fn () => PracticeContext::currentPracticeId()),
+            Hidden::make('appointment_id'),
 
             Hidden::make('ai_suggestion_id')
                 ->dehydrated(false),
@@ -218,18 +276,29 @@ HTML);
             Hidden::make('active_ai_suggestion_id')
                 ->dehydrated(false),
 
-            Grid::make(3)->columnSpanFull()->schema([
+            Grid::make([
+                'default' => 1,
+                'lg' => 4,
+            ])->columnSpanFull()->schema([
                 Grid::make(1)
-                    ->columnSpan(1)
+                    ->columnSpan([
+                        'default' => 1,
+                        'lg' => 1,
+                    ])
                     ->schema([
-                        Section::make('Patient Context')
+                        Section::make('Patient / Visit Context')
+                            ->compact()
+                            ->collapsible()
+                            ->collapsed()
                             ->schema([
                                 Html::make(fn ($record, Get $get): HtmlString => self::formatPatientContext(
                                     $record,
                                     $get('patient_id') ? (int) $get('patient_id') : null,
                                 )),
                             ]),
-                        Section::make('Encounter Details')
+                        Section::make('Visit Details')
+                            ->compact()
+                            ->collapsible()
                             ->schema([
                                 Select::make('patient_id')
                                     ->relationship('patient', 'name')
@@ -245,9 +314,9 @@ HTML);
                                     ->searchable()
                                     ->preload()
                                     ->live()
-                                    ->afterStateUpdated(function (callable $set, $state) {
+                                    ->afterStateUpdated(function (callable $set, Get $get, $state) {
                                         if ($state) {
-                                            $practitioner = \App\Models\Practitioner::find($state);
+                                            $practitioner = Practitioner::find($state);
                                             if ($practitioner && $practitioner->specialty) {
                                                 $disciplineMap = [
                                                     'Acupuncture' => 'acupuncture',
@@ -263,6 +332,7 @@ HTML);
                                                 $discipline = $disciplineMap[$practitioner->specialty] ?? null;
                                                 if ($discipline) {
                                                     $set('discipline', $discipline);
+                                                    self::applyDisciplineTemplate($set, $get, $discipline);
                                                 }
                                             }
                                         }
@@ -274,221 +344,225 @@ HTML);
                                         'massage' => 'Massage Therapy',
                                         'chiropractic' => 'Chiropractic',
                                         'physiotherapy' => 'Physical Therapy',
+                                        'general' => 'Custom / General',
                                     ])
                                     ->required()
+                                    ->live()
+                                    ->afterStateUpdated(fn (callable $set, Get $get, ?string $state) => self::applyDisciplineTemplate($set, $get, $state))
                                     ->disabledOn('view'),
                                 DatePicker::make('visit_date')
                                     ->required()
                                     ->default(now())
                                     ->disabledOn('view'),
                                 Select::make('status')
+                                    ->label('Status')
                                     ->options([
                                         'draft' => 'Draft',
                                         'complete' => 'Complete',
                                     ])
                                     ->default('draft')
-                                    ->required()
-                                    ->disabledOn('view'),
+                                    ->disabled()
+                                    ->dehydrated(false),
                             ]),
                     ]),
 
                 Tabs::make('Visit Documentation')
-                    ->columnSpan(2)
+                    ->columnSpan([
+                        'default' => 1,
+                        'lg' => 3,
+                    ])
                     ->tabs([
-                Tab::make('Core Notes')->schema([
-                    Section::make('Simple Visit Note')
-                        ->visible(fn (): bool => self::simpleVisitNoteMode())
-                        ->schema([
-                                Textarea::make('chief_complaint')
-                                    ->label('Chief Complaint')
-                                    ->rows(2)
-                                    ->required()
-                                    ->disabledOn('view'),
-                                Textarea::make('visit_notes')
-                                    ->label(self::aiAssistedLabel('Visit Note / General Note', 'visit_notes'))
-                                    ->rows(9)
-                                    ->columnSpanFull()
-                                    ->disabledOn('view'),
-                                ...self::aiFieldAssist('visit_notes'),
-                                Textarea::make('plan')
-                                    ->label(self::aiAssistedLabel('Plan / Follow-up', 'plan'))
-                                    ->rows(4)
-                                    ->columnSpanFull()
-                                    ->disabledOn('view'),
-                                ...self::aiFieldAssist('plan'),
-                        ])
-                        ->columnSpanFull(),
-
-                    Section::make('Insurance SOAP Note')
-                        ->visible(fn (): bool => self::insuranceBillingEnabled())
-                        ->schema([
-                                Actions::make([
-                                    Action::make('checkMissingDocumentation')
-                                        ->label('Check Missing Documentation')
-                                        ->color('gray')
-                                        ->size(Size::Small)
-                                        ->action('checkMissingDocumentation')
-                                        ->visible(fn (): bool => self::insuranceBillingEnabled()),
+                        Tab::make('Core Notes')->schema([
+                            Section::make('Your Note')
+                                ->description('Simple Visit Note')
+                                ->visible(fn (): bool => self::simpleVisitNoteMode())
+                                ->schema([
+                                    Html::make(fn (): HtmlString => self::renderModeIndicator(false)),
+                                    Textarea::make('visit_note_document')
+                                        ->label('Visit Note')
+                                        ->default(fn (Get $get): string => EncounterNoteDocument::template($get('discipline')))
+                                        ->rows(24)
+                                        ->extraInputAttributes([
+                                            'class' => 'text-base leading-7 px-5 py-4 bg-white dark:bg-gray-950 font-normal',
+                                        ])
+                                        ->columnSpanFull()
+                                        ->disabledOn('view'),
+                                    ...self::simpleNoteAssist(),
                                 ])
-                                    ->visible(fn (): bool => self::insuranceBillingEnabled())
-                                    ->hiddenOn('view')
-                                    ->columnSpanFull(),
-                                Textarea::make('chief_complaint')
-                                    ->label('Chief Complaint')
-                                    ->rows(2)
-                                    ->required()
-                                    ->disabledOn('view'),
-                                Textarea::make('subjective')
-                                    ->label(self::aiAssistedLabel('Subjective', 'subjective'))
-                                    ->rows(4)
-                                    ->disabledOn('view'),
-                                ...self::aiFieldAssist('subjective'),
-                                Textarea::make('objective')
-                                    ->label(self::aiAssistedLabel('Objective', 'objective'))
-                                    ->rows(4)
-                                    ->disabledOn('view'),
-                                ...self::aiFieldAssist('objective'),
-                                Textarea::make('assessment')
-                                    ->label(self::aiAssistedLabel('Assessment', 'assessment'))
-                                    ->rows(4)
-                                    ->disabledOn('view'),
-                                ...self::aiFieldAssist('assessment'),
-                                Textarea::make('plan')
-                                    ->label(self::aiAssistedLabel('Plan', 'plan'))
-                                    ->rows(4)
-                                    ->columnSpanFull()
-                                    ->disabledOn('view'),
-                                ...self::aiFieldAssist('plan'),
-                                Textarea::make('visit_notes')
-                                    ->label(self::aiAssistedLabel('General Visit Note (Optional)', 'visit_notes'))
-                                    ->rows(3)
-                                    ->columnSpanFull()
-                                    ->disabledOn('view'),
-                                ...self::aiFieldAssist('visit_notes'),
-                                Textarea::make('documentation_check_result')
-                                    ->label('AI Documentation Check')
-                                    ->helperText('Completeness review only. This does not modify the encounter note.')
-                                    ->rows(5)
-                                    ->live()
-                                    ->readOnly()
-                                    ->dehydrated(false)
-                                    ->columnSpanFull()
-                                    ->visible(fn (): bool => self::insuranceBillingEnabled())
-                                    ->hiddenOn('view'),
-                        ])
-                        ->columnSpanFull(),
-                ]),
-
-                Tab::make('Acupuncture')->schema([
-                    Section::make('Traditional Chinese Medicine (TCM)')
-                        ->schema([
-                            Placeholder::make('tcm_diagnosis')
-                                ->label('TCM Diagnosis')
-                                ->content(fn ($record) => $record?->acupunctureEncounter?->tcm_diagnosis ?? '—')
-                                ->visibleOn('view'),
-
-                            TextInput::make('acupunctureEncounter.tcm_diagnosis')
-                                ->label('TCM Diagnosis')
-                                ->maxLength(255)
-                                ->visibleOn('edit'),
-
-                            Placeholder::make('tongue_body')
-                                ->label('Tongue Body')
-                                ->content(fn ($record) => $record?->acupunctureEncounter?->tongue_body ?? '—')
-                                ->visibleOn('view'),
-
-                            TextInput::make('acupunctureEncounter.tongue_body')
-                                ->label('Tongue Body')
-                                ->visibleOn('edit'),
-
-                            Placeholder::make('tongue_coating')
-                                ->label('Tongue Coating')
-                                ->content(fn ($record) => $record?->acupunctureEncounter?->tongue_coating ?? '—')
-                                ->visibleOn('view'),
-
-                            TextInput::make('acupunctureEncounter.tongue_coating')
-                                ->label('Tongue Coating')
-                                ->visibleOn('edit'),
-
-                            Placeholder::make('pulse_quality')
-                                ->label('Pulse Quality')
-                                ->content(fn ($record) => $record?->acupunctureEncounter?->pulse_quality ?? '—')
-                                ->visibleOn('view'),
-
-                            TextInput::make('acupunctureEncounter.pulse_quality')
-                                ->label('Pulse Quality')
-                                ->visibleOn('edit'),
-
-                            Placeholder::make('zang_fu_diagnosis')
-                                ->label('Zang-Fu Diagnosis')
-                                ->content(fn ($record) => $record?->acupunctureEncounter?->zang_fu_diagnosis ?? '—')
-                                ->visibleOn('view'),
-
-                            TextInput::make('acupunctureEncounter.zang_fu_diagnosis')
-                                ->label('Zang-Fu Diagnosis')
-                                ->visibleOn('edit'),
-                        ])->columns(2),
-
-                    Section::make('Treatment Details')
-                        ->schema([
-                            Placeholder::make('points_used')
-                                ->label('Points Used')
-                                ->content(fn ($record) => $record?->acupunctureEncounter?->points_used ?? '—')
-                                ->visibleOn('view')
                                 ->columnSpanFull(),
 
-                            Textarea::make('acupunctureEncounter.points_used')
-                                ->rows(3)
-                                ->visibleOn('edit')
+                            Section::make('Your Note')
+                                ->description('Insurance SOAP Note')
+                                ->visible(fn (): bool => self::insuranceBillingEnabled())
+                                ->schema([
+                                    Html::make(fn (): HtmlString => self::renderModeIndicator(true)),
+                                    Actions::make([
+                                        Action::make('checkMissingDocumentation')
+                                            ->label('Check Missing Documentation')
+                                            ->color('gray')
+                                            ->size(Size::Small)
+                                            ->action('checkMissingDocumentation')
+                                            ->visible(fn (): bool => self::insuranceBillingEnabled()),
+                                    ])
+                                        ->visible(fn (): bool => self::insuranceBillingEnabled())
+                                        ->hiddenOn('view')
+                                        ->columnSpanFull(),
+                                    Textarea::make('chief_complaint')
+                                        ->label('Chief Complaint')
+                                        ->rows(2)
+                                        ->required()
+                                        ->disabledOn('view'),
+                                    Textarea::make('subjective')
+                                        ->label(self::aiAssistedLabel('Subjective', 'subjective'))
+                                        ->rows(6)
+                                        ->disabledOn('view'),
+                                    ...self::aiFieldAssist('subjective'),
+                                    Textarea::make('objective')
+                                        ->label(self::aiAssistedLabel('Objective', 'objective'))
+                                        ->rows(6)
+                                        ->disabledOn('view'),
+                                    ...self::aiFieldAssist('objective'),
+                                    Textarea::make('assessment')
+                                        ->label(self::aiAssistedLabel('Assessment', 'assessment'))
+                                        ->rows(6)
+                                        ->disabledOn('view'),
+                                    ...self::aiFieldAssist('assessment'),
+                                    Textarea::make('plan')
+                                        ->label(self::aiAssistedLabel('Plan', 'plan'))
+                                        ->rows(6)
+                                        ->columnSpanFull()
+                                        ->disabledOn('view'),
+                                    ...self::aiFieldAssist('plan'),
+                                    Textarea::make('visit_notes')
+                                        ->label(self::aiAssistedLabel('General Visit Note (Optional)', 'visit_notes'))
+                                        ->rows(5)
+                                        ->columnSpanFull()
+                                        ->disabledOn('view'),
+                                    ...self::aiFieldAssist('visit_notes'),
+                                    Textarea::make('documentation_check_result')
+                                        ->label('AI Documentation Check')
+                                        ->helperText('Completeness review only. This does not modify the visit note.')
+                                        ->rows(5)
+                                        ->live()
+                                        ->readOnly()
+                                        ->dehydrated(false)
+                                        ->columnSpanFull()
+                                        ->visible(fn (): bool => self::insuranceBillingEnabled())
+                                        ->hiddenOn('view'),
+                                ])
                                 ->columnSpanFull(),
+                        ]),
 
-                            Placeholder::make('needle_count')
-                                ->label('Needle Count')
-                                ->content(fn ($record) => ($record?->acupunctureEncounter?->needle_count ?? '—'))
-                                ->visibleOn('view'),
+                        Tab::make('Acupuncture')->schema([
+                            Section::make('Traditional Chinese Medicine (TCM)')
+                                ->schema([
+                                    Placeholder::make('tcm_diagnosis')
+                                        ->label('TCM Diagnosis')
+                                        ->content(fn ($record) => $record?->acupunctureEncounter?->tcm_diagnosis ?? '—')
+                                        ->visibleOn('view'),
 
-                            TextInput::make('acupunctureEncounter.needle_count')
-                                ->numeric()
-                                ->default(0)
-                                ->visibleOn('edit'),
+                                    TextInput::make('acupunctureEncounter.tcm_diagnosis')
+                                        ->label('TCM Diagnosis')
+                                        ->maxLength(255)
+                                        ->visibleOn('edit'),
 
-                            Placeholder::make('treatment_protocol')
-                                ->label('Treatment Protocol')
-                                ->content(fn ($record) => $record?->acupunctureEncounter?->treatment_protocol ?? '—')
-                                ->visibleOn('view')
-                                ->columnSpanFull(),
+                                    Placeholder::make('tongue_body')
+                                        ->label('Tongue Body')
+                                        ->content(fn ($record) => $record?->acupunctureEncounter?->tongue_body ?? '—')
+                                        ->visibleOn('view'),
 
-                            Textarea::make('acupunctureEncounter.treatment_protocol')
-                                ->rows(3)
-                                ->visibleOn('edit')
-                                ->columnSpanFull(),
-                        ])->columns(2),
-                ])->visible(fn ($record) => $record?->discipline === 'acupuncture'),
+                                    TextInput::make('acupunctureEncounter.tongue_body')
+                                        ->label('Tongue Body')
+                                        ->visibleOn('edit'),
 
-                Tab::make('Massage')->schema([
-                    TextInput::make('massageEncounter.technique_used')
-                        ->disabledOn('view'),
-                    TextInput::make('massageEncounter.pressure_level')
-                        ->disabledOn('view'),
-                    Textarea::make('massageEncounter.areas_focused')
-                        ->disabledOn('view'),
-                ])->visible(fn ($record) => $record?->discipline === 'massage'),
+                                    Placeholder::make('tongue_coating')
+                                        ->label('Tongue Coating')
+                                        ->content(fn ($record) => $record?->acupunctureEncounter?->tongue_coating ?? '—')
+                                        ->visibleOn('view'),
 
-                Tab::make('Chiropractic')->schema([
-                    TextInput::make('chiropracticEncounter.adjustment_level')
-                        ->disabledOn('view'),
-                    TextInput::make('chiropracticEncounter.technique')
-                        ->disabledOn('view'),
-                ])->visible(fn ($record) => $record?->discipline === 'chiropractic'),
+                                    TextInput::make('acupunctureEncounter.tongue_coating')
+                                        ->label('Tongue Coating')
+                                        ->visibleOn('edit'),
 
-                Tab::make('Physiotherapy')->schema([
-                    TextInput::make('physiotherapyEncounter.exercise_program')
-                        ->disabledOn('view'),
-                    TextInput::make('physiotherapyEncounter.equipment_used')
-                        ->disabledOn('view'),
-                ])->visible(fn ($record) => $record?->discipline === 'physiotherapy'),
+                                    Placeholder::make('pulse_quality')
+                                        ->label('Pulse Quality')
+                                        ->content(fn ($record) => $record?->acupunctureEncounter?->pulse_quality ?? '—')
+                                        ->visibleOn('view'),
 
-                ]),
+                                    TextInput::make('acupunctureEncounter.pulse_quality')
+                                        ->label('Pulse Quality')
+                                        ->visibleOn('edit'),
+
+                                    Placeholder::make('zang_fu_diagnosis')
+                                        ->label('Zang-Fu Diagnosis')
+                                        ->content(fn ($record) => $record?->acupunctureEncounter?->zang_fu_diagnosis ?? '—')
+                                        ->visibleOn('view'),
+
+                                    TextInput::make('acupunctureEncounter.zang_fu_diagnosis')
+                                        ->label('Zang-Fu Diagnosis')
+                                        ->visibleOn('edit'),
+                                ])->columns(2),
+
+                            Section::make('Treatment Details')
+                                ->schema([
+                                    Placeholder::make('points_used')
+                                        ->label('Points Used')
+                                        ->content(fn ($record) => $record?->acupunctureEncounter?->points_used ?? '—')
+                                        ->visibleOn('view')
+                                        ->columnSpanFull(),
+
+                                    Textarea::make('acupunctureEncounter.points_used')
+                                        ->rows(3)
+                                        ->visibleOn('edit')
+                                        ->columnSpanFull(),
+
+                                    Placeholder::make('needle_count')
+                                        ->label('Needle Count')
+                                        ->content(fn ($record) => ($record?->acupunctureEncounter?->needle_count ?? '—'))
+                                        ->visibleOn('view'),
+
+                                    TextInput::make('acupunctureEncounter.needle_count')
+                                        ->numeric()
+                                        ->default(0)
+                                        ->visibleOn('edit'),
+
+                                    Placeholder::make('treatment_protocol')
+                                        ->label('Treatment Protocol')
+                                        ->content(fn ($record) => $record?->acupunctureEncounter?->treatment_protocol ?? '—')
+                                        ->visibleOn('view')
+                                        ->columnSpanFull(),
+
+                                    Textarea::make('acupunctureEncounter.treatment_protocol')
+                                        ->rows(3)
+                                        ->visibleOn('edit')
+                                        ->columnSpanFull(),
+                                ])->columns(2),
+                        ])->visible(fn ($record) => $record?->discipline === 'acupuncture'),
+
+                        Tab::make('Massage')->schema([
+                            TextInput::make('massageEncounter.technique_used')
+                                ->disabledOn('view'),
+                            TextInput::make('massageEncounter.pressure_level')
+                                ->disabledOn('view'),
+                            Textarea::make('massageEncounter.areas_focused')
+                                ->disabledOn('view'),
+                        ])->visible(fn ($record) => $record?->discipline === 'massage'),
+
+                        Tab::make('Chiropractic')->schema([
+                            TextInput::make('chiropracticEncounter.adjustment_level')
+                                ->disabledOn('view'),
+                            TextInput::make('chiropracticEncounter.technique')
+                                ->disabledOn('view'),
+                        ])->visible(fn ($record) => $record?->discipline === 'chiropractic'),
+
+                        Tab::make('Physiotherapy')->schema([
+                            TextInput::make('physiotherapyEncounter.exercise_program')
+                                ->disabledOn('view'),
+                            TextInput::make('physiotherapyEncounter.equipment_used')
+                                ->disabledOn('view'),
+                        ])->visible(fn ($record) => $record?->discipline === 'physiotherapy'),
+
+                    ]),
             ]),
         ]);
     }

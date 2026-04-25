@@ -6,6 +6,7 @@ use App\Filament\Resources\ActivityLogs\Pages\ListActivityLogs;
 use App\Models\ActivityLog;
 use App\Services\PracticeContext;
 use BackedEnum;
+use Filament\Forms\Components\DatePicker;
 use Filament\Resources\Resource;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
@@ -61,7 +62,7 @@ class ActivityLogResource extends Resource
         if ($practiceId) {
             $query->where(function (Builder $q) use ($practiceId) {
                 $q->where('practice_id', $practiceId)
-                  ->orWhereNull('practice_id');
+                    ->orWhereNull('practice_id');
             });
         }
 
@@ -82,24 +83,24 @@ class ActivityLogResource extends Resource
                 TextColumn::make('action')
                     ->badge()
                     ->color(fn (string $state): string => match ($state) {
-                        'viewed'        => 'gray',
-                        'created'       => 'success',
-                        'updated'       => 'info',
-                        'deleted'       => 'danger',
+                        'viewed' => 'gray',
+                        'created' => 'success',
+                        'updated' => 'info',
+                        'deleted' => 'danger',
                         'state_changed' => 'warning',
-                        'signed'        => 'primary',
-                        'exported'      => 'gray',
-                        default         => 'gray',
+                        'signed' => 'primary',
+                        'exported' => 'gray',
+                        default => 'gray',
                     })
                     ->formatStateUsing(fn (string $state): string => match ($state) {
-                        'viewed'        => 'Viewed',
-                        'created'       => 'Created',
-                        'updated'       => 'Updated',
-                        'deleted'       => 'Deleted',
+                        'viewed' => 'Viewed',
+                        'created' => 'Created',
+                        'updated' => 'Updated',
+                        'deleted' => 'Deleted',
                         'state_changed' => 'State Changed',
-                        'signed'        => 'Signed',
-                        'exported'      => 'Exported',
-                        default         => $state,
+                        'signed' => 'Signed',
+                        'exported' => 'Exported',
+                        default => $state,
                     }),
 
                 TextColumn::make('auditable_label')
@@ -126,36 +127,36 @@ class ActivityLogResource extends Resource
             ->filters([
                 SelectFilter::make('action')
                     ->options([
-                        'viewed'        => 'Viewed',
-                        'created'       => 'Created',
-                        'updated'       => 'Updated',
-                        'deleted'       => 'Deleted',
+                        'viewed' => 'Viewed',
+                        'created' => 'Created',
+                        'updated' => 'Updated',
+                        'deleted' => 'Deleted',
                         'state_changed' => 'State Changed',
-                        'signed'        => 'Signed',
-                        'exported'      => 'Exported',
+                        'signed' => 'Signed',
+                        'exported' => 'Exported',
                     ]),
 
                 SelectFilter::make('auditable_type')
                     ->label('Model')
                     ->options([
-                        'App\Models\Patient'               => 'Patient',
-                        'App\Models\Appointment'           => 'Appointment',
-                        'App\Models\Encounter'             => 'Encounter',
-                        'App\Models\AcupunctureEncounter'  => 'Acupuncture Encounter',
-                        'App\Models\MedicalHistory'      => 'Intake Submission',
-                        'App\Models\ConsentRecord'         => 'Consent Record',
-                        'App\Models\CheckoutSession'       => 'Checkout Session',
-                        'App\Models\Practitioner'          => 'Practitioner',
+                        'App\Models\Patient' => 'Patient',
+                        'App\Models\Appointment' => 'Appointment',
+                        'App\Models\Encounter' => 'Visit',
+                        'App\Models\AcupunctureEncounter' => 'Acupuncture Visit',
+                        'App\Models\MedicalHistory' => 'Intake Submission',
+                        'App\Models\ConsentRecord' => 'Consent Record',
+                        'App\Models\CheckoutSession' => 'Checkout Session',
+                        'App\Models\Practitioner' => 'Practitioner',
                     ]),
 
                 Filter::make('date_range')
                     ->form([
-                        \Filament\Forms\Components\DatePicker::make('from')->label('From'),
-                        \Filament\Forms\Components\DatePicker::make('until')->label('Until'),
+                        DatePicker::make('from')->label('From'),
+                        DatePicker::make('until')->label('Until'),
                     ])
                     ->query(function (Builder $query, array $data): Builder {
                         return $query
-                            ->when($data['from'],  fn ($q) => $q->whereDate('created_at', '>=', $data['from']))
+                            ->when($data['from'], fn ($q) => $q->whereDate('created_at', '>=', $data['from']))
                             ->when($data['until'], fn ($q) => $q->whereDate('created_at', '<=', $data['until']));
                     }),
             ])

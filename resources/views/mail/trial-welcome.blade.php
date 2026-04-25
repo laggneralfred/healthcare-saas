@@ -48,7 +48,7 @@
                             </li>
                             <li style="margin: 0 0 12px 0; color: #555; display: flex; align-items: flex-start;">
                                 <span style="color: #0D7377; font-weight: bold; margin-right: 10px; flex-shrink: 0;">✓</span>
-                                <span>Document clinical encounter notes</span>
+                                <span>Document clinical visit notes</span>
                             </li>
                             <li style="margin: 0 0 20px 0; color: #555; display: flex; align-items: flex-start;">
                                 <span style="color: #0D7377; font-weight: bold; margin-right: 10px; flex-shrink: 0;">✓</span>
