@@ -50,6 +50,7 @@ services:
       APP_DEBUG: ${APP_DEBUG:-false}
       APP_URL: ${APP_URL:-http://localhost}
       APP_KEY: ${APP_KEY}
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
 
       DB_CONNECTION: pgsql
       DB_HOST: postgres
@@ -153,6 +154,7 @@ services:
       APP_DEBUG: ${APP_DEBUG:-false}
       APP_URL: ${APP_URL:-http://localhost}
       APP_KEY: ${APP_KEY}
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
 
       DB_CONNECTION: pgsql
       DB_HOST: postgres
@@ -208,6 +210,7 @@ services:
       APP_DEBUG: ${APP_DEBUG:-false}
       APP_URL: ${APP_URL:-http://localhost}
       APP_KEY: ${APP_KEY}
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
 
       DB_CONNECTION: pgsql
       DB_HOST: postgres
