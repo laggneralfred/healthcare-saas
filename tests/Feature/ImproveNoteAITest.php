@@ -1,5 +1,6 @@
 <?php
 
+use App\Filament\Resources\Encounters\Pages\Concerns\HandlesEncounterAIActions;
 use App\Filament\Resources\Encounters\Pages\CreateEncounter;
 use App\Filament\Resources\Encounters\Pages\EditEncounter;
 use App\Models\AISuggestion;
@@ -14,6 +15,7 @@ use App\Services\AI\AIService;
 use App\Services\AI\AIUnavailableException;
 use App\Services\EncounterNoteDocument;
 use App\Services\PracticeContext;
+use App\Support\PracticeType;
 use Illuminate\Support\Facades\Http;
 use Livewire\Livewire;
 
@@ -38,6 +40,34 @@ function createEncounterForPractice(Practice $practice, array $attributes = []):
         'visit_notes' => 'pt says neck tight better after tx',
         ...$attributes,
     ]);
+}
+
+function encounterAIActionHarness(Encounter $encounter, array $data): object
+{
+    return new class($encounter, $data)
+    {
+        use HandlesEncounterAIActions;
+
+        public array $data;
+
+        public object $form;
+
+        public function __construct(public Encounter $record, array $data)
+        {
+            $this->data = $data;
+            $this->form = new class
+            {
+                public function fillPartially(
+                    array $state,
+                    array $paths,
+                    bool $shouldCallHydrationHooks = false,
+                    bool $shouldFillStateWithNull = false,
+                ): void {
+                    //
+                }
+            };
+        }
+    };
 }
 
 it('AIService returns an improved note from OpenAI when configured', function () {
@@ -115,6 +145,194 @@ it('AIService improves a specific encounter field with field context', function 
         && str_contains($request['instructions'], 'Do not assign billing codes')
         && str_contains($request['input'], 'Subjective text to improve:')
         && str_contains($request['input'], 'neck tight better after tx'));
+});
+
+it('AIService includes TCM acupuncture practice type context in improve note prompts', function () {
+    config([
+        'services.ai.provider' => 'openai',
+        'services.ai.openai.api_key' => 'test-key',
+        'services.ai.openai.model' => 'gpt-test',
+    ]);
+
+    Http::fake([
+        'api.openai.com/v1/responses' => Http::response([
+            'output_text' => 'Improved TCM-compatible note.',
+        ]),
+    ]);
+
+    app(AIService::class)->improveNote('neck tight, LV qi constraint noted', [
+        'practice_type' => PracticeType::TCM_ACUPUNCTURE,
+    ]);
+
+    Http::assertSent(fn ($request) => str_contains($request['instructions'], 'For TCM Acupuncture')
+        && str_contains($request['instructions'], 'pattern impression')
+        && str_contains($request['instructions'], 'channel logic')
+        && str_contains($request['instructions'], 'Do not invent clinical findings')
+        && str_contains($request['instructions'], 'Do not invent tongue, pulse, pattern diagnosis')
+        && str_contains($request['input'], 'Practice Type: TCM Acupuncture'));
+});
+
+it('AIService includes Five Element practice type context without forcing TCM', function () {
+    config([
+        'services.ai.provider' => 'openai',
+        'services.ai.openai.api_key' => 'test-key',
+        'services.ai.openai.model' => 'gpt-test',
+    ]);
+
+    Http::fake([
+        'api.openai.com/v1/responses' => Http::response([
+            'output_text' => 'Improved Five Element-compatible note.',
+        ]),
+    ]);
+
+    app(AIService::class)->improveNote('patient presentation included CSOE observations', [
+        'practice_type' => PracticeType::FIVE_ELEMENT_ACUPUNCTURE,
+    ]);
+
+    Http::assertSent(fn ($request) => str_contains($request['instructions'], 'For Five Element Acupuncture')
+        && str_contains($request['instructions'], 'Worsley-compatible')
+        && str_contains($request['instructions'], 'Preserve practitioner language around element')
+        && str_contains($request['instructions'], 'Do not force TCM pattern diagnosis')
+        && str_contains($request['instructions'], 'Do not translate Five Element language into generic TCM')
+        && str_contains($request['input'], 'Practice Type: Five Element Acupuncture'));
+});
+
+it('AIService does not include acupuncture-specific instructions for non-acupuncture practice types', function (string $practiceType, string $expectedInstruction) {
+    config([
+        'services.ai.provider' => 'openai',
+        'services.ai.openai.api_key' => 'test-key',
+        'services.ai.openai.model' => 'gpt-test',
+    ]);
+
+    Http::fake([
+        'api.openai.com/v1/responses' => Http::response([
+            'output_text' => 'Improved practice-compatible note.',
+        ]),
+    ]);
+
+    app(AIService::class)->improveNote('rough visit note text', [
+        'practice_type' => $practiceType,
+    ]);
+
+    Http::assertSent(fn ($request) => str_contains($request['instructions'], $expectedInstruction)
+        && ! str_contains($request['instructions'], 'For TCM Acupuncture')
+        && ! str_contains($request['instructions'], 'For Five Element Acupuncture')
+        && ! str_contains($request['instructions'], 'Worsley-compatible')
+        && ! str_contains($request['instructions'], 'pattern diagnosis'));
+})->with([
+    'general wellness' => [PracticeType::GENERAL_WELLNESS, 'For General Wellness'],
+    'chiropractic' => [PracticeType::CHIROPRACTIC, 'For Chiropractic'],
+    'massage therapy' => [PracticeType::MASSAGE_THERAPY, 'For Massage Therapy'],
+    'physiotherapy' => [PracticeType::PHYSIOTHERAPY, 'For Physiotherapy'],
+]);
+
+it('resets an existing simple visit note from the encounter practice when ambient practice context is stale', function () {
+    $visitPractice = Practice::factory()->create([
+        'insurance_billing_enabled' => false,
+        'practice_type' => PracticeType::MASSAGE_THERAPY,
+    ]);
+    $ambientPractice = Practice::factory()->create([
+        'insurance_billing_enabled' => false,
+        'practice_type' => PracticeType::TCM_ACUPUNCTURE,
+    ]);
+    $superAdmin = User::factory()->create(['practice_id' => null]);
+    $encounter = createEncounterForPractice($visitPractice);
+
+    $this->actingAs($superAdmin);
+    PracticeContext::setCurrentPracticeId($ambientPractice->id);
+
+    $component = encounterAIActionHarness($encounter, [
+        'visit_note_document' => 'Unsaved custom note.',
+    ]);
+
+    $component->resetVisitNoteTemplate();
+
+    expect($component->data['visit_note_document'])
+        ->toBe(EncounterNoteDocument::template(PracticeType::MASSAGE_THERAPY));
+});
+
+it('uses the encounter practice type for simple visit note AI when ambient practice context is stale', function () {
+    $visitPractice = Practice::factory()->create([
+        'insurance_billing_enabled' => false,
+        'practice_type' => PracticeType::TCM_ACUPUNCTURE,
+    ]);
+    $ambientPractice = Practice::factory()->create([
+        'insurance_billing_enabled' => false,
+        'practice_type' => PracticeType::MASSAGE_THERAPY,
+    ]);
+    $superAdmin = User::factory()->create(['practice_id' => null]);
+    $encounter = createEncounterForPractice($visitPractice);
+
+    app()->instance(AIService::class, new class extends AIService
+    {
+        public function improveNote(string $note, array $context = []): string
+        {
+            expect($context['practice_type'])->toBe(PracticeType::TCM_ACUPUNCTURE);
+
+            return 'Improved record-practice note.';
+        }
+    });
+
+    $this->actingAs($superAdmin);
+    PracticeContext::setCurrentPracticeId($ambientPractice->id);
+
+    $component = encounterAIActionHarness($encounter, [
+        'chief_complaint' => 'neck tight',
+        'visit_note_document' => EncounterNoteDocument::template(PracticeType::TCM_ACUPUNCTURE),
+    ]);
+
+    $component->improveNote(app(AIService::class));
+
+    expect($component->data['ai_suggestion'])->toBe('Improved record-practice note.');
+
+    $this->assertDatabaseHas('ai_suggestions', [
+        'practice_id' => $visitPractice->id,
+        'user_id' => $superAdmin->id,
+        'encounter_id' => $encounter->id,
+        'feature' => 'improve_note',
+        'suggested_text' => 'Improved record-practice note.',
+    ]);
+
+    $this->assertDatabaseMissing('ai_suggestions', [
+        'practice_id' => $ambientPractice->id,
+        'user_id' => $superAdmin->id,
+        'encounter_id' => $encounter->id,
+        'feature' => 'improve_note',
+    ]);
+});
+
+it('uses practitioner Clinical Style override for simple visit note AI', function () {
+    $visitPractice = Practice::factory()->create([
+        'insurance_billing_enabled' => false,
+        'practice_type' => PracticeType::TCM_ACUPUNCTURE,
+        'discipline' => 'acupuncture',
+    ]);
+    $user = User::factory()->create(['practice_id' => $visitPractice->id]);
+    $encounter = createEncounterForPractice($visitPractice);
+    $encounter->practitioner->update([
+        'clinical_style' => PracticeType::FIVE_ELEMENT_ACUPUNCTURE,
+    ]);
+
+    app()->instance(AIService::class, new class extends AIService
+    {
+        public function improveNote(string $note, array $context = []): string
+        {
+            expect($context['practice_type'])->toBe(PracticeType::FIVE_ELEMENT_ACUPUNCTURE);
+
+            return 'Improved practitioner-style note.';
+        }
+    });
+
+    $this->actingAs($user);
+
+    $component = encounterAIActionHarness($encounter, [
+        'chief_complaint' => 'neck tight',
+        'visit_note_document' => EncounterNoteDocument::template(PracticeType::FIVE_ELEMENT_ACUPUNCTURE),
+    ]);
+
+    $component->improveNote(app(AIService::class));
+
+    expect($component->data['ai_suggestion'])->toBe('Improved practitioner-style note.');
 });
 
 it('AIService is unavailable when no API key is configured', function () {
@@ -618,7 +836,7 @@ it('logs failed AI calls and stores failed suggestions', function () {
     ]);
 });
 
-it('improves the unified simple visit note document', function () {
+it('creates an AI Draft for the unified simple visit note without changing the note', function () {
     $practice = Practice::factory()->create(['insurance_billing_enabled' => false]);
     $user = User::factory()->create(['practice_id' => $practice->id]);
     $encounter = createEncounterForPractice($practice, [
@@ -631,8 +849,10 @@ it('improves the unified simple visit note document', function () {
     {
         public function improveNote(string $note, array $context = []): string
         {
-            expect($note)->toContain('Chief Complaint:');
-            expect($note)->toContain('Treatment Notes:');
+            expect($note)->toContain('Reason for Visit:');
+            expect($note)->toContain('Visit Note:');
+            expect($note)->toContain('Care Provided:');
+            expect($note)->toContain('Response:');
             expect($note)->toContain('Plan / Follow-up:');
 
             return "Chief Complaint:\nNeck tightness.\n\nTreatment Notes:\nTreatment was tolerated well.\n\nPlan / Follow-up:\nReturn as needed.";
@@ -643,25 +863,146 @@ it('improves the unified simple visit note document', function () {
 
     Livewire::test(EditEncounter::class, ['record' => $encounter->id])
         ->assertSee('AI Assist / Improve with AI')
+        ->assertDontSee('AI Draft')
+        ->assertDontSee('Note Provenance')
+        ->assertDontSee('Original Source')
+        ->assertDontSee('Final Practitioner Note')
         ->call('improveNote')
         ->assertSet('data.ai_suggestion', "Chief Complaint:\nNeck tightness.\n\nTreatment Notes:\nTreatment was tolerated well.\n\nPlan / Follow-up:\nReturn as needed.")
-        ->call('acceptAISuggestion')
-        ->assertSet('data.visit_note_document', "Chief Complaint:\nNeck tightness.\n\nTreatment Notes:\nTreatment was tolerated well.\n\nPlan / Follow-up:\nReturn as needed.")
-        ->call('saveDraft');
+        ->assertSet('data.visit_note_document', EncounterNoteDocument::fromFields('neck tight', 'tx helped', 'return prn', PracticeType::GENERAL_WELLNESS))
+        ->assertSee('AI Draft')
+        ->assertSee('Replace Note')
+        ->assertSee('Insert Below')
+        ->assertSee('Dismiss');
 
     $encounter->refresh();
 
-    expect($encounter->chief_complaint)->toBe('Neck tightness.');
-    expect($encounter->visit_notes)->toBe('Treatment was tolerated well.');
-    expect($encounter->plan)->toBe('Return as needed.');
+    expect($encounter->chief_complaint)->toBe('neck tight');
+    expect($encounter->visit_notes)->toBe('tx helped');
+    expect($encounter->plan)->toBe('return prn');
 
     $this->assertDatabaseHas('ai_suggestions', [
         'practice_id' => $practice->id,
         'user_id' => $user->id,
         'encounter_id' => $encounter->id,
         'feature' => 'improve_note',
-        'original_text' => EncounterNoteDocument::fromFields('neck tight', 'tx helped', 'return prn', 'acupuncture'),
-        'accepted_text' => "Chief Complaint:\nNeck tightness.\n\nTreatment Notes:\nTreatment was tolerated well.\n\nPlan / Follow-up:\nReturn as needed.",
-        'status' => 'accepted',
+        'original_text' => EncounterNoteDocument::fromFields('neck tight', 'tx helped', 'return prn', PracticeType::GENERAL_WELLNESS),
+        'suggested_text' => "Chief Complaint:\nNeck tightness.\n\nTreatment Notes:\nTreatment was tolerated well.\n\nPlan / Follow-up:\nReturn as needed.",
+        'accepted_text' => null,
+        'status' => 'pending',
     ]);
+});
+
+it('replaces the simple visit note with an AI Draft only after explicit replace and save', function () {
+    $practice = Practice::factory()->create(['insurance_billing_enabled' => false]);
+    $user = User::factory()->create(['practice_id' => $practice->id]);
+    $encounter = createEncounterForPractice($practice, [
+        'chief_complaint' => 'neck tight',
+        'visit_notes' => 'tx helped',
+        'plan' => 'return prn',
+    ]);
+
+    $draft = "Chief Complaint:\nNeck tightness.\n\nTreatment Notes:\nTreatment was tolerated well.\n\nPlan / Follow-up:\nReturn as needed.";
+    $suggestion = AISuggestion::create([
+        'practice_id' => $practice->id,
+        'user_id' => $user->id,
+        'patient_id' => $encounter->patient_id,
+        'appointment_id' => $encounter->appointment_id,
+        'encounter_id' => $encounter->id,
+        'feature' => 'improve_note',
+        'original_text' => EncounterNoteDocument::fromFields('neck tight', 'tx helped', 'return prn', PracticeType::GENERAL_WELLNESS),
+        'suggested_text' => $draft,
+        'status' => 'pending',
+    ]);
+
+    $this->actingAs($user);
+
+    Livewire::test(EditEncounter::class, ['record' => $encounter->id])
+        ->set('data.ai_suggestion', $draft)
+        ->set('data.ai_suggestion_id', $suggestion->id)
+        ->call('replaceNoteWithAIDraft')
+        ->assertSet('data.visit_note_document', $draft)
+        ->assertSet('data.ai_suggestion', null);
+
+    $encounter->refresh();
+    expect($encounter->visit_notes)->toBe('tx helped');
+
+    Livewire::test(EditEncounter::class, ['record' => $encounter->id])
+        ->set('data.visit_note_document', $draft)
+        ->call('saveDraft');
+
+    $encounter->refresh();
+    $suggestion->refresh();
+
+    expect($encounter->chief_complaint)->toBe('Neck tightness.');
+    expect($encounter->visit_notes)->toBe('Treatment was tolerated well.');
+    expect($encounter->plan)->toBe('Return as needed.');
+    expect($suggestion->status)->toBe('accepted');
+    expect($suggestion->accepted_text)->toBe($draft);
+});
+
+it('inserts the AI Draft below the simple visit note without saving immediately', function () {
+    $practice = Practice::factory()->create(['insurance_billing_enabled' => false]);
+    $user = User::factory()->create(['practice_id' => $practice->id]);
+    $encounter = createEncounterForPractice($practice, [
+        'chief_complaint' => 'neck tight',
+        'visit_notes' => 'tx helped',
+        'plan' => 'return prn',
+    ]);
+
+    $currentNote = EncounterNoteDocument::fromFields('neck tight', 'tx helped', 'return prn', PracticeType::GENERAL_WELLNESS);
+    $draft = "Chief Complaint:\nNeck tightness.\n\nTreatment Notes:\nTreatment was tolerated well.\n\nPlan / Follow-up:\nReturn as needed.";
+    $expected = $currentNote."\n\n---\n\nAI Draft\n".$draft;
+
+    $this->actingAs($user);
+
+    Livewire::test(EditEncounter::class, ['record' => $encounter->id])
+        ->set('data.visit_note_document', $currentNote)
+        ->set('data.ai_suggestion', $draft)
+        ->call('insertAIDraftBelowNote')
+        ->assertSet('data.visit_note_document', $expected)
+        ->assertSet('data.ai_suggestion', null);
+
+    $encounter->refresh();
+    expect($encounter->visit_notes)->toBe('tx helped');
+});
+
+it('dismisses the AI Draft without changing the simple visit note', function () {
+    $practice = Practice::factory()->create(['insurance_billing_enabled' => false]);
+    $user = User::factory()->create(['practice_id' => $practice->id]);
+    $encounter = createEncounterForPractice($practice, [
+        'chief_complaint' => 'neck tight',
+        'visit_notes' => 'tx helped',
+        'plan' => 'return prn',
+    ]);
+
+    $currentNote = EncounterNoteDocument::fromFields('neck tight', 'tx helped', 'return prn', PracticeType::GENERAL_WELLNESS);
+    $suggestion = AISuggestion::create([
+        'practice_id' => $practice->id,
+        'user_id' => $user->id,
+        'patient_id' => $encounter->patient_id,
+        'appointment_id' => $encounter->appointment_id,
+        'encounter_id' => $encounter->id,
+        'feature' => 'improve_note',
+        'original_text' => $currentNote,
+        'suggested_text' => 'Improved draft.',
+        'status' => 'pending',
+    ]);
+
+    $this->actingAs($user);
+
+    Livewire::test(EditEncounter::class, ['record' => $encounter->id])
+        ->set('data.visit_note_document', $currentNote)
+        ->set('data.ai_suggestion', 'Improved draft.')
+        ->set('data.ai_suggestion_id', $suggestion->id)
+        ->call('dismissAIDraft')
+        ->assertSet('data.visit_note_document', $currentNote)
+        ->assertSet('data.ai_suggestion', null)
+        ->assertSet('data.ai_suggestion_id', null);
+
+    $encounter->refresh();
+    $suggestion->refresh();
+
+    expect($encounter->visit_notes)->toBe('tx helped');
+    expect($suggestion->status)->toBe('dismissed');
 });

@@ -2,12 +2,15 @@
 
 namespace App\Filament\Resources\Encounters\Schemas;
 
+use App\Models\Encounter;
 use App\Models\Patient;
 use App\Models\Practice;
 use App\Models\Practitioner;
 use App\Services\EncounterDisciplineTemplate;
 use App\Services\EncounterNoteDocument;
 use App\Services\PracticeContext;
+use App\Support\ClinicalStyle;
+use App\Support\PracticeType;
 use Filament\Actions\Action;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Hidden;
@@ -56,8 +59,14 @@ class EncounterForm
         ],
     ];
 
-    private static function insuranceBillingEnabled(): bool
+    private static function insuranceBillingEnabled(?Encounter $record = null): bool
     {
+        if ($record?->exists) {
+            return (bool) Practice::query()
+                ->whereKey($record->practice_id)
+                ->value('insurance_billing_enabled');
+        }
+
         $practiceId = PracticeContext::currentPracticeId();
 
         if (! $practiceId) {
@@ -69,17 +78,53 @@ class EncounterForm
             ->value('insurance_billing_enabled');
     }
 
-    private static function simpleVisitNoteMode(): bool
+    private static function simpleVisitNoteMode(?Encounter $record = null): bool
     {
-        return ! self::insuranceBillingEnabled();
+        return ! self::insuranceBillingEnabled($record);
     }
 
-    private static function applyDisciplineTemplate(callable $set, Get $get, ?string $discipline): void
+    private static function currentPracticeType(?Encounter $record = null, ?int $practitionerId = null): string
+    {
+        if ($record?->exists) {
+            $record->loadMissing(['practice', 'practitioner']);
+
+            return ClinicalStyle::fromEncounter($record);
+        }
+
+        if ($practitionerId) {
+            $practitioner = Practitioner::query()
+                ->with('practice:id,practice_type,discipline')
+                ->select(['id', 'practice_id', 'clinical_style'])
+                ->whereKey($practitionerId)
+                ->first();
+
+            if ($practitioner) {
+                return ClinicalStyle::fromPractitioner($practitioner, $practitioner->practice);
+            }
+        }
+
+        $practiceId = PracticeContext::currentPracticeId();
+
+        if (! $practiceId) {
+            return PracticeType::GENERAL_WELLNESS;
+        }
+
+        $practice = Practice::query()
+            ->select(['practice_type', 'discipline'])
+            ->whereKey($practiceId)
+            ->first();
+
+        return PracticeType::fromPractice($practice);
+    }
+
+    private static function applyDisciplineTemplate(callable $set, Get $get, ?string $discipline, ?Encounter $record = null): void
     {
         $document = (string) $get('visit_note_document');
 
         if (EncounterDisciplineTemplate::isBlankOrTemplate($document)) {
-            $set('visit_note_document', EncounterNoteDocument::template($discipline));
+            $practitionerId = $get('practitioner_id') ? (int) $get('practitioner_id') : null;
+
+            $set('visit_note_document', EncounterNoteDocument::template(self::currentPracticeType($record, $practitionerId)));
         }
     }
 
@@ -120,13 +165,14 @@ class EncounterForm
         ];
     }
 
-    private static function renderAISuggestionCard(string $suggestion): HtmlString
+    private static function renderAISuggestionCard(string $suggestion, string $label = 'AI Suggestion'): HtmlString
     {
         $suggestion = nl2br(e($suggestion), false);
+        $label = e($label);
 
         return new HtmlString(<<<HTML
 <div class="rounded-lg border border-amber-300 bg-amber-50 p-4 text-sm leading-6 text-gray-950 shadow-sm dark:border-amber-700 dark:bg-amber-950/30 dark:text-gray-100">
-    <div class="mb-2 text-xs font-semibold uppercase tracking-wide text-amber-700 dark:text-amber-300">AI Suggestion</div>
+    <div class="mb-2 text-xs font-semibold uppercase tracking-wide text-amber-700 dark:text-amber-300">{$label}</div>
     <div class="whitespace-pre-wrap">{$suggestion}</div>
 </div>
 HTML);
@@ -151,6 +197,19 @@ HTML);
     {
         return [
             Actions::make([
+                Action::make('resetVisitNoteTemplate')
+                    ->label('Reset Template')
+                    ->color('gray')
+                    ->size(Size::Small)
+                    ->requiresConfirmation(fn (Get $get): bool => self::resetTemplateNeedsConfirmation($get))
+                    ->modalHeading('Reset Visit Note template?')
+                    ->modalDescription('This replaces the current editor text with the current Clinical Style template. Click Save Note to keep the change.')
+                    ->modalSubmitActionLabel('Reset Template')
+                    ->action('resetVisitNoteTemplate'),
+            ])
+                ->hiddenOn('view')
+                ->columnSpanFull(),
+            Actions::make([
                 Action::make('improveNote')
                     ->label('AI Assist / Improve with AI')
                     ->color('gray')
@@ -159,22 +218,39 @@ HTML);
             ])
                 ->hiddenOn('view')
                 ->columnSpanFull(),
-            Section::make('AI Suggestion')
-                ->description('Review before accepting. This draft is assistive and must be reviewed by the practitioner.')
+            Section::make()
                 ->hidden(fn (Get $get): bool => blank($get('ai_suggestion')))
                 ->hiddenOn('view')
                 ->schema([
-                    Html::make(fn (Get $get): HtmlString => self::renderAISuggestionCard((string) $get('ai_suggestion'))),
+                    Html::make(fn (Get $get): HtmlString => self::renderAISuggestionCard(
+                        (string) $get('ai_suggestion'),
+                        filled($get('ai_suggestion')) ? 'AI Draft' : '',
+                    )),
                     Actions::make([
-                        Action::make('acceptAISuggestion')
-                            ->label('Accept Draft')
+                        Action::make('replaceNoteWithAIDraft')
+                            ->label('Replace Note')
                             ->color('success')
                             ->size(Size::Small)
-                            ->action('acceptAISuggestion'),
+                            ->action('replaceNoteWithAIDraft'),
+                        Action::make('insertAIDraftBelowNote')
+                            ->label('Insert Below')
+                            ->color('gray')
+                            ->size(Size::Small)
+                            ->action('insertAIDraftBelowNote'),
+                        Action::make('dismissAIDraft')
+                            ->label('Dismiss')
+                            ->color('gray')
+                            ->size(Size::Small)
+                            ->action('dismissAIDraft'),
                     ]),
                 ])
                 ->columnSpanFull(),
         ];
+    }
+
+    private static function resetTemplateNeedsConfirmation(Get $get): bool
+    {
+        return ! EncounterDisciplineTemplate::isBlankOrTemplate((string) $get('visit_note_document'));
     }
 
     private static function aiAssistedLabel(string $label, string $field): callable
@@ -265,6 +341,8 @@ HTML);
                 ->default(fn () => PracticeContext::currentPracticeId()),
             Hidden::make('appointment_id'),
 
+            Hidden::make('ai_suggestion')
+                ->dehydrated(false),
             Hidden::make('ai_suggestion_id')
                 ->dehydrated(false),
             Hidden::make('active_ai_field')
@@ -314,7 +392,7 @@ HTML);
                                     ->searchable()
                                     ->preload()
                                     ->live()
-                                    ->afterStateUpdated(function (callable $set, Get $get, $state) {
+                                    ->afterStateUpdated(function (callable $set, Get $get, $state, ?Encounter $record = null) {
                                         if ($state) {
                                             $practitioner = Practitioner::find($state);
                                             if ($practitioner && $practitioner->specialty) {
@@ -332,7 +410,7 @@ HTML);
                                                 $discipline = $disciplineMap[$practitioner->specialty] ?? null;
                                                 if ($discipline) {
                                                     $set('discipline', $discipline);
-                                                    self::applyDisciplineTemplate($set, $get, $discipline);
+                                                    self::applyDisciplineTemplate($set, $get, $discipline, $record);
                                                 }
                                             }
                                         }
@@ -348,7 +426,7 @@ HTML);
                                     ])
                                     ->required()
                                     ->live()
-                                    ->afterStateUpdated(fn (callable $set, Get $get, ?string $state) => self::applyDisciplineTemplate($set, $get, $state))
+                                    ->afterStateUpdated(fn (callable $set, Get $get, ?string $state, ?Encounter $record = null) => self::applyDisciplineTemplate($set, $get, $state, $record))
                                     ->disabledOn('view'),
                                 DatePicker::make('visit_date')
                                     ->required()
@@ -375,12 +453,16 @@ HTML);
                         Tab::make('Core Notes')->schema([
                             Section::make('Your Note')
                                 ->description('Simple Visit Note')
-                                ->visible(fn (): bool => self::simpleVisitNoteMode())
+                                ->visible(fn (?Encounter $record = null): bool => self::simpleVisitNoteMode($record))
                                 ->schema([
                                     Html::make(fn (): HtmlString => self::renderModeIndicator(false)),
                                     Textarea::make('visit_note_document')
                                         ->label('Visit Note')
-                                        ->default(fn (Get $get): string => EncounterNoteDocument::template($get('discipline')))
+                                        ->helperText('Changes are saved when you click Save Note.')
+                                        ->default(fn (Get $get, ?Encounter $record = null): string => EncounterNoteDocument::template(self::currentPracticeType(
+                                            $record,
+                                            $get('practitioner_id') ? (int) $get('practitioner_id') : null,
+                                        )))
                                         ->rows(24)
                                         ->extraInputAttributes([
                                             'class' => 'text-base leading-7 px-5 py-4 bg-white dark:bg-gray-950 font-normal',
@@ -393,7 +475,7 @@ HTML);
 
                             Section::make('Your Note')
                                 ->description('Insurance SOAP Note')
-                                ->visible(fn (): bool => self::insuranceBillingEnabled())
+                                ->visible(fn (?Encounter $record = null): bool => self::insuranceBillingEnabled($record))
                                 ->schema([
                                     Html::make(fn (): HtmlString => self::renderModeIndicator(true)),
                                     Actions::make([
@@ -402,9 +484,9 @@ HTML);
                                             ->color('gray')
                                             ->size(Size::Small)
                                             ->action('checkMissingDocumentation')
-                                            ->visible(fn (): bool => self::insuranceBillingEnabled()),
+                                            ->visible(fn (?Encounter $record = null): bool => self::insuranceBillingEnabled($record)),
                                     ])
-                                        ->visible(fn (): bool => self::insuranceBillingEnabled())
+                                        ->visible(fn (?Encounter $record = null): bool => self::insuranceBillingEnabled($record))
                                         ->hiddenOn('view')
                                         ->columnSpanFull(),
                                     Textarea::make('chief_complaint')
@@ -447,7 +529,7 @@ HTML);
                                         ->readOnly()
                                         ->dehydrated(false)
                                         ->columnSpanFull()
-                                        ->visible(fn (): bool => self::insuranceBillingEnabled())
+                                        ->visible(fn (?Encounter $record = null): bool => self::insuranceBillingEnabled($record))
                                         ->hiddenOn('view'),
                                 ])
                                 ->columnSpanFull(),

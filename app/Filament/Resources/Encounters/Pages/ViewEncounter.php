@@ -2,10 +2,14 @@
 
 namespace App\Filament\Resources\Encounters\Pages;
 
+use App\Filament\Resources\CheckoutSessions\CheckoutSessionResource;
 use App\Filament\Resources\Encounters\EncounterResource;
 use App\Filament\Resources\Encounters\Widgets\EncounterHeader;
 use App\Services\EncounterNoteDocument;
+use App\Support\CheckoutWorkflow;
+use App\Support\ClinicalStyle;
 use Filament\Actions\Action;
+use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ViewRecord;
 use Filament\Schemas\Schema;
 use Illuminate\Contracts\Support\Htmlable;
@@ -33,7 +37,47 @@ class ViewEncounter extends ViewRecord
                 ->icon('heroicon-o-pencil')
                 ->url(fn () => static::getResource()::getUrl('edit', ['record' => $this->record]))
                 ->color('primary'),
+            Action::make('checkout')
+                ->label('Send to Checkout')
+                ->icon('heroicon-o-shopping-cart')
+                ->color('primary')
+                ->action('sendToCheckout')
+                ->visible(fn (): bool => $this->record->patient_id !== null),
         ];
+    }
+
+    public function sendToCheckout(): void
+    {
+        $user = auth()->user();
+
+        if (! $user || ($user->cannot('update', $this->record) && $user->cannot('view', $this->record))) {
+            Notification::make()
+                ->title('You are not authorized to send this visit to checkout.')
+                ->danger()
+                ->send();
+
+            return;
+        }
+
+        $checkout = CheckoutWorkflow::sessionForEncounter($this->record);
+
+        if (! $checkout) {
+            Notification::make()
+                ->title('Checkout cannot be opened without a patient.')
+                ->danger()
+                ->send();
+
+            return;
+        }
+
+        Notification::make()
+            ->title('Sent to front desk for checkout.')
+            ->success()
+            ->send();
+
+        if ($user->canManageOperations()) {
+            $this->redirect(CheckoutSessionResource::getUrl('edit', ['record' => $checkout]));
+        }
     }
 
     protected function getHeaderWidgets(): array
@@ -50,7 +94,7 @@ class ViewEncounter extends ViewRecord
 
     protected function resolveRecord($key): Model
     {
-        return parent::resolveRecord($key)->load('acupunctureEncounter');
+        return parent::resolveRecord($key)->load(['acupunctureEncounter', 'practice', 'practitioner']);
     }
 
     protected function mutateFormDataBeforeFill(array $data): array
@@ -61,7 +105,7 @@ class ViewEncounter extends ViewRecord
             $data['chief_complaint'] ?? null,
             $data['visit_notes'] ?? null,
             $data['plan'] ?? null,
-            $data['discipline'] ?? null,
+            ClinicalStyle::fromEncounter($record),
         );
 
         if ($record->acupunctureEncounter) {

@@ -15,10 +15,13 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 class PatientResource extends Resource
 {
-    use BelongsToPractice;
+    use BelongsToPractice {
+        getEloquentQuery as getPracticeScopedEloquentQuery;
+    }
     protected static ?string $model = Patient::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
@@ -54,6 +57,25 @@ class PatientResource extends Resource
     public static function table(Table $table): Table
     {
         return PatientsTable::configure($table);
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        $query = static::getPracticeScopedEloquentQuery();
+        $user = auth()->user();
+
+        if ($user?->isPractitioner() && ! $user->canManageOperations()) {
+            $practitionerId = $user->practitioner()->value('id');
+
+            return $practitionerId
+                ? $query->where(function ($query) use ($practitionerId): void {
+                    $query->whereHas('appointments', fn ($query) => $query->where('practitioner_id', $practitionerId))
+                        ->orWhereHas('encounters', fn ($query) => $query->where('practitioner_id', $practitionerId));
+                })
+                : $query->whereRaw('1 = 0');
+        }
+
+        return $query;
     }
 
     public static function getRelations(): array

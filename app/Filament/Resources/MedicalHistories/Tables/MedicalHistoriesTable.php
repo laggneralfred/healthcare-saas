@@ -2,12 +2,12 @@
 
 namespace App\Filament\Resources\MedicalHistories\Tables;
 
+use App\Support\PracticeType;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
-use Filament\Tables\Columns\BadgeColumn;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
@@ -25,24 +25,19 @@ class MedicalHistoriesTable
                     ->searchable()
                     ->sortable(),
 
-                TextColumn::make('discipline')
+                TextColumn::make('practice.practice_type')
+                    ->label('Practice Type')
                     ->badge()
-                    ->color(fn (?string $state) => match ($state) {
-                        'acupuncture'   => 'info',
-                        'massage'       => 'success',
-                        'chiropractic'  => 'warning',
-                        'physiotherapy' => 'primary',
-                        'general'       => 'gray',
-                        default         => 'gray',
+                    ->color(fn ($record) => match (PracticeType::fromPractice($record?->practice)) {
+                        PracticeType::TCM_ACUPUNCTURE, PracticeType::FIVE_ELEMENT_ACUPUNCTURE => 'info',
+                        PracticeType::MASSAGE_THERAPY => 'success',
+                        PracticeType::CHIROPRACTIC => 'warning',
+                        PracticeType::PHYSIOTHERAPY => 'primary',
+                        default => 'gray',
                     })
-                    ->formatStateUsing(fn (?string $state) => match ($state) {
-                        'acupuncture'   => 'Acupuncture',
-                        'massage'       => 'Massage',
-                        'chiropractic'  => 'Chiropractic',
-                        'physiotherapy' => 'Physiotherapy',
-                        'general'       => 'General',
-                        default         => '—',
-                    })
+                    ->formatStateUsing(fn ($state, $record) => PracticeType::label(
+                        PracticeType::fromPractice($record?->practice),
+                    ))
                     ->placeholder('—'),
 
                 TextColumn::make('chief_complaint')
@@ -56,9 +51,9 @@ class MedicalHistoriesTable
                     ->badge()
                     ->color(fn ($state) => match (true) {
                         $state === null => 'gray',
-                        $state <= 3     => 'success',
-                        $state <= 6     => 'warning',
-                        default         => 'danger',
+                        $state <= 3 => 'success',
+                        $state <= 6 => 'warning',
+                        default => 'danger',
                     })
                     ->formatStateUsing(fn ($state) => $state !== null ? "{$state}/10" : '—')
                     ->placeholder('—'),
@@ -90,12 +85,13 @@ class MedicalHistoriesTable
             ])
             ->filters([
                 SelectFilter::make('discipline')
+                    ->label('Legacy Category')
                     ->options([
-                        'acupuncture'   => 'Acupuncture',
-                        'massage'       => 'Massage Therapy',
-                        'chiropractic'  => 'Chiropractic',
+                        'acupuncture' => 'Acupuncture',
+                        'massage' => 'Massage Therapy',
+                        'chiropractic' => 'Chiropractic',
                         'physiotherapy' => 'Physiotherapy',
-                        'general'       => 'General',
+                        'general' => 'General',
                     ]),
 
                 TernaryFilter::make('has_red_flags')

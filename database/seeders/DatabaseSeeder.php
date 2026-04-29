@@ -18,6 +18,7 @@ use App\Models\Practitioner;
 use App\Models\ServiceFee;
 use App\Models\SubscriptionPlan;
 use App\Models\User;
+use App\Support\PracticeAccessRoles;
 use Carbon\Carbon;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
@@ -86,6 +87,8 @@ class DatabaseSeeder extends Seeder
 
     private function setupPractice(): void
     {
+        $this->ensurePracticeAccessRoles();
+
         $this->practice = Practice::updateOrCreate(
             ['name' => 'Eureka Integrated Health'],
             [
@@ -103,6 +106,8 @@ class DatabaseSeeder extends Seeder
                 'password'    => Hash::make('password'),
                 'practice_id' => $this->practice->id
             ]);
+
+        PracticeAccessRoles::assignOwner($this->admin);
     }
 
     private function setupPractitioners(): void
@@ -121,11 +126,18 @@ class DatabaseSeeder extends Seeder
                 'practice_id' => $this->practice->id,
             ]);
 
+            $user->assignRole(User::ROLE_PRACTITIONER);
+
             $this->practitioners[$key] = Practitioner::updateOrCreate(
                 ['user_id' => $user->id, 'practice_id' => $this->practice->id],
                 ['specialty' => $data['specialty'], 'is_active' => true]
             );
         }
+    }
+
+    private function ensurePracticeAccessRoles(): void
+    {
+        PracticeAccessRoles::ensureRoles();
     }
 
     private function setupAppointmentTypes(): void

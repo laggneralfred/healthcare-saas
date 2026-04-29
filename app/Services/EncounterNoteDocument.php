@@ -73,6 +73,7 @@ class EncounterNoteDocument
     public static function parse(string $document, ?string $discipline = null): array
     {
         $headings = collect(EncounterDisciplineTemplate::allHeadings())
+            ->sortByDesc(fn (string $heading): int => strlen($heading))
             ->map(fn (string $heading): string => preg_quote($heading, '/'))
             ->implode('|');
         $pattern = '/^\s*('.$headings.')\s*:\s*$/mi';

@@ -39,7 +39,7 @@
                             <span style="font-size:1.375rem;color:#4f46e5;flex-shrink:0;">✓</span>
                             <div>
                                 <p style="margin:0;font-weight:600;color:#111827;">Clinical Notes</p>
-                                <p style="margin:0.125rem 0 0;font-size:0.875rem;color:#6b7280;">Document visits in your discipline</p>
+                                <p style="margin:0.125rem 0 0;font-size:0.875rem;color:#6b7280;">Document visits for your practice type</p>
                             </div>
                         </div>
                     </div>
@@ -134,16 +134,19 @@
                         @error('licenseNumber') <span style="color:#ef4444;font-size:0.875rem;">{{ $message }}</span> @enderror
                     </div>
                     <div>
-                        <label style="display:block;font-size:0.875rem;font-weight:500;color:#374151;margin-bottom:0.25rem;">Primary Discipline</label>
-                        <select wire:model="discipline"
+                        <label style="display:block;font-size:0.875rem;font-weight:500;color:#374151;margin-bottom:0.25rem;">Practice Type</label>
+                        <select wire:model="practiceType"
                             style="width:100%;padding:0.5rem 1rem;border:1px solid #d1d5db;border-radius:0.5rem;font-size:0.9375rem;background:#fff;box-sizing:border-box;" required>
-                            <option value="">Select a discipline</option>
-                            <option value="acupuncture">Acupuncture</option>
-                            <option value="massage">Massage Therapy</option>
+                            <option value="">Select a practice type</option>
+                            <option value="general_wellness">General Wellness</option>
+                            <option value="tcm_acupuncture">TCM Acupuncture</option>
+                            <option value="five_element_acupuncture">Five Element Acupuncture</option>
                             <option value="chiropractic">Chiropractic</option>
+                            <option value="massage_therapy">Massage Therapy</option>
                             <option value="physiotherapy">Physiotherapy</option>
                         </select>
-                        @error('discipline') <span style="color:#ef4444;font-size:0.875rem;">{{ $message }}</span> @enderror
+                        <p style="margin:0.35rem 0 0;font-size:0.8rem;color:#6b7280;">Used to customize visit note templates and AI suggestions.</p>
+                        @error('practiceType') <span style="color:#ef4444;font-size:0.875rem;">{{ $message }}</span> @enderror
                     </div>
                 </div>
             @endif

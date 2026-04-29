@@ -6,6 +6,8 @@ use App\Mail\TrialWelcomeMail;
 use App\Models\Practice;
 use App\Models\User;
 use App\Services\AuditLogger;
+use App\Support\PracticeAccessRoles;
+use App\Support\PracticeType;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -28,7 +30,8 @@ class RegistrationController extends Controller
             'last_name' => 'required|string|max:255',
             'email' => 'required|email',
             'password' => 'required|confirmed|min:8',
-            'discipline' => 'required|in:Acupuncture,Massage Therapy,Chiropractic,Physiotherapy',
+            'practice_type' => 'nullable|required_without:discipline|in:general_wellness,tcm_acupuncture,five_element_acupuncture,chiropractic,massage_therapy,physiotherapy',
+            'discipline' => 'nullable|required_without:practice_type|in:Acupuncture,Massage Therapy,Chiropractic,Physiotherapy',
             'phone' => 'nullable|string|max:20',
             'referral_source' => 'nullable|in:Google,Facebook,Colleague,Conference,Other',
             'terms_accepted' => 'required|accepted',
@@ -47,8 +50,10 @@ class RegistrationController extends Controller
 
         $validated = $request->only([
             'practice_name', 'first_name', 'last_name', 'email',
-            'password', 'discipline', 'phone', 'referral_source',
+            'password', 'practice_type', 'discipline', 'phone', 'referral_source',
         ]);
+        $practiceType = $validated['practice_type'] ?? PracticeType::fromDiscipline($validated['discipline'] ?? null);
+        $discipline = $validated['discipline'] ?? PracticeType::disciplineFallback($practiceType);
 
         // Generate unique slug
         $slug = Str::slug($validated['practice_name']);
@@ -65,7 +70,8 @@ class RegistrationController extends Controller
             'slug' => $slug,
             'timezone' => 'UTC',
             'is_active' => true,
-            'discipline' => $validated['discipline'],
+            'discipline' => $discipline,
+            'practice_type' => $practiceType,
             'referral_source' => $validated['referral_source'] ?? null,
             'trial_ends_at' => now()->addDays(30),
         ]);
@@ -77,6 +83,7 @@ class RegistrationController extends Controller
             'password' => Hash::make($validated['password']),
             'practice_id' => $practice->id,
         ]);
+        PracticeAccessRoles::assignOwner($user);
 
         // Audit logging
         AuditLogger::created($practice);

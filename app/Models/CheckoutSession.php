@@ -23,6 +23,7 @@ class CheckoutSession extends Model
     protected $fillable = [
         'practice_id',
         'appointment_id',
+        'encounter_id',
         'patient_id',
         'practitioner_id',
         'state',
@@ -34,6 +35,8 @@ class CheckoutSession extends Model
         'paid_on',
         'payment_note',
         'notes',
+        'diagnosis_codes',
+        'procedure_codes',
     ];
 
     protected function casts(): array
@@ -80,6 +83,11 @@ class CheckoutSession extends Model
         return $this->belongsTo(Appointment::class);
     }
 
+    public function encounter(): BelongsTo
+    {
+        return $this->belongsTo(Encounter::class);
+    }
+
     public function patient(): BelongsTo
     {
         return $this->belongsTo(Patient::class);
@@ -93,6 +101,11 @@ class CheckoutSession extends Model
     public function checkoutLines(): HasMany
     {
         return $this->hasMany(CheckoutLine::class)->orderBy('sequence');
+    }
+
+    public function checkoutPayments(): HasMany
+    {
+        return $this->hasMany(CheckoutPayment::class)->orderBy('paid_at');
     }
 
     // ── Computed ───────────────────────────────────────────────────────────────
@@ -115,13 +128,30 @@ class CheckoutSession extends Model
 
     public function markPaid(string $tenderType): void
     {
+        $method = $this->normalizePaymentMethod($tenderType);
+        $paymentMethod = (float) $this->amount_total <= 0 ? CheckoutPayment::METHOD_COMPED : $method;
+        $remaining = max(0, (float) $this->amount_due);
+
+        if (! PracticePaymentMethod::isEnabledForPractice((int) $this->practice_id, $paymentMethod)) {
+            throw new \InvalidArgumentException('This payment method is not enabled for this practice.');
+        }
+
+        if ($remaining > 0 || (float) $this->amount_total <= 0) {
+            $this->recordPayment([
+                'amount' => $remaining,
+                'payment_method' => $paymentMethod,
+                'paid_at' => now(),
+                'created_by_user_id' => auth()->id(),
+            ]);
+        }
+
         $from = (string) $this->state;
         if ($this->state) {
             $this->state->transitionTo(Paid::class);
         }
         $this->update([
             'tender_type'  => $tenderType,
-            'amount_paid'  => $this->amount_total,
+            'amount_paid'  => $this->checkoutPayments()->sum('amount'),
             'paid_on'      => now(),
         ]);
 
@@ -139,7 +169,6 @@ class CheckoutSession extends Model
         }
         $this->update([
             'tender_type' => null,
-            'amount_paid' => 0,
             'paid_on'     => null,
         ]);
         AuditLogger::stateChanged($this, $from, PaymentDue::$name);
@@ -160,6 +189,69 @@ class CheckoutSession extends Model
     {
         $total = $this->checkoutLines()->sum('amount');
         $this->updateQuietly(['amount_total' => $total]);
+    }
+
+    public function syncPayments(): void
+    {
+        $amountPaid = (float) $this->checkoutPayments()->sum('amount');
+        $wasPaid = $this->state instanceof Paid;
+        $updates = [
+            'amount_paid' => min($amountPaid, (float) $this->amount_total),
+        ];
+
+        if ((float) $this->amount_total > 0 && $amountPaid >= (float) $this->amount_total) {
+            $updates['state'] = Paid::$name;
+            $updates['paid_on'] = $this->paid_on ?? now();
+        } elseif ($this->state instanceof Paid) {
+            $updates['state'] = Open::$name;
+            $updates['paid_on'] = null;
+        }
+
+        $this->updateQuietly($updates);
+
+        if (! $wasPaid && ($updates['state'] ?? null) === Paid::$name) {
+            $this->createInventoryMovements();
+        }
+    }
+
+    public function recordPayment(array $data): CheckoutPayment
+    {
+        if ($this->state instanceof Voided) {
+            throw new \InvalidArgumentException('Voided checkout sessions cannot accept payments.');
+        }
+
+        $method = $this->normalizePaymentMethod($data['payment_method'] ?? null);
+        $amount = (float) ($data['amount'] ?? 0);
+
+        if ($method !== CheckoutPayment::METHOD_COMPED && $amount <= 0) {
+            throw new \InvalidArgumentException('Payment amount must be positive.');
+        }
+
+        if ($method === CheckoutPayment::METHOD_COMPED && $amount < 0) {
+            throw new \InvalidArgumentException('Comped payment amount cannot be negative.');
+        }
+
+        if ($method === CheckoutPayment::METHOD_COMPED && $amount == 0.0 && (float) $this->amount_total > 0) {
+            throw new \InvalidArgumentException('Payment amount must be positive.');
+        }
+
+        if ($amount > (float) $this->amount_due) {
+            throw new \InvalidArgumentException('Payment amount cannot exceed the balance due.');
+        }
+
+        if (! PracticePaymentMethod::isEnabledForPractice((int) $this->practice_id, $method)) {
+            throw new \InvalidArgumentException('This payment method is not enabled for this practice.');
+        }
+
+        return $this->checkoutPayments()->create([
+            'practice_id' => $this->practice_id,
+            'amount' => $amount,
+            'payment_method' => $method,
+            'paid_at' => $data['paid_at'] ?? now(),
+            'reference' => $data['reference'] ?? null,
+            'notes' => $data['notes'] ?? null,
+            'created_by_user_id' => $data['created_by_user_id'] ?? auth()->id(),
+        ]);
     }
 
     // ── Query Scopes ────────────────────────────────────────────────────────────────
@@ -196,7 +288,7 @@ class CheckoutSession extends Model
 
     public function getAmountDueAttribute(): float|int
     {
-        return $this->amount_total - $this->amount_paid;
+        return max(0, (float) $this->amount_total - (float) $this->amount_paid);
     }
 
     public function getIsFullyPaidAttribute(): bool
@@ -213,11 +305,18 @@ class CheckoutSession extends Model
 
     public function createInventoryMovements(): void
     {
+        if (InventoryMovement::query()
+            ->where('practice_id', $this->practice_id)
+            ->where('reference', "checkout-{$this->id}")
+            ->exists()) {
+            return;
+        }
+
         // Create inventory movements for each product line item
         $this->checkoutLines()
             ->whereNotNull('inventory_product_id')
             ->each(function (CheckoutLine $line) {
-                \App\Models\InventoryMovement::create([
+                InventoryMovement::create([
                     'practice_id' => $this->practice_id,
                     'inventory_product_id' => $line->inventory_product_id,
                     'type' => 'sale',
@@ -227,5 +326,18 @@ class CheckoutSession extends Model
                     'created_by' => auth()->id(),
                 ]);
             });
+    }
+
+    private function normalizePaymentMethod(?string $method): string
+    {
+        return match ($method) {
+            'card' => CheckoutPayment::METHOD_CARD_EXTERNAL,
+            CheckoutPayment::METHOD_CASH,
+            CheckoutPayment::METHOD_CHECK,
+            CheckoutPayment::METHOD_CARD_EXTERNAL,
+            CheckoutPayment::METHOD_OTHER,
+            CheckoutPayment::METHOD_COMPED => $method,
+            default => throw new \InvalidArgumentException('Choose a valid payment method.'),
+        };
     }
 }

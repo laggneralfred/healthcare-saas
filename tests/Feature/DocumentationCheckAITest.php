@@ -12,6 +12,7 @@ use App\Models\User;
 use App\Services\AI\AIService;
 use App\Services\AI\AIUnavailableException;
 use App\Services\PracticeContext;
+use App\Support\PracticeType;
 use Illuminate\Support\Facades\Http;
 use Livewire\Livewire;
 
@@ -61,6 +62,34 @@ it('AIService returns a documentation completeness checklist when configured', f
         && str_contains($request['instructions'], 'Do not assign billing codes')
         && str_contains($request['input'], 'Encounter note to review:')
         && str_contains($request['input'], 'Neck tension 5/10'));
+});
+
+it('AIService documentation checks do not receive practice type-specific instructions', function () {
+    config([
+        'services.ai.provider' => 'openai',
+        'services.ai.openai.api_key' => 'test-key',
+        'services.ai.openai.model' => 'gpt-test',
+    ]);
+
+    Http::fake([
+        'api.openai.com/v1/responses' => Http::response([
+            'output_text' => '- Follow-up plan: not documented',
+        ]),
+    ]);
+
+    app(AIService::class)->checkMissingDocumentation('Neck tension 5/10. Acupuncture performed.', [
+        'discipline' => 'acupuncture',
+        'practice_type' => PracticeType::FIVE_ELEMENT_ACUPUNCTURE,
+        'chief_complaint' => 'Neck tension',
+    ]);
+
+    Http::assertSent(fn ($request) => str_contains($request['instructions'], 'documentation completeness assistant')
+        && ! str_contains($request['instructions'], 'For TCM Acupuncture')
+        && ! str_contains($request['instructions'], 'For Five Element Acupuncture')
+        && ! str_contains($request['instructions'], 'Worsley-compatible')
+        && ! str_contains($request['input'], 'Practice Type:')
+        && str_contains($request['input'], 'Discipline: acupuncture')
+        && str_contains($request['input'], 'Chief complaint: Neck tension'));
 });
 
 it('creates documentation check suggestion and usage log without changing visit notes', function () {

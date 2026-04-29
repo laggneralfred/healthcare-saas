@@ -2,6 +2,7 @@
 
 namespace App\Services\AI;
 
+use App\Support\PracticeType;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Facades\Http;
 
@@ -12,6 +13,8 @@ class AIService
     private const IMPROVE_FIELD_SYSTEM_PROMPT = 'You are a clinical documentation assistant for an acupuncture/wellness practice. Improve the wording of the provided FIELD_NAME text. Do not add facts that are not present. Do not diagnose. Do not assign billing codes. If details are missing, say "not documented" rather than inventing them. Return only the improved text.';
 
     private const DOCUMENTATION_CHECK_SYSTEM_PROMPT = 'You are a clinical documentation completeness assistant for an acupuncture/wellness practice. Review the provided encounter note and identify missing or unclear documentation elements. Do not diagnose. Do not assign billing codes. Do not invent facts. Return a concise checklist. If the note is adequate, say so briefly. Focus on items such as chief complaint, onset/duration, severity, treatment performed, points/techniques if mentioned, treatment time, patient response, follow-up plan, and missing objective findings. Use "not documented" where appropriate.';
+
+    private const INTAKE_SUMMARY_SYSTEM_PROMPT = 'You are a conservative intake summarization assistant for healthcare practitioners. Summarize patient-submitted intake information for practitioner review before a visit. This is not diagnostic AI, not treatment-planning AI, and not automatic chart documentation. Return only the intake summary draft.';
 
     private const IMPORT_MAPPING_SYSTEM_PROMPT = 'You are a CSV import mapping assistant for a healthcare practice management system. Map the uploaded CSV headers to supported patient fields. Only use supported fields. Do not invent fields. Return concise JSON with header-to-field mappings and confidence where possible.';
 
@@ -62,6 +65,20 @@ class AIService
 
         return match (config('services.ai.provider', 'openai')) {
             'openai' => $this->checkMissingDocumentationWithOpenAI($note, $context),
+            default => throw new AIUnavailableException('The configured AI provider is not supported.'),
+        };
+    }
+
+    public function summarizeIntake(array $context): string
+    {
+        $context = array_filter($context, fn ($value) => filled($value));
+
+        if ($context === []) {
+            throw new AIUnavailableException('Intake context is required before AI can summarize it.');
+        }
+
+        return match (config('services.ai.provider', 'openai')) {
+            'openai' => $this->summarizeIntakeWithOpenAI($context),
             default => throw new AIUnavailableException('The configured AI provider is not supported.'),
         };
     }
@@ -128,7 +145,7 @@ class AIService
     private function improveNoteWithOpenAI(string $note, array $context): string
     {
         return $this->sendOpenAIRequest(
-            self::IMPROVE_NOTE_SYSTEM_PROMPT,
+            $this->withPracticeTypeInstructions(self::IMPROVE_NOTE_SYSTEM_PROMPT, $context),
             $this->buildUserPrompt($note, $context, 'Note to improve:')
         );
     }
@@ -138,7 +155,7 @@ class AIService
         $instructions = str_replace('FIELD_NAME', $fieldName, self::IMPROVE_FIELD_SYSTEM_PROMPT);
 
         return $this->sendOpenAIRequest(
-            $instructions,
+            $this->withPracticeTypeInstructions($instructions, $context),
             $this->buildUserPrompt($text, $context, "{$fieldName} text to improve:")
         );
     }
@@ -175,8 +192,31 @@ class AIService
     {
         return $this->sendOpenAIRequest(
             self::DOCUMENTATION_CHECK_SYSTEM_PROMPT,
-            $this->buildUserPrompt($note, $context, 'Encounter note to review:')
+            $this->buildUserPrompt($note, $context, 'Encounter note to review:', includePracticeType: false)
         );
+    }
+
+    private function summarizeIntakeWithOpenAI(array $context): string
+    {
+        $practiceType = PracticeType::normalize(
+            $context['practice_type'] ?? null,
+            $context['discipline'] ?? null,
+        );
+
+        return $this->sendOpenAIRequest(
+            self::INTAKE_SUMMARY_SYSTEM_PROMPT."\n\n".PracticeType::intakeAiInstructions($practiceType),
+            $this->buildIntakeSummaryPrompt($context, $practiceType)
+        );
+    }
+
+    private function withPracticeTypeInstructions(string $instructions, array $context): string
+    {
+        $practiceType = PracticeType::normalize(
+            $context['practice_type'] ?? null,
+            $context['discipline'] ?? null,
+        );
+
+        return $instructions."\n\n".PracticeType::aiInstructions($practiceType);
     }
 
     private function sendOpenAIRequest(string $instructions, string $input): string
@@ -241,16 +281,24 @@ class AIService
         return trim((string) data_get($response, 'choices.0.text', ''));
     }
 
-    private function buildUserPrompt(string $note, array $context, string $noteLabel): string
+    private function buildUserPrompt(string $note, array $context, string $noteLabel, bool $includePracticeType = true): string
     {
         $lines = [];
 
         if (! empty($context['discipline'])) {
-            $lines[] = 'Discipline: ' . $context['discipline'];
+            $lines[] = 'Discipline: '.$context['discipline'];
+        }
+
+        if ($includePracticeType) {
+            $practiceType = PracticeType::normalize(
+                $context['practice_type'] ?? null,
+                $context['discipline'] ?? null,
+            );
+            $lines[] = 'Practice Type: '.PracticeType::label($practiceType);
         }
 
         if (! empty($context['chief_complaint'])) {
-            $lines[] = 'Chief complaint: ' . $context['chief_complaint'];
+            $lines[] = 'Chief complaint: '.$context['chief_complaint'];
         }
 
         $lines[] = $noteLabel;
@@ -272,6 +320,23 @@ class AIService
                         'confidence' => 'high|medium|low',
                     ],
                 ],
+            ],
+        ], JSON_PRETTY_PRINT);
+    }
+
+    private function buildIntakeSummaryPrompt(array $context, string $practiceType): string
+    {
+        return json_encode([
+            'Practice Type' => PracticeType::label($practiceType),
+            'instruction' => 'Summarize this intake using patient-reported framing. Do not diagnose or plan treatment.',
+            'intake' => $context,
+            'output_sections' => [
+                'Patient-reported concerns',
+                'Relevant patient-reported history',
+                'Medications / allergies / contraindications mentioned',
+                'Functional impact or goals',
+                'Safety concerns / needs practitioner review',
+                'Questions to clarify',
             ],
         ], JSON_PRETTY_PRINT);
     }

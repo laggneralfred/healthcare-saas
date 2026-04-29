@@ -2,9 +2,15 @@
 
 namespace App\Filament\Resources\MedicalHistories\Schemas;
 
+use App\Models\Practice;
+use App\Models\Practitioner;
+use App\Services\PracticeContext;
+use App\Support\ClinicalStyle;
+use App\Support\PracticeType;
 use Filament\Forms\Components\CheckboxList;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Hidden;
+use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
@@ -24,6 +30,11 @@ class MedicalHistoryForm
             Hidden::make('practice_id')
                 ->default(fn () => auth()->user()->practice_id),
 
+            Hidden::make('discipline')
+                ->default(fn () => PracticeType::disciplineFallback(
+                    PracticeType::fromPractice(auth()->user()?->practice),
+                )),
+
             Grid::make(2)->schema([
                 Select::make('patient_id')
                     ->relationship('patient', 'name')
@@ -33,6 +44,15 @@ class MedicalHistoryForm
                     ->relationship('appointment', 'id')
                     ->getOptionLabelFromRecordUsing(fn ($r) => "#{$r?->id} — {$r?->start_datetime?->format('M j, Y g:ia')}")
                     ->searchable()->nullable(),
+
+                Select::make('practitioner_id')
+                    ->label('Assigned Practitioner')
+                    ->helperText('Used to choose the practitioner’s clinical style for intake labels and AI summaries. Leave blank to use the practice default.')
+                    ->options(fn () => self::practitionerOptions())
+                    ->searchable()
+                    ->preload()
+                    ->nullable()
+                    ->live(),
 
                 Select::make('status')
                     ->options(['missing' => 'Missing', 'complete' => 'Complete', 'pending' => 'Pending'])
@@ -46,17 +66,10 @@ class MedicalHistoryForm
 
                 Step::make('Why are you here today?')
                     ->schema([
-                        Select::make('discipline')
-                            ->label('Type of treatment')
-                            ->options([
-                                'acupuncture'   => 'Acupuncture / TCM',
-                                'massage'       => 'Massage Therapy',
-                                'chiropractic'  => 'Chiropractic',
-                                'physiotherapy' => 'Physiotherapy',
-                            ])
-                            ->default(fn () => auth()->user()->practice?->discipline ?? 'acupuncture')
-                            ->required()
-                            ->live()
+                        Placeholder::make('practice_type_context')
+                            ->label('Practice Type')
+                            ->content(fn ($record, $get) => self::practiceTypeLabel($record, $get('practitioner_id')))
+                            ->helperText('This comes from the assigned practitioner when set, otherwise Practice Settings.')
                             ->columnSpanFull(),
 
                         Textarea::make('chief_complaint')
@@ -73,8 +86,8 @@ class MedicalHistoryForm
                             Select::make('onset_type')
                                 ->label('How did it start?')
                                 ->options([
-                                    'sudden'    => 'Sudden / Acute',
-                                    'gradual'   => 'Gradual / Chronic',
+                                    'sudden' => 'Sudden / Acute',
+                                    'gradual' => 'Gradual / Chronic',
                                     'recurring' => 'Recurring',
                                 ])
                                 ->nullable(),
@@ -171,19 +184,19 @@ class MedicalHistoryForm
                             Select::make('exercise_frequency')
                                 ->label('Exercise Frequency')
                                 ->options([
-                                    'never'      => 'Never',
-                                    'rarely'     => 'Rarely (< once/week)',
-                                    '1-2x_week'  => '1–2× per week',
-                                    '3-4x_week'  => '3–4× per week',
-                                    '5+x_week'   => '5+ × per week',
+                                    'never' => 'Never',
+                                    'rarely' => 'Rarely (< once/week)',
+                                    '1-2x_week' => '1–2× per week',
+                                    '3-4x_week' => '3–4× per week',
+                                    '5+x_week' => '5+ × per week',
                                 ])->nullable(),
 
                             Select::make('sleep_quality')
                                 ->label('Sleep Quality')
                                 ->options([
-                                    'poor'      => 'Poor',
-                                    'fair'      => 'Fair',
-                                    'good'      => 'Good',
+                                    'poor' => 'Poor',
+                                    'fair' => 'Fair',
+                                    'good' => 'Good',
                                     'excellent' => 'Excellent',
                                 ])->nullable(),
 
@@ -195,9 +208,9 @@ class MedicalHistoryForm
                             Select::make('stress_level')
                                 ->label('Stress Level')
                                 ->options([
-                                    'low'       => 'Low',
-                                    'moderate'  => 'Moderate',
-                                    'high'      => 'High',
+                                    'low' => 'Low',
+                                    'moderate' => 'Moderate',
+                                    'high' => 'High',
                                     'very_high' => 'Very High',
                                 ])->nullable(),
                         ]),
@@ -210,8 +223,8 @@ class MedicalHistoryForm
                             Select::make('smoking_status')
                                 ->label('Smoking Status')
                                 ->options([
-                                    'never'   => 'Never',
-                                    'former'  => 'Former smoker',
+                                    'never' => 'Never',
+                                    'former' => 'Former smoker',
                                     'current' => 'Current smoker',
                                 ])->live()->nullable(),
 
@@ -222,10 +235,10 @@ class MedicalHistoryForm
                             Select::make('alcohol_use')
                                 ->label('Alcohol Use')
                                 ->options([
-                                    'none'     => 'None',
-                                    'social'   => 'Social / occasional',
+                                    'none' => 'None',
+                                    'social' => 'Social / occasional',
                                     'moderate' => 'Moderate (1–2 drinks/day)',
-                                    'heavy'    => 'Heavy (3+ drinks/day)',
+                                    'heavy' => 'Heavy (3+ drinks/day)',
                                 ])->nullable(),
                         ]),
                     ]),
@@ -286,9 +299,9 @@ class MedicalHistoryForm
                     ->icon('heroicon-o-beaker')
                     ->schema([
 
-                        // ── ACUPUNCTURE / TCM ─────────────────────────────────────
+                        // ── ACUPUNCTURE ───────────────────────────────────────────
 
-                        Section::make('Acupuncture & TCM Assessment')
+                        Section::make(fn ($record, $get) => self::acupunctureIntakeHeading($record, $get('practitioner_id')))
                             ->visible(fn ($get) => $get('discipline') === 'acupuncture')
                             ->statePath('discipline_responses.tcm')
                             ->schema([
@@ -297,25 +310,25 @@ class MedicalHistoryForm
                                     Select::make('energy_level')
                                         ->label('Overall energy level')
                                         ->options([
-                                            'low'      => 'Low — often fatigued',
+                                            'low' => 'Low — often fatigued',
                                             'moderate' => 'Moderate — varies through day',
-                                            'high'     => 'High — generally energetic',
+                                            'high' => 'High — generally energetic',
                                         ])->nullable(),
 
                                     Select::make('energy_time_pattern')
                                         ->label('When is your energy lowest?')
                                         ->options([
-                                            'morning'    => 'Morning',
-                                            'afternoon'  => 'Afternoon',
-                                            'evening'    => 'Evening',
+                                            'morning' => 'Morning',
+                                            'afternoon' => 'Afternoon',
+                                            'evening' => 'Evening',
                                             'no_pattern' => 'No consistent pattern',
                                         ])->nullable(),
 
                                     Select::make('temperature_preference')
                                         ->label('Do you tend to run hot or cold?')
                                         ->options([
-                                            'hot'     => 'Run hot — prefer cool environments',
-                                            'cold'    => 'Run cold — prefer warm environments',
+                                            'hot' => 'Run hot — prefer cool environments',
+                                            'cold' => 'Run cold — prefer warm environments',
                                             'neutral' => 'Neutral',
                                         ])->nullable(),
                                 ]),
@@ -324,44 +337,44 @@ class MedicalHistoryForm
                                     Select::make('appetite')
                                         ->label('Appetite')
                                         ->options([
-                                            'poor'      => 'Poor — often not hungry',
-                                            'normal'    => 'Normal',
+                                            'poor' => 'Poor — often not hungry',
+                                            'normal' => 'Normal',
                                             'excessive' => 'Excessive — frequently hungry',
                                         ])->nullable(),
 
                                     CheckboxList::make('digestion_issues')
                                         ->label('Any digestive issues? (check all that apply)')
                                         ->options([
-                                            'bloating'     => 'Bloating',
-                                            'gas'          => 'Gas',
+                                            'bloating' => 'Bloating',
+                                            'gas' => 'Gas',
                                             'constipation' => 'Constipation',
-                                            'diarrhea'     => 'Diarrhea',
-                                            'acid_reflux'  => 'Acid reflux',
-                                            'nausea'       => 'Nausea',
-                                            'none'         => 'None',
+                                            'diarrhea' => 'Diarrhea',
+                                            'acid_reflux' => 'Acid reflux',
+                                            'nausea' => 'Nausea',
+                                            'none' => 'None',
                                         ])->columns(3),
 
                                     Select::make('bowel_frequency')
                                         ->label('Bowel movements')
                                         ->options([
                                             'less_than_daily' => 'Less than daily',
-                                            'once_daily'      => 'Once daily',
-                                            'twice_daily'     => 'Twice daily',
-                                            'more'            => 'More than twice daily',
+                                            'once_daily' => 'Once daily',
+                                            'twice_daily' => 'Twice daily',
+                                            'more' => 'More than twice daily',
                                         ])->nullable(),
 
                                     Select::make('thirst')
                                         ->label('Thirst level')
                                         ->options([
-                                            'low'    => 'Low — rarely thirsty',
+                                            'low' => 'Low — rarely thirsty',
                                             'normal' => 'Normal',
-                                            'high'   => 'High — frequently thirsty',
+                                            'high' => 'High — frequently thirsty',
                                         ])->nullable(),
 
                                     Select::make('beverage_preference')
                                         ->label('Preference for beverages')
                                         ->options([
-                                            'hot'  => 'Prefer hot drinks',
+                                            'hot' => 'Prefer hot drinks',
                                             'cold' => 'Prefer cold drinks',
                                             'room' => 'Room temperature',
                                         ])->nullable(),
@@ -371,20 +384,20 @@ class MedicalHistoryForm
                                     CheckboxList::make('sleep_issues')
                                         ->label('Sleep concerns (check all that apply)')
                                         ->options([
-                                            'falling_asleep'  => 'Difficulty falling asleep',
-                                            'staying_asleep'  => 'Difficulty staying asleep',
-                                            'early_waking'    => 'Wake too early',
-                                            'vivid_dreams'    => 'Vivid or disturbing dreams',
-                                            'night_sweats'    => 'Night sweats',
-                                            'none'            => 'No issues',
+                                            'falling_asleep' => 'Difficulty falling asleep',
+                                            'staying_asleep' => 'Difficulty staying asleep',
+                                            'early_waking' => 'Wake too early',
+                                            'vivid_dreams' => 'Vivid or disturbing dreams',
+                                            'night_sweats' => 'Night sweats',
+                                            'none' => 'No issues',
                                         ])->columns(2),
 
                                     Select::make('dream_frequency')
                                         ->label('How often do you dream?')
                                         ->options([
-                                            'rarely'    => 'Rarely',
+                                            'rarely' => 'Rarely',
                                             'sometimes' => 'Sometimes',
-                                            'often'     => 'Often — most nights',
+                                            'often' => 'Often — most nights',
                                         ])->nullable(),
                                 ]),
 
@@ -392,20 +405,20 @@ class MedicalHistoryForm
                                     CheckboxList::make('emotional_tendencies')
                                         ->label('Which emotions are most prominent for you?')
                                         ->options([
-                                            'stress'      => 'Stress',
-                                            'anxiety'     => 'Anxiety',
-                                            'depression'  => 'Low mood or depression',
-                                            'anger'       => 'Irritability or anger',
-                                            'grief'       => 'Grief or sadness',
-                                            'worry'       => 'Overthinking or worry',
-                                            'balanced'    => 'Generally balanced',
+                                            'stress' => 'Stress',
+                                            'anxiety' => 'Anxiety',
+                                            'depression' => 'Low mood or depression',
+                                            'anger' => 'Irritability or anger',
+                                            'grief' => 'Grief or sadness',
+                                            'worry' => 'Overthinking or worry',
+                                            'balanced' => 'Generally balanced',
                                         ])->columns(2),
 
                                     Select::make('emotional_impact')
                                         ->label('How much do emotions affect your physical health?')
                                         ->options([
-                                            'not_much'      => 'Not much',
-                                            'somewhat'      => 'Somewhat',
+                                            'not_much' => 'Not much',
+                                            'somewhat' => 'Somewhat',
                                             'significantly' => 'Significantly',
                                         ])->nullable(),
                                 ]),
@@ -427,9 +440,9 @@ class MedicalHistoryForm
                                         Select::make('flow')
                                             ->label('Flow')
                                             ->options([
-                                                'light'    => 'Light',
+                                                'light' => 'Light',
                                                 'moderate' => 'Moderate',
-                                                'heavy'    => 'Heavy',
+                                                'heavy' => 'Heavy',
                                             ])
                                             ->nullable()
                                             ->visible(fn ($get) => (bool) $get('menstrual_applicable')),
@@ -437,10 +450,10 @@ class MedicalHistoryForm
                                         Select::make('period_pain')
                                             ->label('Period pain')
                                             ->options([
-                                                'none'     => 'None',
-                                                'mild'     => 'Mild',
+                                                'none' => 'None',
+                                                'mild' => 'Mild',
                                                 'moderate' => 'Moderate',
-                                                'severe'   => 'Severe',
+                                                'severe' => 'Severe',
                                             ])
                                             ->nullable()
                                             ->visible(fn ($get) => (bool) $get('menstrual_applicable')),
@@ -452,12 +465,12 @@ class MedicalHistoryForm
                                         CheckboxList::make('pms_symptoms')
                                             ->label('PMS symptoms')
                                             ->options([
-                                                'mood'              => 'Mood changes',
-                                                'bloating'          => 'Bloating',
+                                                'mood' => 'Mood changes',
+                                                'bloating' => 'Bloating',
                                                 'breast_tenderness' => 'Breast tenderness',
-                                                'fatigue'           => 'Fatigue',
-                                                'cramps'            => 'Cramps',
-                                                'none'              => 'None',
+                                                'fatigue' => 'Fatigue',
+                                                'cramps' => 'Cramps',
+                                                'none' => 'None',
                                             ])
                                             ->columns(3)
                                             ->visible(fn ($get) => (bool) $get('menstrual_applicable')),
@@ -473,9 +486,9 @@ class MedicalHistoryForm
                                         ->label('Overall experience')
                                         ->options([
                                             'positive' => 'Positive',
-                                            'neutral'  => 'Neutral',
+                                            'neutral' => 'Neutral',
                                             'negative' => 'Negative',
-                                            'mixed'    => 'Mixed',
+                                            'mixed' => 'Mixed',
                                         ])
                                         ->nullable()
                                         ->visible(fn ($get) => (bool) $get('previous_acupuncture')),
@@ -483,10 +496,10 @@ class MedicalHistoryForm
                                     Select::make('needle_comfort')
                                         ->label('Comfort level with needles')
                                         ->options([
-                                            'comfortable'  => 'Comfortable',
-                                            'nervous'      => 'A little nervous',
+                                            'comfortable' => 'Comfortable',
+                                            'nervous' => 'A little nervous',
                                             'very_nervous' => 'Very nervous',
-                                            'phobia'       => 'Needle phobia',
+                                            'phobia' => 'Needle phobia',
                                         ])->nullable(),
                                 ]),
 
@@ -494,7 +507,7 @@ class MedicalHistoryForm
 
                         // ── MASSAGE THERAPY ───────────────────────────────────────
 
-                        Section::make('Massage Therapy Preferences')
+                        Section::make('Massage Therapy Intake')
                             ->visible(fn ($get) => $get('discipline') === 'massage')
                             ->statePath('discipline_responses.massage')
                             ->schema([
@@ -503,15 +516,15 @@ class MedicalHistoryForm
                                     CheckboxList::make('focus_areas')
                                         ->label('Areas to focus on (check all that apply)')
                                         ->options([
-                                            'neck'       => 'Neck',
-                                            'shoulders'  => 'Shoulders',
+                                            'neck' => 'Neck',
+                                            'shoulders' => 'Shoulders',
                                             'upper_back' => 'Upper back',
                                             'lower_back' => 'Lower back',
-                                            'hips'       => 'Hips and glutes',
-                                            'arms'       => 'Arms and hands',
-                                            'legs'       => 'Legs',
-                                            'feet'       => 'Feet',
-                                            'full_body'  => 'Full body',
+                                            'hips' => 'Hips and glutes',
+                                            'arms' => 'Arms and hands',
+                                            'legs' => 'Legs',
+                                            'feet' => 'Feet',
+                                            'full_body' => 'Full body',
                                         ])->columns(3),
 
                                     Textarea::make('areas_to_avoid')
@@ -522,11 +535,11 @@ class MedicalHistoryForm
                                     Select::make('pressure_preference')
                                         ->label('Pressure preference')
                                         ->options([
-                                            'light'      => 'Light',
-                                            'medium'     => 'Medium',
-                                            'firm'       => 'Firm',
-                                            'deep'       => 'Deep tissue',
-                                            'unsure'     => "Not sure — therapist's discretion",
+                                            'light' => 'Light',
+                                            'medium' => 'Medium',
+                                            'firm' => 'Firm',
+                                            'deep' => 'Deep tissue',
+                                            'unsure' => "Not sure — therapist's discretion",
                                         ])->nullable(),
                                 ]),
 
@@ -538,13 +551,13 @@ class MedicalHistoryForm
                                     CheckboxList::make('massage_types')
                                         ->label('Types experienced')
                                         ->options([
-                                            'swedish'     => 'Swedish',
+                                            'swedish' => 'Swedish',
                                             'deep_tissue' => 'Deep tissue',
-                                            'sports'      => 'Sports massage',
-                                            'thai'        => 'Thai massage',
-                                            'hot_stone'   => 'Hot stone',
-                                            'prenatal'    => 'Prenatal',
-                                            'other'       => 'Other',
+                                            'sports' => 'Sports massage',
+                                            'thai' => 'Thai massage',
+                                            'hot_stone' => 'Hot stone',
+                                            'prenatal' => 'Prenatal',
+                                            'other' => 'Other',
                                         ])
                                         ->columns(3)
                                         ->visible(fn ($get) => (bool) $get('previous_massage')),
@@ -552,11 +565,11 @@ class MedicalHistoryForm
                                     Select::make('previous_massage_reaction')
                                         ->label('How did you typically feel after?')
                                         ->options([
-                                            'great'     => 'Great — very beneficial',
-                                            'good'      => 'Good — generally positive',
-                                            'sore'      => 'Sore afterward',
+                                            'great' => 'Great — very beneficial',
+                                            'good' => 'Good — generally positive',
+                                            'sore' => 'Sore afterward',
                                             'no_effect' => 'No noticeable effect',
-                                            'negative'  => 'Negative reaction',
+                                            'negative' => 'Negative reaction',
                                         ])
                                         ->nullable()
                                         ->visible(fn ($get) => (bool) $get('previous_massage')),
@@ -566,12 +579,12 @@ class MedicalHistoryForm
                                     CheckboxList::make('skin_conditions')
                                         ->label('Skin conditions (check all that apply)')
                                         ->options([
-                                            'eczema'       => 'Eczema',
-                                            'psoriasis'    => 'Psoriasis',
-                                            'rashes'       => 'Rashes',
-                                            'open_wounds'  => 'Open wounds or sores',
-                                            'sunburn'      => 'Sunburn',
-                                            'none'         => 'None',
+                                            'eczema' => 'Eczema',
+                                            'psoriasis' => 'Psoriasis',
+                                            'rashes' => 'Rashes',
+                                            'open_wounds' => 'Open wounds or sores',
+                                            'sunburn' => 'Sunburn',
+                                            'none' => 'None',
                                         ])->columns(3),
 
                                     Textarea::make('recent_injuries')
@@ -589,20 +602,20 @@ class MedicalHistoryForm
                                     Select::make('draping_comfort')
                                         ->label('Draping preference')
                                         ->options([
-                                            'standard'       => 'Standard draping',
+                                            'standard' => 'Standard draping',
                                             'extra_coverage' => 'Extra coverage preferred',
-                                            'discuss'        => 'Prefer to discuss with therapist',
+                                            'discuss' => 'Prefer to discuss with therapist',
                                         ])->nullable(),
 
                                     CheckboxList::make('session_goals')
                                         ->label("Goals for today's session")
                                         ->options([
-                                            'relaxation'      => 'Relaxation',
-                                            'pain_relief'     => 'Pain relief',
+                                            'relaxation' => 'Relaxation',
+                                            'pain_relief' => 'Pain relief',
                                             'injury_recovery' => 'Injury recovery',
-                                            'stress'          => 'Stress reduction',
+                                            'stress' => 'Stress reduction',
                                             'range_of_motion' => 'Improve range of motion',
-                                            'sports'          => 'Sports performance',
+                                            'sports' => 'Sports performance',
                                         ])->columns(3),
                                 ]),
 
@@ -610,7 +623,7 @@ class MedicalHistoryForm
 
                         // ── CHIROPRACTIC ──────────────────────────────────────────
 
-                        Section::make('Chiropractic Assessment')
+                        Section::make('Chiropractic Intake')
                             ->visible(fn ($get) => $get('discipline') === 'chiropractic')
                             ->statePath('discipline_responses.chiro')
                             ->schema([
@@ -619,29 +632,29 @@ class MedicalHistoryForm
                                     CheckboxList::make('pain_locations')
                                         ->label('Location of pain/discomfort')
                                         ->options([
-                                            'neck'       => 'Neck',
+                                            'neck' => 'Neck',
                                             'upper_back' => 'Upper back',
-                                            'mid_back'   => 'Mid back',
+                                            'mid_back' => 'Mid back',
                                             'lower_back' => 'Lower back',
-                                            'shoulder'   => 'Shoulder',
-                                            'elbow'      => 'Elbow',
-                                            'wrist'      => 'Wrist or hand',
-                                            'hip'        => 'Hip',
-                                            'knee'       => 'Knee',
-                                            'ankle'      => 'Ankle or foot',
-                                            'headache'   => 'Headache',
+                                            'shoulder' => 'Shoulder',
+                                            'elbow' => 'Elbow',
+                                            'wrist' => 'Wrist or hand',
+                                            'hip' => 'Hip',
+                                            'knee' => 'Knee',
+                                            'ankle' => 'Ankle or foot',
+                                            'headache' => 'Headache',
                                         ])->columns(3),
 
                                     CheckboxList::make('pain_character')
                                         ->label('Character of pain (check all that apply)')
                                         ->options([
-                                            'sharp'     => 'Sharp',
-                                            'dull'      => 'Dull aching',
-                                            'burning'   => 'Burning',
-                                            'shooting'  => 'Shooting',
+                                            'sharp' => 'Sharp',
+                                            'dull' => 'Dull aching',
+                                            'burning' => 'Burning',
+                                            'shooting' => 'Shooting',
                                             'throbbing' => 'Throbbing',
                                             'stiffness' => 'Stiffness',
-                                            'pressure'  => 'Pressure or heaviness',
+                                            'pressure' => 'Pressure or heaviness',
                                         ])->columns(3),
 
                                     Toggle::make('pain_radiation')
@@ -657,13 +670,13 @@ class MedicalHistoryForm
                                     Select::make('onset_mechanism')
                                         ->label('How did this condition start?')
                                         ->options([
-                                            'accident'   => 'Motor vehicle accident',
+                                            'accident' => 'Motor vehicle accident',
                                             'work_injury' => 'Work-related injury',
-                                            'sports'     => 'Sports or exercise injury',
-                                            'lifting'    => 'Lifting or bending',
+                                            'sports' => 'Sports or exercise injury',
+                                            'lifting' => 'Lifting or bending',
                                             'repetitive' => 'Repetitive strain',
-                                            'gradual'    => 'Gradual onset — no specific event',
-                                            'unknown'    => 'Unknown',
+                                            'gradual' => 'Gradual onset — no specific event',
+                                            'unknown' => 'Unknown',
                                         ])
                                         ->nullable()->live(),
 
@@ -682,17 +695,17 @@ class MedicalHistoryForm
                                     CheckboxList::make('neurological_symptoms')
                                         ->label('Neurological symptoms (check all that apply)')
                                         ->options([
-                                            'numbness'       => 'Numbness',
-                                            'tingling'       => 'Tingling or pins and needles',
-                                            'weakness'       => 'Muscle weakness',
-                                            'coordination'   => 'Balance or coordination issues',
-                                            'bowel_bladder'  => 'Bowel or bladder changes',
-                                            'none'           => 'None of the above',
+                                            'numbness' => 'Numbness',
+                                            'tingling' => 'Tingling or pins and needles',
+                                            'weakness' => 'Muscle weakness',
+                                            'coordination' => 'Balance or coordination issues',
+                                            'bowel_bladder' => 'Bowel or bladder changes',
+                                            'none' => 'None of the above',
                                         ])->columns(2)->live(),
 
                                     TextInput::make('symptom_location')
                                         ->label('Where are these symptoms located?')
-                                        ->visible(fn ($get) => !empty($get('neurological_symptoms'))
+                                        ->visible(fn ($get) => ! empty($get('neurological_symptoms'))
                                             && $get('neurological_symptoms') !== ['none']),
                                 ]),
 
@@ -714,9 +727,9 @@ class MedicalHistoryForm
                                         ->label('Outcome of previous care')
                                         ->options([
                                             'very_helpful' => 'Very helpful',
-                                            'somewhat'     => 'Somewhat helpful',
-                                            'no_effect'    => 'No effect',
-                                            'made_worse'   => 'Made symptoms worse',
+                                            'somewhat' => 'Somewhat helpful',
+                                            'no_effect' => 'No effect',
+                                            'made_worse' => 'Made symptoms worse',
                                         ])
                                         ->nullable()
                                         ->visible(fn ($get) => (bool) $get('previous_chiropractic')),
@@ -724,8 +737,8 @@ class MedicalHistoryForm
                                     Select::make('adjustment_consent')
                                         ->label('Comfort level with spinal adjustments')
                                         ->options([
-                                            'comfortable'   => 'Comfortable and informed',
-                                            'questions'     => 'Have some questions first',
+                                            'comfortable' => 'Comfortable and informed',
+                                            'questions' => 'Have some questions first',
                                             'prefer_gentle' => 'Prefer gentle techniques only',
                                         ])->nullable(),
                                 ]),
@@ -734,7 +747,7 @@ class MedicalHistoryForm
 
                         // ── PHYSIOTHERAPY ─────────────────────────────────────────
 
-                        Section::make('Physiotherapy Assessment')
+                        Section::make('Physiotherapy Intake')
                             ->visible(fn ($get) => $get('discipline') === 'physiotherapy')
                             ->statePath('discipline_responses.physio')
                             ->schema([
@@ -749,21 +762,21 @@ class MedicalHistoryForm
                                     Select::make('work_status')
                                         ->label('Current work status')
                                         ->options([
-                                            'normal'      => 'Working normally',
-                                            'modified'    => 'On modified or light duties',
-                                            'off_work'    => 'Off work due to this condition',
+                                            'normal' => 'Working normally',
+                                            'modified' => 'On modified or light duties',
+                                            'off_work' => 'Off work due to this condition',
                                             'not_working' => 'Not currently employed',
-                                            'retired'     => 'Retired',
+                                            'retired' => 'Retired',
                                         ])->nullable(),
 
                                     Select::make('work_demands')
                                         ->label('Physical demands of your work')
                                         ->options([
                                             'sedentary' => 'Mostly sedentary (desk work)',
-                                            'light'     => 'Light physical activity',
-                                            'moderate'  => 'Moderate physical activity',
-                                            'heavy'     => 'Heavy physical activity',
-                                            'na'        => 'Not applicable',
+                                            'light' => 'Light physical activity',
+                                            'moderate' => 'Moderate physical activity',
+                                            'heavy' => 'Heavy physical activity',
+                                            'na' => 'Not applicable',
                                         ])->nullable(),
 
                                     Textarea::make('recreational_impact')
@@ -780,9 +793,9 @@ class MedicalHistoryForm
                                     Select::make('morning_stiffness_duration')
                                         ->label('How long does morning stiffness last?')
                                         ->options([
-                                            'under_30'  => 'Under 30 minutes',
-                                            '30_to_60'  => '30-60 minutes',
-                                            'over_60'   => 'Over 60 minutes',
+                                            'under_30' => 'Under 30 minutes',
+                                            '30_to_60' => '30-60 minutes',
+                                            'over_60' => 'Over 60 minutes',
                                         ])
                                         ->nullable()
                                         ->visible(fn ($get) => (bool) $get('morning_stiffness')),
@@ -790,17 +803,17 @@ class MedicalHistoryForm
                                     Select::make('activity_effect')
                                         ->label('Effect of activity on symptoms')
                                         ->options([
-                                            'better'    => 'Symptoms improve with activity',
-                                            'worse'     => 'Symptoms worsen with activity',
+                                            'better' => 'Symptoms improve with activity',
+                                            'worse' => 'Symptoms worsen with activity',
                                             'no_change' => 'No change with activity',
-                                            'mixed'     => 'Mixed — depends on the activity',
+                                            'mixed' => 'Mixed — depends on the activity',
                                         ])->nullable(),
 
                                     Select::make('rest_effect')
                                         ->label('Effect of rest on symptoms')
                                         ->options([
-                                            'better'    => 'Rest helps',
-                                            'worse'     => 'Rest makes it worse',
+                                            'better' => 'Rest helps',
+                                            'worse' => 'Rest makes it worse',
                                             'no_change' => 'No change with rest',
                                         ])->nullable(),
                                 ]),
@@ -814,9 +827,9 @@ class MedicalHistoryForm
                                         ->label('Outcome of previous physiotherapy')
                                         ->options([
                                             'very_helpful' => 'Very helpful',
-                                            'somewhat'     => 'Somewhat helpful',
-                                            'no_effect'    => 'No effect',
-                                            'incomplete'   => 'Did not complete treatment',
+                                            'somewhat' => 'Somewhat helpful',
+                                            'no_effect' => 'No effect',
+                                            'incomplete' => 'Did not complete treatment',
                                         ])
                                         ->nullable()
                                         ->visible(fn ($get) => (bool) $get('previous_physio')),
@@ -834,21 +847,21 @@ class MedicalHistoryForm
                                     CheckboxList::make('functional_goals')
                                         ->label('Primary goals (check all that apply)')
                                         ->options([
-                                            'return_work'      => 'Return to full work duties',
-                                            'return_sport'     => 'Return to sport or exercise',
+                                            'return_work' => 'Return to full work duties',
+                                            'return_sport' => 'Return to sport or exercise',
                                             'daily_activities' => 'Manage daily activities independently',
-                                            'pain_reduction'   => 'Reduce pain levels',
-                                            'posture'          => 'Improve posture',
-                                            'education'        => 'Understand my condition better',
+                                            'pain_reduction' => 'Reduce pain levels',
+                                            'posture' => 'Improve posture',
+                                            'education' => 'Understand my condition better',
                                         ])->columns(2),
 
                                     Select::make('timeline_expectation')
                                         ->label('Expected recovery timeline')
                                         ->options([
-                                            'weeks'   => 'A few weeks',
-                                            'months'  => 'Several months',
+                                            'weeks' => 'A few weeks',
+                                            'months' => 'Several months',
                                             'ongoing' => 'Ongoing management',
-                                            'unsure'  => 'Not sure',
+                                            'unsure' => 'Not sure',
                                         ])->nullable(),
                                 ]),
 
@@ -862,8 +875,8 @@ class MedicalHistoryForm
                     ->schema([
                         Section::make('Consent Agreement')
                             ->description(
-                                'By signing below, I consent to the treatment and confirm that the information ' .
-                                'provided in this form is accurate to the best of my knowledge. I understand ' .
+                                'By signing below, I consent to the treatment and confirm that the information '.
+                                'provided in this form is accurate to the best of my knowledge. I understand '.
                                 'that treatment involves inherent risks and that I may ask questions at any time.'
                             )
                             ->schema([
@@ -880,8 +893,58 @@ class MedicalHistoryForm
                     ]),
 
             ])
-            ->columnSpanFull()
-            ->skippable(),
+                ->columnSpanFull()
+                ->skippable(),
         ]);
+    }
+
+    private static function practiceTypeLabel($record = null, $practitionerId = null): string
+    {
+        return PracticeType::label(self::practiceType($record, $practitionerId));
+    }
+
+    private static function acupunctureIntakeHeading($record = null, $practitionerId = null): string
+    {
+        return match (self::practiceType($record, $practitionerId)) {
+            PracticeType::TCM_ACUPUNCTURE => 'TCM Acupuncture Intake',
+            PracticeType::FIVE_ELEMENT_ACUPUNCTURE => 'Five Element Acupuncture Intake',
+            default => 'Acupuncture Intake',
+        };
+    }
+
+    private static function practiceType($record = null, $practitionerId = null): string
+    {
+        if (blank($practitionerId) && $record) {
+            return ClinicalStyle::fromMedicalHistory($record);
+        }
+
+        $practitioner = $practitionerId
+            ? Practitioner::query()->whereKey($practitionerId)->first()
+            : null;
+
+        $practice = PracticeContext::currentPracticeId()
+            ? Practice::query()->find(PracticeContext::currentPracticeId())
+            : auth()->user()?->practice;
+
+        return ClinicalStyle::fromPractitioner($practitioner, $practice);
+    }
+
+    private static function practitionerOptions(): array
+    {
+        $practiceId = PracticeContext::currentPracticeId();
+
+        if (! $practiceId) {
+            return [];
+        }
+
+        return Practitioner::query()
+            ->with('user:id,name')
+            ->where('practice_id', $practiceId)
+            ->orderBy('id')
+            ->get()
+            ->mapWithKeys(fn (Practitioner $practitioner) => [
+                $practitioner->id => $practitioner->user?->name ?? "Practitioner #{$practitioner->id}",
+            ])
+            ->all();
     }
 }

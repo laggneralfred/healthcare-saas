@@ -2,12 +2,14 @@
 
 namespace App\Filament\Resources\Encounters\Pages;
 
+use App\Filament\Resources\CheckoutSessions\CheckoutSessionResource;
 use App\Filament\Resources\Encounters\EncounterResource;
 use App\Filament\Resources\Encounters\Pages\Concerns\HandlesEncounterAIActions;
 use App\Filament\Resources\Encounters\Widgets\EncounterHeader;
 use App\Services\EncounterDataValidator;
 use App\Services\EncounterNoteDocument;
-use App\Services\PracticeContext;
+use App\Support\CheckoutWorkflow;
+use App\Support\ClinicalStyle;
 use Filament\Actions\Action;
 use Filament\Actions\DeleteAction;
 use Filament\Notifications\Notification;
@@ -21,6 +23,8 @@ class EditEncounter extends EditRecord
     use HandlesEncounterAIActions;
 
     protected static string $resource = EncounterResource::class;
+
+    public bool $noteSaved = false;
 
     public function getTitle(): string|Htmlable
     {
@@ -61,9 +65,16 @@ class EditEncounter extends EditRecord
                 ->visible(fn (): bool => $this->record->status === 'complete'),
 
             Action::make('checkout')
-                ->label('Proceed to Checkout')
+                ->label('Send to Checkout')
                 ->color('primary')
-                ->action('proceedToCheckout'),
+                ->action('proceedToCheckout')
+                ->visible(fn (): bool => $this->noteSaved && $this->record->patient_id !== null),
+
+            Action::make('done')
+                ->label('Done')
+                ->color('gray')
+                ->url(fn (): string => static::getResource()::getUrl('view', ['record' => $this->record]))
+                ->visible(fn (): bool => $this->noteSaved && $this->record->appointment === null),
         ];
     }
 
@@ -73,6 +84,7 @@ class EditEncounter extends EditRecord
         $data = EncounterDataValidator::forCurrentPractice($data);
         $this->record->update($data);
         $this->record->refresh();
+        $this->noteSaved = true;
 
         Notification::make()
             ->title('Note saved.')
@@ -90,6 +102,7 @@ class EditEncounter extends EditRecord
             'completed_on' => now(),
         ]);
         $this->record->refresh();
+        $this->noteSaved = true;
 
         Notification::make()
             ->title('Note completed.')
@@ -113,23 +126,40 @@ class EditEncounter extends EditRecord
 
     public function proceedToCheckout(): void
     {
+        $user = auth()->user();
+
+        if (! $user || ($user->cannot('update', $this->record) && $user->cannot('view', $this->record))) {
+            Notification::make()
+                ->title('You are not authorized to send this visit to checkout.')
+                ->danger()
+                ->send();
+
+            return;
+        }
+
         $data = EncounterNoteDocument::applyToEncounterData($this->form->getState(), ! $this->insuranceBillingEnabledForAI());
         $data = EncounterDataValidator::forCurrentPractice($data);
         $this->record->update($data);
+        $this->record->refresh();
 
-        // Find or create a checkout session for this encounter's appointment
-        if ($this->record->appointment) {
-            $checkout = $this->record->appointment->checkoutSession;
-            if (! $checkout) {
-                $checkout = $this->record->appointment->checkoutSession()->create([
-                    'practice_id' => PracticeContext::currentPracticeId(),
-                    'status' => 'open',
-                ]);
-            }
-            $this->redirect('/admin/checkout-sessions/'.$checkout->id.'/edit');
-        } else {
-            // No appointment linked, redirect to edit view
-            $this->redirect(static::getResource()::getUrl('view', ['record' => $this->record]));
+        $checkout = CheckoutWorkflow::sessionForEncounter($this->record);
+
+        if (! $checkout) {
+            Notification::make()
+                ->title('Checkout cannot be opened without a patient.')
+                ->danger()
+                ->send();
+
+            return;
+        }
+
+        Notification::make()
+            ->title('Sent to front desk for checkout.')
+            ->success()
+            ->send();
+
+        if ($user->canManageOperations()) {
+            $this->redirect(CheckoutSessionResource::getUrl('edit', ['record' => $checkout]));
         }
     }
 
@@ -142,7 +172,7 @@ class EditEncounter extends EditRecord
 
     protected function resolveRecord($key): Model
     {
-        return parent::resolveRecord($key)->load('acupunctureEncounter');
+        return parent::resolveRecord($key)->load(['acupunctureEncounter', 'practice', 'practitioner']);
     }
 
     protected function mutateFormDataBeforeFill(array $data): array
@@ -153,7 +183,7 @@ class EditEncounter extends EditRecord
             $data['chief_complaint'] ?? null,
             $data['visit_notes'] ?? null,
             $data['plan'] ?? null,
-            $data['discipline'] ?? null,
+            ClinicalStyle::fromEncounter($record),
         );
 
         if ($record->acupunctureEncounter) {

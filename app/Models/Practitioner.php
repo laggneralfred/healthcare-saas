@@ -11,8 +11,9 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Practitioner extends Model
 {
-    use HasFactory, BelongsToPractice, HasAuditLog;
-    protected $fillable = ['practice_id', 'user_id', 'license_number', 'specialty', 'is_active'];
+    use BelongsToPractice, HasAuditLog, HasFactory;
+
+    protected $fillable = ['practice_id', 'user_id', 'license_number', 'specialty', 'clinical_style', 'is_active'];
 
     protected function casts(): array
     {

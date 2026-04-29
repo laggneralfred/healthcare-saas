@@ -13,7 +13,7 @@ class TodaysScheduleWidget extends Widget
 {
     protected string $view = 'filament.widgets.todays-schedule';
 
-    protected int | string | array $columnSpan = 'full';
+    protected int|string|array $columnSpan = 'full';
 
     protected static ?int $sort = -10;
 
@@ -22,7 +22,7 @@ class TodaysScheduleWidget extends Widget
         $practiceId = PracticeContext::currentPracticeId();
 
         if (! $practiceId) {
-            return ['appointments' => new Collection()];
+            return ['appointments' => new Collection];
         }
 
         $appointments = Appointment::where('practice_id', $practiceId)
@@ -32,11 +32,11 @@ class TodaysScheduleWidget extends Widget
             ->get();
 
         return [
-            'appointments'       => $appointments,
-            'appointmentUrlFn'   => fn ($id) => AppointmentResource::getUrl('view', ['record' => $id]),
-            'newVisitUrlFn'      => function (Appointment $a) {
+            'appointments' => $appointments,
+            'appointmentUrlFn' => fn ($id) => AppointmentResource::getUrl('view', ['record' => $id]),
+            'newVisitUrlFn' => function (Appointment $a) {
                 return EncounterResource::getUrl('create', [
-                    'patient_id'     => $a->patient_id,
+                    'patient_id' => $a->patient_id,
                     'appointment_id' => $a->id,
                 ]);
             },

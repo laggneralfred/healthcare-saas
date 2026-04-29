@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Practices\Pages;
 
 use App\Filament\Resources\Practices\PracticeResource;
+use App\Support\PracticeType;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Resources\Pages\ViewRecord;
 use Filament\Schemas\Schema;
@@ -33,16 +34,11 @@ class ViewPractice extends ViewRecord
                 ->label('URL Slug')
                 ->extraAttributes(['style' => 'background-color: #fef3c7; padding: 0.75rem; border-radius: 0.375rem;']),
 
-            TextEntry::make('discipline')
-                ->label('Primary Discipline')
-                ->formatStateUsing(fn ($state) => match($state) {
-                    'acupuncture' => 'Acupuncture',
-                    'massage' => 'Massage Therapy',
-                    'chiropractic' => 'Chiropractic',
-                    'physiotherapy' => 'Physiotherapy',
-                    'general' => 'General',
-                    default => $state,
-                })
+            TextEntry::make('practice_type')
+                ->label('Practice Type')
+                ->formatStateUsing(fn ($state, $record) => PracticeType::label(
+                    PracticeType::normalize($state, $record?->discipline),
+                ))
                 ->extraAttributes(['style' => 'background-color: #fef3c7; padding: 0.75rem; border-radius: 0.375rem;']),
 
             TextEntry::make('timezone')

@@ -6,9 +6,12 @@ use App\Models\AISuggestion;
 use App\Models\AIUsageLog;
 use App\Models\Encounter;
 use App\Models\Practice;
+use App\Models\Practitioner;
 use App\Services\AI\AIService;
 use App\Services\EncounterNoteDocument;
 use App\Services\PracticeContext;
+use App\Support\ClinicalStyle;
+use App\Support\PracticeType;
 use Filament\Notifications\Notification;
 use Illuminate\Support\Facades\Log;
 use Throwable;
@@ -25,8 +28,12 @@ trait HandlesEncounterAIActions
 
     public function improveNote(AIService $ai): void
     {
-        $practiceId = PracticeContext::currentPracticeId();
+        $practiceId = $this->encounterAIPracticeId();
         $note = $this->encounterAINoteText();
+
+        if (! $this->canUseEncounterAI()) {
+            return;
+        }
 
         if (! $practiceId) {
             Notification::make()
@@ -42,6 +49,7 @@ trait HandlesEncounterAIActions
         try {
             $suggestedText = $ai->improveNote($note, [
                 'discipline' => $this->encounterAIValue('discipline'),
+                'practice_type' => $this->encounterAIPracticeType(),
                 'chief_complaint' => data_get($this->data, 'chief_complaint'),
             ]);
 
@@ -98,6 +106,12 @@ trait HandlesEncounterAIActions
 
     public function acceptAISuggestion(): void
     {
+        if ($this->isSimpleVisitNoteDocumentMode()) {
+            $this->replaceNoteWithAIDraft();
+
+            return;
+        }
+
         $suggestedText = trim((string) data_get($this->data, 'ai_suggestion', ''));
 
         if ($suggestedText === '') {
@@ -109,25 +123,14 @@ trait HandlesEncounterAIActions
             return;
         }
 
-        if ($this->isSimpleVisitNoteDocumentMode()) {
-            $this->updateEncounterAIFormState([
-                'visit_note_document' => $suggestedText,
-            ]);
-        } else {
-            $this->updateEncounterAIFormState([
-                'visit_notes' => $suggestedText,
-            ]);
-            $this->syncVisitNoteDocumentState('visit_notes', $suggestedText);
-        }
+        $this->updateEncounterAIFormState([
+            'visit_notes' => $suggestedText,
+        ]);
+        $this->syncVisitNoteDocumentState('visit_notes', $suggestedText);
 
         $record = $this->encounterAIRecord();
         if ($record?->exists) {
-            $record->update($this->isSimpleVisitNoteDocumentMode()
-                ? EncounterNoteDocument::applyToEncounterData([
-                    'discipline' => data_get($this->data, 'discipline') ?? $record->discipline,
-                    'visit_note_document' => $suggestedText,
-                ])
-                : ['visit_notes' => $suggestedText]);
+            $record->update(['visit_notes' => $suggestedText]);
         }
 
         $suggestionId = data_get($this->data, 'ai_suggestion_id');
@@ -145,10 +148,102 @@ trait HandlesEncounterAIActions
             ->send();
     }
 
+    public function replaceNoteWithAIDraft(): void
+    {
+        $draft = $this->currentAIDraftText();
+
+        if ($draft === '') {
+            $this->notifyMissingAIDraft();
+
+            return;
+        }
+
+        $this->updateEncounterAIFormState([
+            'visit_note_document' => $draft,
+        ]);
+        $this->markCurrentAIDraftAccepted($draft);
+        $this->clearCurrentAIDraft();
+
+        Notification::make()
+            ->title('AI Draft copied into the note.')
+            ->success()
+            ->send();
+    }
+
+    public function insertAIDraftBelowNote(): void
+    {
+        $draft = $this->currentAIDraftText();
+
+        if ($draft === '') {
+            $this->notifyMissingAIDraft();
+
+            return;
+        }
+
+        $currentNote = trim((string) data_get($this->data, 'visit_note_document', ''));
+        $updatedNote = $currentNote === ''
+            ? $draft
+            : $currentNote."\n\n---\n\nAI Draft\n".$draft;
+
+        $this->updateEncounterAIFormState([
+            'visit_note_document' => $updatedNote,
+        ]);
+        $this->markCurrentAIDraftAccepted($draft);
+        $this->clearCurrentAIDraft();
+
+        Notification::make()
+            ->title('AI Draft inserted below the note.')
+            ->success()
+            ->send();
+    }
+
+    public function dismissAIDraft(): void
+    {
+        $suggestionId = data_get($this->data, 'ai_suggestion_id');
+        if ($suggestionId) {
+            AISuggestion::whereKey($suggestionId)->update([
+                'status' => 'dismissed',
+            ]);
+        }
+
+        $this->clearCurrentAIDraft();
+
+        Notification::make()
+            ->title('AI Draft dismissed.')
+            ->success()
+            ->send();
+    }
+
+    public function resetVisitNoteTemplate(): void
+    {
+        if (! $this->isSimpleVisitNoteDocumentMode()) {
+            Notification::make()
+                ->title('Template reset is only available in Simple Visit Note mode.')
+                ->danger()
+                ->send();
+
+            return;
+        }
+
+        $this->updateEncounterAIFormState([
+            'visit_note_document' => EncounterNoteDocument::template($this->encounterAIPracticeType()),
+        ]);
+
+        Notification::make()
+            ->title('Visit Note template reset.')
+            ->body('Click Save Note to keep this change.')
+            ->success()
+            ->send();
+    }
+
     public function checkMissingDocumentation(AIService $ai): void
     {
-        $practiceId = PracticeContext::currentPracticeId();
+        $practiceId = $this->encounterAIPracticeId();
         $note = trim((string) data_get($this->data, 'visit_notes', ''));
+
+        if (! $this->canUseEncounterAI()) {
+            return;
+        }
 
         if (! $practiceId) {
             Notification::make()
@@ -312,9 +407,13 @@ trait HandlesEncounterAIActions
             return;
         }
 
-        $practiceId = PracticeContext::currentPracticeId();
+        $practiceId = $this->encounterAIPracticeId();
         $fieldLabel = self::AI_IMPROVABLE_FIELDS[$field];
         $originalText = trim((string) data_get($this->data, $field, ''));
+
+        if (! $this->canUseEncounterAI()) {
+            return;
+        }
 
         if (! $practiceId) {
             Notification::make()
@@ -334,6 +433,7 @@ trait HandlesEncounterAIActions
             $suggestedText = $ai->improveField($originalText, $fieldLabel, [
                 'field' => $field,
                 'discipline' => $this->encounterAIValue('discipline'),
+                'practice_type' => $this->encounterAIPracticeType(),
                 'chief_complaint' => data_get($this->data, 'chief_complaint'),
             ]);
 
@@ -497,6 +597,14 @@ trait HandlesEncounterAIActions
 
     public function insuranceBillingEnabledForAI(): bool
     {
+        $record = $this->encounterAIRecord();
+
+        if ($record?->exists) {
+            return (bool) Practice::query()
+                ->whereKey($record->practice_id)
+                ->value('insurance_billing_enabled');
+        }
+
         $practiceId = PracticeContext::currentPracticeId();
 
         if (! $practiceId) {
@@ -537,6 +645,49 @@ trait HandlesEncounterAIActions
         return data_get($this->data, $key) ?? data_get($this->encounterAIRecord(), $key);
     }
 
+    private function encounterAIPracticeId(): ?int
+    {
+        $record = $this->encounterAIRecord();
+
+        if ($record?->exists) {
+            return $record->practice_id;
+        }
+
+        return PracticeContext::currentPracticeId();
+    }
+
+    private function encounterAIPracticeType(): string
+    {
+        $record = $this->encounterAIRecord();
+
+        if ($record?->exists) {
+            $record->loadMissing(['practice', 'practitioner']);
+
+            return ClinicalStyle::fromEncounter($record);
+        }
+
+        $practitionerId = $this->encounterAIValue('practitioner_id');
+
+        if ($practitionerId) {
+            $practitioner = Practitioner::query()
+                ->with('practice:id,practice_type,discipline')
+                ->select(['id', 'practice_id', 'clinical_style'])
+                ->whereKey($practitionerId)
+                ->first();
+
+            if ($practitioner) {
+                return ClinicalStyle::fromPractitioner($practitioner, $practitioner->practice);
+            }
+        }
+
+        $practiceId = PracticeContext::currentPracticeId();
+        $practice = $practiceId
+            ? Practice::query()->select(['practice_type', 'discipline'])->whereKey($practiceId)->first()
+            : null;
+
+        return PracticeType::fromPractice($practice);
+    }
+
     private function encounterAINoteText(): string
     {
         if ($this->isSimpleVisitNoteDocumentMode()) {
@@ -544,6 +695,37 @@ trait HandlesEncounterAIActions
         }
 
         return trim((string) data_get($this->data, 'visit_notes', ''));
+    }
+
+    private function canUseEncounterAI(): bool
+    {
+        $user = auth()->user();
+
+        if (! $user) {
+            Notification::make()
+                ->title('Sign in before using AI.')
+                ->danger()
+                ->send();
+
+            return false;
+        }
+
+        $record = $this->encounterAIRecord();
+
+        if ($record?->exists) {
+            if ($user->can('update', $record) || $user->can('view', $record)) {
+                return true;
+            }
+        } elseif ($user->can('create', Encounter::class)) {
+            return true;
+        }
+
+        Notification::make()
+            ->title('You are not authorized to use AI for this visit.')
+            ->danger()
+            ->send();
+
+        return false;
     }
 
     private function hasVisitNoteDocumentState(): bool
@@ -565,6 +747,41 @@ trait HandlesEncounterAIActions
             'active_ai_suggestion_id' => null,
             "ai_field_suggestions.{$field}.suggested_text" => null,
             "ai_field_suggestions.{$field}.suggestion_id" => null,
+        ]);
+    }
+
+    private function currentAIDraftText(): string
+    {
+        return trim((string) data_get($this->data, 'ai_suggestion', ''));
+    }
+
+    private function notifyMissingAIDraft(): void
+    {
+        Notification::make()
+            ->title('Generate an AI Draft before using it.')
+            ->danger()
+            ->send();
+    }
+
+    private function markCurrentAIDraftAccepted(string $acceptedText): void
+    {
+        $suggestionId = data_get($this->data, 'ai_suggestion_id');
+        if (! $suggestionId) {
+            return;
+        }
+
+        AISuggestion::whereKey($suggestionId)->update([
+            'accepted_text' => $acceptedText,
+            'status' => 'accepted',
+            'accepted_at' => now(),
+        ]);
+    }
+
+    private function clearCurrentAIDraft(): void
+    {
+        $this->updateEncounterAIFormState([
+            'ai_suggestion' => null,
+            'ai_suggestion_id' => null,
         ]);
     }
 
@@ -590,7 +807,7 @@ trait HandlesEncounterAIActions
                 $chiefComplaint,
                 $visitNotes,
                 $plan,
-                data_get($this->data, 'discipline') ?? $this->encounterAIRecord()?->discipline,
+                $this->encounterAIPracticeType(),
             ),
         ]);
     }

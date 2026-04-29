@@ -14,7 +14,7 @@ class Practice extends Model
     protected $fillable = [
         'name', 'slug', 'timezone', 'is_active', 'is_demo',
         'stripe_id', 'pm_type', 'pm_last_four', 'trial_ends_at',
-        'discipline', 'referral_source', 'setup_completed_at',
+        'discipline', 'practice_type', 'referral_source', 'setup_completed_at',
         'dismissed_onboarding_banner',
         'default_appointment_duration', 'default_reminder_hours',
         'insurance_billing_enabled',
@@ -59,9 +59,21 @@ class Practice extends Model
         return $this->hasMany(CheckoutSession::class);
     }
 
+    public function paymentMethods(): HasMany
+    {
+        return $this->hasMany(PracticePaymentMethod::class);
+    }
+
     public function inventoryProducts(): HasMany
     {
         return $this->hasMany(InventoryProduct::class);
+    }
+
+    protected static function booted(): void
+    {
+        static::created(function (Practice $practice): void {
+            PracticePaymentMethod::ensureDefaultsForPractice($practice);
+        });
     }
 
     // ── Subscription Helpers ───────────────────────────────────────────────────────

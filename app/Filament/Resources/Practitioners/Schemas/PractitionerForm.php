@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Practitioners\Schemas;
 
+use App\Support\PracticeType;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
@@ -27,6 +28,16 @@ class PractitionerForm
                     ->disabledOn('view'),
                 TextInput::make('specialty')
                     ->maxLength(150)
+                    ->disabledOn('view'),
+                Select::make('clinical_style')
+                    ->label('Clinical Style')
+                    ->options([
+                        null => 'Use practice default',
+                        ...PracticeType::options(),
+                    ])
+                    ->placeholder('Use practice default')
+                    ->helperText('Used to customize visit templates and AI suggestions for this practitioner. Leave blank to use the practice default.')
+                    ->nullable()
                     ->disabledOn('view'),
                 Toggle::make('is_active')
                     ->default(true)

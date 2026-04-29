@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Mail\TrialWelcomeMail;
 use App\Models\Practice;
 use App\Models\User;
+use App\Support\PracticeType;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Mail;
 use Tests\TestCase;
@@ -30,32 +31,45 @@ class TrialRegistrationTest extends TestCase
             'last_name',
             'email',
             'password',
+            'practice_type',
             'discipline',
         ]);
+    }
+
+    public function test_registration_form_includes_five_element_acupuncture_option()
+    {
+        $response = $this->get('/register');
+
+        $response->assertStatus(200);
+        $response->assertSee('Practice Type');
+        $response->assertSee('TCM Acupuncture');
+        $response->assertSee('Five Element Acupuncture');
+        $response->assertDontSee('name="discipline"', false);
     }
 
     public function test_registration_creates_practice_with_trial()
     {
         $response = $this->post('/register', [
-            'practice_name' => 'Test Acupuncture',
+            'practice_name' => 'Test Five Element',
             'first_name' => 'John',
             'last_name' => 'Doe',
             'email' => 'john@example.com',
             'password' => 'password123',
             'password_confirmation' => 'password123',
-            'discipline' => 'Acupuncture',
+            'practice_type' => PracticeType::FIVE_ELEMENT_ACUPUNCTURE,
             'phone' => '555-1234',
             'referral_source' => 'Google',
             'terms_accepted' => true,
         ]);
 
         $this->assertDatabaseHas('practices', [
-            'name' => 'Test Acupuncture',
-            'discipline' => 'Acupuncture',
+            'name' => 'Test Five Element',
+            'discipline' => 'acupuncture',
+            'practice_type' => PracticeType::FIVE_ELEMENT_ACUPUNCTURE,
             'referral_source' => 'Google',
         ]);
 
-        $practice = Practice::where('name', 'Test Acupuncture')->first();
+        $practice = Practice::where('name', 'Test Five Element')->first();
         $this->assertNotNull($practice->trial_ends_at);
         $this->assertTrue($practice->trial_ends_at->isFuture());
         // Check that trial_ends_at is approximately 30 days from now (within 1 second tolerance)
@@ -81,6 +95,8 @@ class TrialRegistrationTest extends TestCase
         $this->assertNotNull($user);
         $this->assertEquals('Jane Smith', $user->name);
         $this->assertNotNull($user->practice_id);
+        $this->assertTrue($user->fresh()->hasRole(User::ROLE_OWNER));
+        $this->assertNotEmpty($user->fresh()->roles);
 
         $practice = Practice::find($user->practice_id);
         $this->assertEquals('Test Clinic', $practice->name);

@@ -177,24 +177,27 @@
                         >
                     </div>
 
-                    <!-- Discipline -->
+                    <!-- Practice Type -->
                     <div>
-                        <label for="discipline" class="block text-sm font-medium text-slate-700 mb-1">
-                            Your Discipline
+                        <label for="practice_type" class="block text-sm font-medium text-slate-700 mb-1">
+                            Practice Type
                         </label>
                         <select
-                            id="discipline"
-                            name="discipline"
-                            class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#0D7377] focus:border-transparent @error('discipline') border-red-500 @enderror"
+                            id="practice_type"
+                            name="practice_type"
+                            class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#0D7377] focus:border-transparent @error('practice_type') border-red-500 @enderror"
                             required
                         >
-                            <option value="">Select your discipline</option>
-                            <option value="Acupuncture" @selected(old('discipline') === 'Acupuncture')>Acupuncture</option>
-                            <option value="Massage Therapy" @selected(old('discipline') === 'Massage Therapy')>Massage Therapy</option>
-                            <option value="Chiropractic" @selected(old('discipline') === 'Chiropractic')>Chiropractic</option>
-                            <option value="Physiotherapy" @selected(old('discipline') === 'Physiotherapy')>Physiotherapy</option>
+                            <option value="">Select your practice type</option>
+                            <option value="general_wellness" @selected(old('practice_type') === 'general_wellness')>General Wellness</option>
+                            <option value="tcm_acupuncture" @selected(old('practice_type') === 'tcm_acupuncture')>TCM Acupuncture</option>
+                            <option value="five_element_acupuncture" @selected(old('practice_type') === 'five_element_acupuncture')>Five Element Acupuncture</option>
+                            <option value="chiropractic" @selected(old('practice_type') === 'chiropractic')>Chiropractic</option>
+                            <option value="massage_therapy" @selected(old('practice_type') === 'massage_therapy')>Massage Therapy</option>
+                            <option value="physiotherapy" @selected(old('practice_type') === 'physiotherapy')>Physiotherapy</option>
                         </select>
-                        @error('discipline')
+                        <p class="mt-1 text-xs text-slate-500">Used to customize visit note templates and AI suggestions.</p>
+                        @error('practice_type')
                             <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                         @enderror
                     </div>

@@ -21,7 +21,9 @@ use Illuminate\Support\Str;
 
 class EncounterResource extends Resource
 {
-    use BelongsToPractice;
+    use BelongsToPractice {
+        getEloquentQuery as getPracticeScopedEloquentQuery;
+    }
 
     protected static ?string $model = Encounter::class;
 
@@ -89,6 +91,25 @@ class EncounterResource extends Resource
     public static function table(Table $table): Table
     {
         return EncountersTable::configure($table);
+    }
+
+    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        $query = static::getPracticeScopedEloquentQuery();
+        $user = auth()->user();
+
+        if ($user?->isPractitioner() && ! $user->canManageOperations()) {
+            $practitionerId = $user->practitioner()->value('id');
+
+            return $practitionerId
+                ? $query->where(function ($query) use ($practitionerId): void {
+                    $query->where('practitioner_id', $practitionerId)
+                        ->orWhereHas('appointment', fn ($query) => $query->where('practitioner_id', $practitionerId));
+                })
+                : $query->whereRaw('1 = 0');
+        }
+
+        return $query;
     }
 
     public static function getRelations(): array

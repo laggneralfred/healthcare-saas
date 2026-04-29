@@ -22,6 +22,7 @@ class MedicalHistoryFactory extends Factory
             'practice_id'      => Practice::factory(),
             'patient_id'       => Patient::factory(),
             'appointment_id'   => null,
+            'practitioner_id'  => null,
             'status'           => 'missing',
             'submitted_on'     => null,
             'reason_for_visit' => null,

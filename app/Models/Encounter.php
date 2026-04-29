@@ -71,4 +71,9 @@ class Encounter extends Model
     {
         return $this->hasOne(AcupunctureEncounter::class);
     }
+
+    public function checkoutSession(): HasOne
+    {
+        return $this->hasOne(CheckoutSession::class);
+    }
 }

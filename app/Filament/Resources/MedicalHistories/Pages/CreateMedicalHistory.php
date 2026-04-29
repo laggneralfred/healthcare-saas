@@ -3,7 +3,10 @@
 namespace App\Filament\Resources\MedicalHistories\Pages;
 
 use App\Filament\Resources\MedicalHistories\MedicalHistoryResource;
+use App\Models\Practitioner;
+use App\Services\PracticeContext;
 use Filament\Resources\Pages\CreateRecord;
+use Illuminate\Validation\ValidationException;
 
 class CreateMedicalHistory extends CreateRecord
 {
@@ -20,8 +23,28 @@ class CreateMedicalHistory extends CreateRecord
 
     protected function mutateFormDataBeforeCreate(array $data): array
     {
-        $data['practice_id'] = auth()->user()->practice_id;
+        $data['practice_id'] = PracticeContext::currentPracticeId();
+        $this->validateAssignedPractitioner($data);
+
         return $data;
+    }
+
+    private function validateAssignedPractitioner(array $data): void
+    {
+        if (blank($data['practitioner_id'] ?? null)) {
+            return;
+        }
+
+        $valid = Practitioner::withoutPracticeScope()
+            ->whereKey($data['practitioner_id'])
+            ->where('practice_id', $data['practice_id'])
+            ->exists();
+
+        if (! $valid) {
+            throw ValidationException::withMessages([
+                'data.practitioner_id' => 'Select a practitioner in the current practice.',
+            ]);
+        }
     }
 
     protected function getRedirectUrl(): string

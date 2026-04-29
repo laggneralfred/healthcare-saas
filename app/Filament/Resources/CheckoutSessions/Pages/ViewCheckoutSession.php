@@ -25,7 +25,7 @@ class ViewCheckoutSession extends ViewRecord
     public function infolist(Schema $schema): Schema
     {
         return $schema->components([
-            TextEntry::make('appointment.patient.name')
+            TextEntry::make('patient.name')
                 ->label('Patient')
                 ->extraAttributes(['style' => 'background-color: #fef3c7; padding: 0.75rem; border-radius: 0.375rem;']),
 
@@ -33,6 +33,16 @@ class ViewCheckoutSession extends ViewRecord
                 ->label('Session Total')
                 ->money('USD')
                 ->extraAttributes(['style' => 'background-color: #fef3c7; padding: 0.75rem; border-radius: 0.375rem;']),
+
+            TextEntry::make('amount_paid')
+                ->label('Amount Paid')
+                ->money('USD')
+                ->extraAttributes(['style' => 'background-color: #ecfdf5; padding: 0.75rem; border-radius: 0.375rem;']),
+
+            TextEntry::make('amount_due')
+                ->label('Balance Due')
+                ->money('USD')
+                ->extraAttributes(['style' => 'background-color: #fff7ed; padding: 0.75rem; border-radius: 0.375rem;']),
 
             TextEntry::make('state')
                 ->label('Status')

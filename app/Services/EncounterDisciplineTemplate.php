@@ -7,35 +7,68 @@ class EncounterDisciplineTemplate
     public const GENERAL = 'general';
 
     private const TEMPLATES = [
-        'acupuncture' => [
-            'Chief Complaint',
-            'Treatment Notes',
+        'general_wellness' => [
+            'Reason for Visit',
+            'Visit Note',
+            'Care Provided',
+            'Response',
+            'Plan / Follow-up',
+        ],
+        'tcm_acupuncture' => [
+            'Reason for Visit',
+            'History / Presentation',
+            'TCM Assessment',
+            'Pattern Impression',
+            'Tongue / Pulse',
+            'Treatment Principle',
             'Points / Techniques',
+            'Response',
+            'Plan / Follow-up',
+        ],
+        'five_element_acupuncture' => [
+            'Reason for Visit',
+            'Patient Presentation',
+            'Constitutional / Elemental Impression',
+            'Color / Sound / Odor / Emotion Observations',
+            'Officials / Element Considerations',
+            'Treatment Intention',
+            'Points Used',
+            'Response',
             'Plan / Follow-up',
         ],
         'chiropractic' => [
-            'Chief Complaint',
-            'Spinal / Musculoskeletal Findings',
-            'Adjustment / Treatment',
+            'Reason for Visit',
+            'History / Presentation',
+            'Exam / Findings',
+            'Assessment',
+            'Treatment Performed',
             'Response',
             'Plan / Follow-up',
         ],
-        'massage' => [
-            'Client Report',
+        'massage_therapy' => [
+            'Reason for Visit',
+            'Client Presentation',
             'Areas Treated',
             'Techniques Used',
-            'Response',
-            'Home Care / Plan',
+            'Tissue Response',
+            'Self-Care / Plan',
         ],
         'physiotherapy' => [
+            'Reason for Visit',
             'Subjective',
-            'Objective Measures',
-            'Interventions',
+            'Objective / Findings',
             'Assessment',
-            'Plan / Goals',
+            'Treatment / Exercises',
+            'Response',
+            'Plan / Follow-up',
         ],
         self::GENERAL => [
             'Chief Complaint',
+            'Chief Complaint / Reason for Visit',
+            'Treatment Notes',
+            'Points / Techniques',
+            'Spinal / Musculoskeletal Findings',
+            'Adjustment / Treatment',
             'Visit Notes',
             'Plan / Follow-up',
         ],
@@ -56,11 +89,13 @@ class EncounterDisciplineTemplate
     public static function normalize(?string $discipline): string
     {
         return match ($discipline) {
-            'acupuncture' => 'acupuncture',
+            'general_wellness' => 'general_wellness',
+            'tcm_acupuncture', 'acupuncture' => 'tcm_acupuncture',
+            'five_element_acupuncture' => 'five_element_acupuncture',
             'chiropractic' => 'chiropractic',
-            'massage', 'massage_therapy' => 'massage',
+            'massage', 'massage_therapy' => 'massage_therapy',
             'physiotherapy', 'physical_therapy' => 'physiotherapy',
-            default => self::GENERAL,
+            default => 'general_wellness',
         };
     }
 
@@ -99,7 +134,10 @@ class EncounterDisciplineTemplate
     {
         return [
             'Chief Complaint',
+            'Chief Complaint / Reason for Visit',
+            'Reason for Visit',
             'Client Report',
+            'Client Presentation',
             'Subjective',
         ];
     }
@@ -109,6 +147,7 @@ class EncounterDisciplineTemplate
         return [
             'Plan / Follow-up',
             'Home Care / Plan',
+            'Self-Care / Plan',
             'Plan / Goals',
         ];
     }

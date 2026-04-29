@@ -2,12 +2,20 @@
 
 namespace Tests\Feature;
 
+use App\Filament\Resources\MedicalHistories\Pages\CreateMedicalHistory;
+use App\Filament\Resources\MedicalHistories\Pages\EditMedicalHistory;
+use App\Filament\Resources\MedicalHistories\Pages\ViewMedicalHistory;
 use App\Models\MedicalHistory;
 use App\Models\Patient;
 use App\Models\Practice;
+use App\Models\Practitioner;
 use App\Models\User;
+use App\Support\PracticeAccessRoles;
+use App\Support\PracticeType;
 use Database\Seeders\DemoSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Schema;
+use Livewire\Livewire;
 use Tests\TestCase;
 
 class MedicalHistoryTest extends TestCase
@@ -16,9 +24,24 @@ class MedicalHistoryTest extends TestCase
 
     // ── Accessor tests (no DB needed) ─────────────────────────────────────────
 
+    public function test_medical_histories_table_has_nullable_practitioner_id(): void
+    {
+        $this->assertTrue(Schema::hasColumn('medical_histories', 'practitioner_id'));
+
+        $practice = Practice::factory()->create();
+        $patient = Patient::factory()->create(['practice_id' => $practice->id]);
+        $submission = MedicalHistory::factory()->create([
+            'practice_id' => $practice->id,
+            'patient_id' => $patient->id,
+            'practitioner_id' => null,
+        ]);
+
+        $this->assertNull($submission->fresh()->practitioner_id);
+    }
+
     public function test_pain_scale_label_mild(): void
     {
-        $submission = new MedicalHistory();
+        $submission = new MedicalHistory;
         $submission->pain_scale = 2;
         $this->assertEquals('Mild', $submission->pain_scale_label);
 
@@ -31,7 +54,7 @@ class MedicalHistoryTest extends TestCase
 
     public function test_pain_scale_label_severe(): void
     {
-        $submission = new MedicalHistory();
+        $submission = new MedicalHistory;
         $submission->pain_scale = 8;
         $this->assertEquals('Severe', $submission->pain_scale_label);
 
@@ -47,7 +70,7 @@ class MedicalHistoryTest extends TestCase
 
     public function test_onset_type_label(): void
     {
-        $submission = new MedicalHistory();
+        $submission = new MedicalHistory;
 
         $submission->onset_type = 'sudden';
         $this->assertEquals('Sudden / Acute', $submission->onset_type_label);
@@ -64,7 +87,7 @@ class MedicalHistoryTest extends TestCase
 
     public function test_discipline_label(): void
     {
-        $submission = new MedicalHistory();
+        $submission = new MedicalHistory;
 
         $submission->discipline = 'acupuncture';
         $this->assertEquals('Acupuncture', $submission->discipline_label);
@@ -81,9 +104,9 @@ class MedicalHistoryTest extends TestCase
 
     public function test_has_red_flags_true(): void
     {
-        $submission = new MedicalHistory();
-        $submission->is_pregnant          = false;
-        $submission->has_pacemaker        = true;
+        $submission = new MedicalHistory;
+        $submission->is_pregnant = false;
+        $submission->has_pacemaker = true;
         $submission->takes_blood_thinners = false;
         $submission->has_bleeding_disorder = false;
         $submission->has_infectious_disease = false;
@@ -92,21 +115,21 @@ class MedicalHistoryTest extends TestCase
 
         // Also check each individual flag
         $submission->has_pacemaker = false;
-        $submission->is_pregnant   = true;
+        $submission->is_pregnant = true;
         $this->assertTrue($submission->hasRedFlags());
 
-        $submission->is_pregnant              = false;
-        $submission->has_infectious_disease   = true;
+        $submission->is_pregnant = false;
+        $submission->has_infectious_disease = true;
         $this->assertTrue($submission->hasRedFlags());
     }
 
     public function test_has_red_flags_false(): void
     {
-        $submission = new MedicalHistory();
-        $submission->is_pregnant            = false;
-        $submission->has_pacemaker          = false;
-        $submission->takes_blood_thinners   = false;
-        $submission->has_bleeding_disorder  = false;
+        $submission = new MedicalHistory;
+        $submission->is_pregnant = false;
+        $submission->has_pacemaker = false;
+        $submission->takes_blood_thinners = false;
+        $submission->has_bleeding_disorder = false;
         $submission->has_infectious_disease = false;
 
         $this->assertFalse($submission->hasRedFlags());
@@ -117,20 +140,20 @@ class MedicalHistoryTest extends TestCase
     public function test_scope_for_discipline(): void
     {
         $practice = Practice::factory()->create();
-        $user     = User::factory()->create(['practice_id' => $practice->id]);
-        $patient  = Patient::factory()->create(['practice_id' => $practice->id]);
+        $user = User::factory()->create(['practice_id' => $practice->id]);
+        $patient = Patient::factory()->create(['practice_id' => $practice->id]);
 
         $this->actingAs($user);
 
         MedicalHistory::factory()->count(2)->create([
             'practice_id' => $practice->id,
-            'patient_id'  => $patient->id,
-            'discipline'  => 'acupuncture',
+            'patient_id' => $patient->id,
+            'discipline' => 'acupuncture',
         ]);
         MedicalHistory::factory()->create([
             'practice_id' => $practice->id,
-            'patient_id'  => $patient->id,
-            'discipline'  => 'massage',
+            'patient_id' => $patient->id,
+            'discipline' => 'massage',
         ]);
 
         $this->assertEquals(2, MedicalHistory::forDiscipline('acupuncture')->count());
@@ -141,26 +164,26 @@ class MedicalHistoryTest extends TestCase
     public function test_scope_with_red_flags(): void
     {
         $practice = Practice::factory()->create();
-        $user     = User::factory()->create(['practice_id' => $practice->id]);
-        $patient  = Patient::factory()->create(['practice_id' => $practice->id]);
+        $user = User::factory()->create(['practice_id' => $practice->id]);
+        $patient = Patient::factory()->create(['practice_id' => $practice->id]);
 
         $this->actingAs($user);
 
         MedicalHistory::factory()->create([
-            'practice_id'   => $practice->id,
-            'patient_id'    => $patient->id,
+            'practice_id' => $practice->id,
+            'patient_id' => $patient->id,
             'has_pacemaker' => true,
         ]);
         MedicalHistory::factory()->create([
-            'practice_id'   => $practice->id,
-            'patient_id'    => $patient->id,
-            'is_pregnant'   => true,
+            'practice_id' => $practice->id,
+            'patient_id' => $patient->id,
+            'is_pregnant' => true,
         ]);
         MedicalHistory::factory()->create([
-            'practice_id'   => $practice->id,
-            'patient_id'    => $patient->id,
+            'practice_id' => $practice->id,
+            'patient_id' => $patient->id,
             'has_pacemaker' => false,
-            'is_pregnant'   => false,
+            'is_pregnant' => false,
         ]);
 
         $this->assertEquals(2, MedicalHistory::withRedFlags()->count());
@@ -169,19 +192,19 @@ class MedicalHistoryTest extends TestCase
     public function test_scope_with_consent(): void
     {
         $practice = Practice::factory()->create();
-        $user     = User::factory()->create(['practice_id' => $practice->id]);
-        $patient  = Patient::factory()->create(['practice_id' => $practice->id]);
+        $user = User::factory()->create(['practice_id' => $practice->id]);
+        $patient = Patient::factory()->create(['practice_id' => $practice->id]);
 
         $this->actingAs($user);
 
         MedicalHistory::factory()->count(2)->create([
-            'practice_id'   => $practice->id,
-            'patient_id'    => $patient->id,
+            'practice_id' => $practice->id,
+            'patient_id' => $patient->id,
             'consent_given' => true,
         ]);
         MedicalHistory::factory()->create([
-            'practice_id'   => $practice->id,
-            'patient_id'    => $patient->id,
+            'practice_id' => $practice->id,
+            'patient_id' => $patient->id,
             'consent_given' => false,
         ]);
 
@@ -191,19 +214,19 @@ class MedicalHistoryTest extends TestCase
     public function test_scope_pending_consent(): void
     {
         $practice = Practice::factory()->create();
-        $user     = User::factory()->create(['practice_id' => $practice->id]);
-        $patient  = Patient::factory()->create(['practice_id' => $practice->id]);
+        $user = User::factory()->create(['practice_id' => $practice->id]);
+        $patient = Patient::factory()->create(['practice_id' => $practice->id]);
 
         $this->actingAs($user);
 
         MedicalHistory::factory()->create([
-            'practice_id'   => $practice->id,
-            'patient_id'    => $patient->id,
+            'practice_id' => $practice->id,
+            'patient_id' => $patient->id,
             'consent_given' => true,
         ]);
         MedicalHistory::factory()->count(3)->create([
-            'practice_id'   => $practice->id,
-            'patient_id'    => $patient->id,
+            'practice_id' => $practice->id,
+            'patient_id' => $patient->id,
             'consent_given' => false,
         ]);
 
@@ -213,14 +236,14 @@ class MedicalHistoryTest extends TestCase
     public function test_consent_auto_fills_signed_at(): void
     {
         $practice = Practice::factory()->create();
-        $user     = User::factory()->create(['practice_id' => $practice->id]);
-        $patient  = Patient::factory()->create(['practice_id' => $practice->id]);
+        $user = User::factory()->create(['practice_id' => $practice->id]);
+        $patient = Patient::factory()->create(['practice_id' => $practice->id]);
 
         $this->actingAs($user);
 
         $submission = MedicalHistory::factory()->create([
-            'practice_id'   => $practice->id,
-            'patient_id'    => $patient->id,
+            'practice_id' => $practice->id,
+            'patient_id' => $patient->id,
             'consent_given' => false,
         ]);
 
@@ -237,15 +260,15 @@ class MedicalHistoryTest extends TestCase
     {
         $practiceA = Practice::factory()->create();
         $practiceB = Practice::factory()->create();
-        $userA     = User::factory()->create(['practice_id' => $practiceA->id]);
-        $userB     = User::factory()->create(['practice_id' => $practiceB->id]);
-        $patientA  = Patient::factory()->create(['practice_id' => $practiceA->id]);
+        $userA = User::factory()->create(['practice_id' => $practiceA->id]);
+        $userB = User::factory()->create(['practice_id' => $practiceB->id]);
+        $patientA = Patient::factory()->create(['practice_id' => $practiceA->id]);
 
         // Create an intake submission for practice A
         $this->actingAs($userA);
         MedicalHistory::factory()->create([
             'practice_id' => $practiceA->id,
-            'patient_id'  => $patientA->id,
+            'patient_id' => $patientA->id,
         ]);
         $this->assertEquals(1, MedicalHistory::count());
 
@@ -259,22 +282,22 @@ class MedicalHistoryTest extends TestCase
     public function test_discipline_responses_stores_tcm_data(): void
     {
         $practice = Practice::factory()->create();
-        $user     = User::factory()->create(['practice_id' => $practice->id]);
-        $patient  = Patient::factory()->create(['practice_id' => $practice->id]);
+        $user = User::factory()->create(['practice_id' => $practice->id]);
+        $patient = Patient::factory()->create(['practice_id' => $practice->id]);
 
         $this->actingAs($user);
 
         $tcmData = [
-            'energy_level'         => 'low',
+            'energy_level' => 'low',
             'temperature_preference' => 'cold',
-            'sleep_issues'         => ['staying_asleep', 'night_sweats'],
+            'sleep_issues' => ['staying_asleep', 'night_sweats'],
             'emotional_tendencies' => ['stress', 'anxiety'],
         ];
 
         $submission = MedicalHistory::factory()->create([
-            'practice_id'          => $practice->id,
-            'patient_id'           => $patient->id,
-            'discipline'           => 'acupuncture',
+            'practice_id' => $practice->id,
+            'patient_id' => $patient->id,
+            'discipline' => 'acupuncture',
             'discipline_responses' => ['tcm' => $tcmData],
         ]);
 
@@ -287,21 +310,21 @@ class MedicalHistoryTest extends TestCase
     public function test_discipline_responses_stores_massage_data(): void
     {
         $practice = Practice::factory()->create();
-        $user     = User::factory()->create(['practice_id' => $practice->id]);
-        $patient  = Patient::factory()->create(['practice_id' => $practice->id]);
+        $user = User::factory()->create(['practice_id' => $practice->id]);
+        $patient = Patient::factory()->create(['practice_id' => $practice->id]);
 
         $this->actingAs($user);
 
         $massageData = [
-            'focus_areas'         => ['neck', 'shoulders', 'upper_back'],
+            'focus_areas' => ['neck', 'shoulders', 'upper_back'],
             'pressure_preference' => 'firm',
-            'session_goals'       => ['pain_relief', 'relaxation'],
+            'session_goals' => ['pain_relief', 'relaxation'],
         ];
 
         $submission = MedicalHistory::factory()->create([
-            'practice_id'          => $practice->id,
-            'patient_id'           => $patient->id,
-            'discipline'           => 'massage',
+            'practice_id' => $practice->id,
+            'patient_id' => $patient->id,
+            'discipline' => 'massage',
             'discipline_responses' => ['massage' => $massageData],
         ]);
 
@@ -313,22 +336,22 @@ class MedicalHistoryTest extends TestCase
     public function test_discipline_responses_stores_chiro_data(): void
     {
         $practice = Practice::factory()->create();
-        $user     = User::factory()->create(['practice_id' => $practice->id]);
-        $patient  = Patient::factory()->create(['practice_id' => $practice->id]);
+        $user = User::factory()->create(['practice_id' => $practice->id]);
+        $patient = Patient::factory()->create(['practice_id' => $practice->id]);
 
         $this->actingAs($user);
 
         $chiroData = [
-            'pain_locations'        => ['lower_back', 'hip'],
-            'pain_character'        => ['dull', 'stiffness'],
-            'onset_mechanism'       => 'gradual',
-            'adjustment_consent'    => 'comfortable',
+            'pain_locations' => ['lower_back', 'hip'],
+            'pain_character' => ['dull', 'stiffness'],
+            'onset_mechanism' => 'gradual',
+            'adjustment_consent' => 'comfortable',
         ];
 
         $submission = MedicalHistory::factory()->create([
-            'practice_id'          => $practice->id,
-            'patient_id'           => $patient->id,
-            'discipline'           => 'chiropractic',
+            'practice_id' => $practice->id,
+            'patient_id' => $patient->id,
+            'discipline' => 'chiropractic',
             'discipline_responses' => ['chiro' => $chiroData],
         ]);
 
@@ -340,22 +363,22 @@ class MedicalHistoryTest extends TestCase
     public function test_discipline_responses_stores_physio_data(): void
     {
         $practice = Practice::factory()->create();
-        $user     = User::factory()->create(['practice_id' => $practice->id]);
-        $patient  = Patient::factory()->create(['practice_id' => $practice->id]);
+        $user = User::factory()->create(['practice_id' => $practice->id]);
+        $patient = Patient::factory()->create(['practice_id' => $practice->id]);
 
         $this->actingAs($user);
 
         $physioData = [
             'functional_limitations' => 'Cannot climb stairs without significant pain.',
-            'work_status'            => 'modified',
-            'functional_goals'       => ['return_work', 'pain_reduction'],
-            'timeline_expectation'   => 'months',
+            'work_status' => 'modified',
+            'functional_goals' => ['return_work', 'pain_reduction'],
+            'timeline_expectation' => 'months',
         ];
 
         $submission = MedicalHistory::factory()->create([
-            'practice_id'          => $practice->id,
-            'patient_id'           => $patient->id,
-            'discipline'           => 'physiotherapy',
+            'practice_id' => $practice->id,
+            'patient_id' => $patient->id,
+            'discipline' => 'physiotherapy',
             'discipline_responses' => ['physio' => $physioData],
         ]);
 
@@ -366,7 +389,7 @@ class MedicalHistoryTest extends TestCase
 
     public function test_get_discipline_responses_for_nested_value(): void
     {
-        $submission = new MedicalHistory();
+        $submission = new MedicalHistory;
         $submission->discipline_responses = [
             'tcm' => ['energy_level' => 'low', 'thirst' => 'high'],
         ];
@@ -380,7 +403,7 @@ class MedicalHistoryTest extends TestCase
     public function test_practice_without_discipline_defaults_to_acupuncture(): void
     {
         $practice = Practice::factory()->create(['discipline' => null]);
-        $user     = User::factory()->create(['practice_id' => $practice->id]);
+        $user = User::factory()->create(['practice_id' => $practice->id]);
 
         // The intake form's discipline field defaults to 'acupuncture' when practice discipline is null
         $defaultDiscipline = $user->practice?->discipline ?? 'acupuncture';
@@ -389,7 +412,7 @@ class MedicalHistoryTest extends TestCase
 
         // A practice WITH discipline should return that discipline
         $practice2 = Practice::factory()->create(['discipline' => 'massage']);
-        $user2     = User::factory()->create(['practice_id' => $practice2->id]);
+        $user2 = User::factory()->create(['practice_id' => $practice2->id]);
 
         $defaultDiscipline2 = $user2->practice?->discipline ?? 'acupuncture';
         $this->assertEquals('massage', $defaultDiscipline2);
@@ -397,12 +420,12 @@ class MedicalHistoryTest extends TestCase
 
     public function test_get_discipline_section_returns_formatted_data(): void
     {
-        $submission = new MedicalHistory();
+        $submission = new MedicalHistory;
         $submission->discipline = 'acupuncture';
         $submission->discipline_responses = ['tcm' => ['energy_level' => 'low']];
 
         $section = $submission->getDisciplineSection();
-        $this->assertEquals('TCM Assessment', $section['label']);
+        $this->assertEquals('Acupuncture Intake', $section['label']);
         $this->assertEquals('tcm', $section['key']);
         $this->assertEquals(['energy_level' => 'low'], $section['data']);
 
@@ -424,7 +447,7 @@ class MedicalHistoryTest extends TestCase
             ->where('discipline', 'acupuncture')
             ->whereNotNull('discipline_responses')
             ->get()
-            ->filter(fn ($s) => !empty(data_get($s->discipline_responses, 'tcm.energy_level')));
+            ->filter(fn ($s) => ! empty(data_get($s->discipline_responses, 'tcm.energy_level')));
 
         $this->assertGreaterThanOrEqual(3, $tcmSubmissions->count(),
             'DemoSeeder should create at least 3 acupuncture intakes with TCM energy_level data');
@@ -437,13 +460,13 @@ class MedicalHistoryTest extends TestCase
     public function test_view_medical_history_page_loads(): void
     {
         $practice = Practice::factory()->create();
-        $user     = User::factory()->create(['practice_id' => $practice->id]);
-        $patient  = Patient::factory()->create(['practice_id' => $practice->id]);
+        $user = User::factory()->create(['practice_id' => $practice->id]);
+        $patient = Patient::factory()->create(['practice_id' => $practice->id]);
 
         $this->actingAs($user);
         $submission = MedicalHistory::factory()->create([
             'practice_id' => $practice->id,
-            'patient_id'  => $patient->id,
+            'patient_id' => $patient->id,
         ]);
 
         $response = $this->get("/admin/medical-histories/{$submission->id}");
@@ -453,9 +476,329 @@ class MedicalHistoryTest extends TestCase
     public function test_intake_form_create_page_loads(): void
     {
         $practice = Practice::factory()->create(['discipline' => 'acupuncture']);
-        $user     = User::factory()->create(['practice_id' => $practice->id]);
+        $user = User::factory()->create(['practice_id' => $practice->id]);
 
         $response = $this->actingAs($user)->get('/admin/medical-histories/create');
         $response->assertSuccessful();
+    }
+
+    public function test_owner_can_assign_practitioner_to_medical_history(): void
+    {
+        PracticeAccessRoles::ensureRoles();
+
+        $practice = Practice::factory()->create();
+        $owner = User::factory()->create(['practice_id' => $practice->id]);
+        $owner->assignRole(User::ROLE_OWNER);
+        $patient = Patient::factory()->create(['practice_id' => $practice->id]);
+        $practitioner = Practitioner::factory()->create(['practice_id' => $practice->id]);
+
+        $this->actingAs($owner);
+
+        Livewire::test(CreateMedicalHistory::class)
+            ->set('data.patient_id', $patient->id)
+            ->set('data.practitioner_id', $practitioner->id)
+            ->set('data.status', 'pending')
+            ->call('create')
+            ->assertHasNoErrors();
+
+        $this->assertDatabaseHas('medical_histories', [
+            'practice_id' => $practice->id,
+            'patient_id' => $patient->id,
+            'practitioner_id' => $practitioner->id,
+        ]);
+    }
+
+    public function test_administrator_can_assign_practitioner_to_medical_history(): void
+    {
+        PracticeAccessRoles::ensureRoles();
+
+        $practice = Practice::factory()->create();
+        $administrator = User::factory()->create(['practice_id' => $practice->id]);
+        $administrator->assignRole(User::ROLE_ADMINISTRATOR);
+        $patient = Patient::factory()->create(['practice_id' => $practice->id]);
+        $practitioner = Practitioner::factory()->create(['practice_id' => $practice->id]);
+
+        $this->actingAs($administrator);
+
+        Livewire::test(CreateMedicalHistory::class)
+            ->set('data.patient_id', $patient->id)
+            ->set('data.practitioner_id', $practitioner->id)
+            ->set('data.status', 'pending')
+            ->call('create')
+            ->assertHasNoErrors();
+
+        $this->assertDatabaseHas('medical_histories', [
+            'practice_id' => $practice->id,
+            'patient_id' => $patient->id,
+            'practitioner_id' => $practitioner->id,
+        ]);
+    }
+
+    public function test_practitioner_select_only_shows_practitioners_from_current_practice(): void
+    {
+        $practice = Practice::factory()->create();
+        $otherPractice = Practice::factory()->create();
+        $user = User::factory()->create(['practice_id' => $practice->id]);
+        $practitionerUser = User::factory()->create(['practice_id' => $practice->id, 'name' => 'Current Practice Doctor']);
+        $otherUser = User::factory()->create(['practice_id' => $otherPractice->id, 'name' => 'Other Practice Doctor']);
+        Practitioner::factory()->create(['practice_id' => $practice->id, 'user_id' => $practitionerUser->id]);
+        Practitioner::factory()->create(['practice_id' => $otherPractice->id, 'user_id' => $otherUser->id]);
+
+        $this->actingAs($user);
+
+        Livewire::test(CreateMedicalHistory::class)
+            ->assertSee('Assigned Practitioner')
+            ->assertSee('Current Practice Doctor')
+            ->assertDontSee('Other Practice Doctor');
+    }
+
+    public function test_cross_practice_practitioner_cannot_be_assigned(): void
+    {
+        $practice = Practice::factory()->create();
+        $otherPractice = Practice::factory()->create();
+        $user = User::factory()->create(['practice_id' => $practice->id]);
+        $patient = Patient::factory()->create(['practice_id' => $practice->id]);
+        $otherPractitioner = Practitioner::factory()->create(['practice_id' => $otherPractice->id]);
+
+        $this->actingAs($user);
+
+        Livewire::test(CreateMedicalHistory::class)
+            ->set('data.patient_id', $patient->id)
+            ->set('data.practitioner_id', $otherPractitioner->id)
+            ->set('data.status', 'pending')
+            ->call('create')
+            ->assertHasErrors(['data.practitioner_id']);
+    }
+
+    public function test_cross_practice_practitioner_cannot_be_assigned_on_edit(): void
+    {
+        $practice = Practice::factory()->create();
+        $otherPractice = Practice::factory()->create();
+        $user = User::factory()->create(['practice_id' => $practice->id]);
+        $patient = Patient::factory()->create(['practice_id' => $practice->id]);
+        $submission = MedicalHistory::factory()->create([
+            'practice_id' => $practice->id,
+            'patient_id' => $patient->id,
+        ]);
+        $otherPractitioner = Practitioner::factory()->create(['practice_id' => $otherPractice->id]);
+
+        $this->actingAs($user);
+
+        Livewire::test(EditMedicalHistory::class, ['record' => $submission->id])
+            ->set('data.practitioner_id', $otherPractitioner->id)
+            ->call('save')
+            ->assertHasErrors(['data.practitioner_id']);
+    }
+
+    public function test_edit_form_assigned_practitioner_updates_intake_heading_before_save(): void
+    {
+        $practice = Practice::factory()->create([
+            'practice_type' => PracticeType::TCM_ACUPUNCTURE,
+            'discipline' => 'acupuncture',
+        ]);
+        $user = User::factory()->create(['practice_id' => $practice->id]);
+        $patient = Patient::factory()->create(['practice_id' => $practice->id]);
+        $fiveElementPractitioner = Practitioner::factory()->create([
+            'practice_id' => $practice->id,
+            'clinical_style' => PracticeType::FIVE_ELEMENT_ACUPUNCTURE,
+        ]);
+        $submission = MedicalHistory::factory()->create([
+            'practice_id' => $practice->id,
+            'patient_id' => $patient->id,
+            'practitioner_id' => null,
+            'discipline' => 'acupuncture',
+            'discipline_responses' => [
+                'tcm' => ['energy_level' => 'low'],
+            ],
+        ]);
+
+        $this->actingAs($user);
+
+        Livewire::test(EditMedicalHistory::class, ['record' => $submission->id])
+            ->assertSee('TCM Acupuncture Intake')
+            ->set('data.practitioner_id', $fiveElementPractitioner->id)
+            ->assertSee('Five Element Acupuncture Intake')
+            ->assertDontSee('TCM Acupuncture Intake');
+
+        $this->assertNull($submission->fresh()->practitioner_id);
+    }
+
+    public function test_five_element_intake_form_shows_read_only_practice_type_context(): void
+    {
+        $practice = Practice::factory()->create([
+            'practice_type' => PracticeType::FIVE_ELEMENT_ACUPUNCTURE,
+            'discipline' => 'acupuncture',
+        ]);
+        $user = User::factory()->create(['practice_id' => $practice->id]);
+
+        $this->actingAs($user);
+
+        Livewire::test(CreateMedicalHistory::class)
+            ->assertSee('Practice Type')
+            ->assertSee('Five Element Acupuncture')
+            ->assertSee('Five Element Acupuncture Intake')
+            ->assertDontSee('TCM Acupuncture')
+            ->assertDontSee('Acupuncture & TCM Assessment')
+            ->assertDontSee('Constitutional Factor')
+            ->assertDontSee('Color / Sound / Odor')
+            ->assertDontSee('Officials')
+            ->assertDontSee('Treatment Intention')
+            ->assertDontSee('Used to customize intake context, visit note templates, and AI suggestions.')
+            ->assertDontSee('Acupuncture / TCM');
+    }
+
+    public function test_tcm_intake_form_shows_tcm_compatible_heading(): void
+    {
+        $practice = Practice::factory()->create([
+            'practice_type' => PracticeType::TCM_ACUPUNCTURE,
+            'discipline' => 'acupuncture',
+        ]);
+        $user = User::factory()->create(['practice_id' => $practice->id]);
+
+        $this->actingAs($user);
+
+        Livewire::test(CreateMedicalHistory::class)
+            ->assertSee('Practice Type')
+            ->assertSee('TCM Acupuncture')
+            ->assertSee('TCM Acupuncture Intake')
+            ->assertDontSee('Acupuncture & TCM Assessment');
+    }
+
+    public function test_five_element_saved_intake_view_does_not_show_tcm_assessment(): void
+    {
+        $practice = Practice::factory()->create([
+            'practice_type' => PracticeType::FIVE_ELEMENT_ACUPUNCTURE,
+            'discipline' => 'acupuncture',
+        ]);
+        $user = User::factory()->create(['practice_id' => $practice->id]);
+        $patient = Patient::factory()->create(['practice_id' => $practice->id]);
+        $submission = MedicalHistory::factory()->create([
+            'practice_id' => $practice->id,
+            'patient_id' => $patient->id,
+            'discipline' => 'acupuncture',
+            'discipline_responses' => [
+                'tcm' => ['energy_level' => 'low'],
+            ],
+        ]);
+
+        $this->actingAs($user);
+
+        Livewire::test(ViewMedicalHistory::class, ['record' => $submission->id])
+            ->assertSee('Five Element Acupuncture Intake')
+            ->assertDontSee('TCM Assessment');
+    }
+
+    public function test_assigned_five_element_practitioner_overrides_tcm_practice_default_for_intake_label(): void
+    {
+        $practice = Practice::factory()->create([
+            'practice_type' => PracticeType::TCM_ACUPUNCTURE,
+            'discipline' => 'acupuncture',
+        ]);
+        $user = User::factory()->create(['practice_id' => $practice->id]);
+        $practitionerUser = User::factory()->create(['practice_id' => $practice->id, 'name' => 'Dr Five']);
+        $practitioner = Practitioner::factory()->create([
+            'practice_id' => $practice->id,
+            'user_id' => $practitionerUser->id,
+            'clinical_style' => PracticeType::FIVE_ELEMENT_ACUPUNCTURE,
+        ]);
+        $patient = Patient::factory()->create(['practice_id' => $practice->id]);
+        $submission = MedicalHistory::factory()->create([
+            'practice_id' => $practice->id,
+            'patient_id' => $patient->id,
+            'practitioner_id' => $practitioner->id,
+            'discipline' => 'acupuncture',
+            'discipline_responses' => [
+                'tcm' => ['energy_level' => 'low'],
+            ],
+        ]);
+
+        $this->actingAs($user);
+
+        Livewire::test(ViewMedicalHistory::class, ['record' => $submission->id])
+            ->assertSee('Five Element Acupuncture via Dr Five')
+            ->assertSee('Five Element Acupuncture Intake')
+            ->assertDontSee('TCM Assessment');
+    }
+
+    public function test_assigned_tcm_practitioner_overrides_five_element_practice_default_for_intake_label(): void
+    {
+        $practice = Practice::factory()->create([
+            'practice_type' => PracticeType::FIVE_ELEMENT_ACUPUNCTURE,
+            'discipline' => 'acupuncture',
+        ]);
+        $user = User::factory()->create(['practice_id' => $practice->id]);
+        $practitioner = Practitioner::factory()->create([
+            'practice_id' => $practice->id,
+            'clinical_style' => PracticeType::TCM_ACUPUNCTURE,
+        ]);
+        $patient = Patient::factory()->create(['practice_id' => $practice->id]);
+        $submission = MedicalHistory::factory()->create([
+            'practice_id' => $practice->id,
+            'patient_id' => $patient->id,
+            'practitioner_id' => $practitioner->id,
+            'discipline' => 'acupuncture',
+            'discipline_responses' => [
+                'tcm' => ['energy_level' => 'low'],
+            ],
+        ]);
+
+        $this->actingAs($user);
+
+        Livewire::test(ViewMedicalHistory::class, ['record' => $submission->id])
+            ->assertSee('TCM Assessment')
+            ->assertDontSee('Five Element Acupuncture Intake');
+    }
+
+    public function test_assigned_practitioner_with_null_clinical_style_falls_back_to_practice_default(): void
+    {
+        $practice = Practice::factory()->create([
+            'practice_type' => PracticeType::FIVE_ELEMENT_ACUPUNCTURE,
+            'discipline' => 'acupuncture',
+        ]);
+        $user = User::factory()->create(['practice_id' => $practice->id]);
+        $practitioner = Practitioner::factory()->create([
+            'practice_id' => $practice->id,
+            'clinical_style' => null,
+        ]);
+        $patient = Patient::factory()->create(['practice_id' => $practice->id]);
+        $submission = MedicalHistory::factory()->create([
+            'practice_id' => $practice->id,
+            'patient_id' => $patient->id,
+            'practitioner_id' => $practitioner->id,
+            'discipline' => 'acupuncture',
+            'discipline_responses' => [
+                'tcm' => ['energy_level' => 'low'],
+            ],
+        ]);
+
+        $this->actingAs($user);
+
+        Livewire::test(ViewMedicalHistory::class, ['record' => $submission->id])
+            ->assertSee('Practice default — Five Element Acupuncture')
+            ->assertSee('Five Element Acupuncture Intake')
+            ->assertDontSee('TCM Assessment');
+    }
+
+    public function test_tcm_saved_intake_view_shows_tcm_compatible_label(): void
+    {
+        $practice = Practice::factory()->create([
+            'practice_type' => PracticeType::TCM_ACUPUNCTURE,
+            'discipline' => 'acupuncture',
+        ]);
+        $user = User::factory()->create(['practice_id' => $practice->id]);
+        $patient = Patient::factory()->create(['practice_id' => $practice->id]);
+        $submission = MedicalHistory::factory()->create([
+            'practice_id' => $practice->id,
+            'patient_id' => $patient->id,
+            'discipline' => 'acupuncture',
+            'discipline_responses' => [
+                'tcm' => ['energy_level' => 'low'],
+            ],
+        ]);
+
+        $this->actingAs($user);
+
+        Livewire::test(ViewMedicalHistory::class, ['record' => $submission->id])
+            ->assertSee('TCM Assessment');
     }
 }

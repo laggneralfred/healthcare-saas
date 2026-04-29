@@ -2,6 +2,8 @@
 
 namespace App\Filament\Resources\Practices\Schemas;
 
+use App\Support\PracticeType;
+use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
@@ -31,17 +33,15 @@ class PracticeForm
                     ->maxLength(50)
                     ->disabledOn('view'),
 
-                Select::make('discipline')
-                    ->label('Primary Discipline')
-                    ->options([
-                        'acupuncture'   => 'Acupuncture',
-                        'massage'       => 'Massage Therapy',
-                        'chiropractic'  => 'Chiropractic',
-                        'physiotherapy' => 'Physiotherapy',
-                        'general'       => 'General',
-                    ])
-                    ->default('acupuncture')
-                    ->helperText('Sets the default intake form type for new submissions.')
+                Hidden::make('discipline')
+                    ->default('general'),
+
+                Select::make('practice_type')
+                    ->label('Practice Type')
+                    ->options(PracticeType::options())
+                    ->default(PracticeType::GENERAL_WELLNESS)
+                    ->required()
+                    ->helperText('Used to customize visit note templates and AI suggestions.')
                     ->disabledOn('view'),
 
                 Toggle::make('is_active')

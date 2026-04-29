@@ -4,12 +4,14 @@ namespace Tests\Feature;
 
 use App\Models\Appointment;
 use App\Models\CheckoutLine;
+use App\Models\CheckoutPayment;
 use App\Models\CheckoutSession;
 use App\Models\InventoryMovement;
 use App\Models\InventoryProduct;
 use App\Models\Patient;
 use App\Models\Practice;
 use App\Models\Practitioner;
+use App\Models\ServiceFee;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -127,6 +129,41 @@ class CheckoutInventoryIntegrationTest extends TestCase
         $this->assertEquals($initialStock - 1, $this->product->stock_quantity);
     }
 
+    public function test_recording_full_payment_creates_inventory_movements_once(): void
+    {
+        $checkout = CheckoutSession::factory()->create([
+            'practice_id' => $this->practice->id,
+            'appointment_id' => $this->appointment->id,
+            'amount_total' => 50,
+            'state' => 'open',
+        ]);
+
+        CheckoutLine::create([
+            'checkout_session_id' => $checkout->id,
+            'practice_id' => $this->practice->id,
+            'sequence' => 1,
+            'description' => 'Herbal Formula (x1)',
+            'amount' => 50,
+            'inventory_product_id' => $this->product->id,
+            'quantity' => 1,
+        ]);
+
+        $initialStock = $this->product->fresh()->stock_quantity;
+
+        $checkout->recordPayment([
+            'amount' => 50,
+            'payment_method' => CheckoutPayment::METHOD_CARD_EXTERNAL,
+            'paid_at' => now(),
+        ]);
+        $checkout->fresh()->createInventoryMovements();
+
+        $movements = InventoryMovement::where('reference', "checkout-{$checkout->id}")->get();
+
+        $this->assertCount(1, $movements);
+        $this->assertEquals(-1, $movements->first()->quantity);
+        $this->assertEquals($initialStock - 1, $this->product->fresh()->stock_quantity);
+    }
+
     public function test_multiple_products_create_multiple_movements(): void
     {
         $product2 = InventoryProduct::factory()->create([
@@ -134,6 +171,7 @@ class CheckoutInventoryIntegrationTest extends TestCase
             'name' => 'Another Product',
             'selling_price' => 30,
             'stock_quantity' => 20,
+            'is_active' => true,
         ]);
 
         $checkout = CheckoutSession::factory()->create([
@@ -209,5 +247,41 @@ class CheckoutInventoryIntegrationTest extends TestCase
         $checkout->refresh();
 
         $this->assertEquals(150, $checkout->amount_total);
+    }
+
+    public function test_service_and_custom_lines_do_not_create_inventory_movements(): void
+    {
+        $checkout = CheckoutSession::factory()->create([
+            'practice_id' => $this->practice->id,
+            'appointment_id' => $this->appointment->id,
+            'amount_total' => 125,
+            'state' => 'open',
+        ]);
+        $serviceFee = ServiceFee::factory()->create([
+            'practice_id' => $this->practice->id,
+            'default_price' => 100,
+            'is_active' => true,
+        ]);
+
+        CheckoutLine::create([
+            'checkout_session_id' => $checkout->id,
+            'practice_id' => $this->practice->id,
+            'line_type' => CheckoutLine::TYPE_SERVICE,
+            'service_fee_id' => $serviceFee->id,
+        ]);
+        CheckoutLine::create([
+            'checkout_session_id' => $checkout->id,
+            'practice_id' => $this->practice->id,
+            'line_type' => CheckoutLine::TYPE_CUSTOM,
+            'description' => 'Manual supply',
+            'amount' => 25,
+        ]);
+
+        $checkout->refresh();
+        $checkout->markPaid('card');
+
+        $this->assertDatabaseMissing('inventory_movements', [
+            'reference' => "checkout-{$checkout->id}",
+        ]);
     }
 }

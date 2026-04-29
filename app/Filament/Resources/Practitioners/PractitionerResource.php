@@ -14,10 +14,13 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 class PractitionerResource extends Resource
 {
-    use BelongsToPractice;
+    use BelongsToPractice {
+        getEloquentQuery as getPracticeScopedEloquentQuery;
+    }
     protected static ?string $model = Practitioner::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
@@ -33,6 +36,22 @@ class PractitionerResource extends Resource
     public static function table(Table $table): Table
     {
         return PractitionersTable::configure($table);
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        $query = static::getPracticeScopedEloquentQuery();
+        $user = auth()->user();
+
+        if ($user?->isPractitioner() && ! $user->canManageOperations()) {
+            $practitionerId = $user->practitioner()->value('id');
+
+            return $practitionerId
+                ? $query->whereKey($practitionerId)
+                : $query->whereRaw('1 = 0');
+        }
+
+        return $query;
     }
 
     public static function getWidgets(): array

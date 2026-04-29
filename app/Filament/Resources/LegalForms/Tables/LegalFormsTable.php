@@ -18,17 +18,19 @@ class LegalFormsTable
         return $table
             ->columns([
                 TextColumn::make('discipline')
+                    ->label('Form Category')
                     ->badge()
-                    ->color(fn (string $state) => match ($state) {
+                    ->color(fn (?string $state) => match ($state) {
                         'acupuncture' => 'info',
                         'massage' => 'success',
                         'chiropractic' => 'warning',
                         'physiotherapy' => 'primary',
                         default => 'gray',
                     })
-                    ->formatStateUsing(fn (string $state) => match ($state) {
+                    ->formatStateUsing(fn (?string $state) => match ($state) {
+                        'general' => 'General',
                         'acupuncture' => 'Acupuncture',
-                        'massage' => 'Massage',
+                        'massage' => 'Massage Therapy',
                         'chiropractic' => 'Chiropractic',
                         'physiotherapy' => 'Physiotherapy',
                         default => '—',
@@ -45,7 +47,9 @@ class LegalFormsTable
             ])
             ->filters([
                 SelectFilter::make('discipline')
+                    ->label('Form Category')
                     ->options([
+                        'general' => 'General',
                         'acupuncture' => 'Acupuncture',
                         'massage' => 'Massage Therapy',
                         'chiropractic' => 'Chiropractic',
@@ -61,7 +65,7 @@ class LegalFormsTable
                 ]),
             ])
             ->emptyStateHeading('No legal forms yet')
-            ->emptyStateDescription('Create intake and consent forms required by your discipline.')
+            ->emptyStateDescription('Create intake and consent forms required by your practice type.')
             ->emptyStateActions([
                 CreateAction::make()->label('New legal form'),
             ]);

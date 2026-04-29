@@ -18,6 +18,7 @@ use App\Models\Practice;
 use App\Models\Practitioner;
 use App\Models\ServiceFee;
 use App\Models\User;
+use App\Support\PracticeAccessRoles;
 use Carbon\Carbon;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
@@ -26,6 +27,8 @@ class DemoSeeder extends Seeder
 {
     public function run(): void
     {
+        $this->ensurePracticeAccessRoles();
+
         // ── Practice ──────────────────────────────────────────────────────────
         $practice = Practice::updateOrCreate(
             ['slug' => 'serenity-acupuncture'],
@@ -40,7 +43,7 @@ class DemoSeeder extends Seeder
         );
 
         // ── Admin user ────────────────────────────────────────────────────────
-        User::updateOrCreate(
+        $demoAdmin = User::updateOrCreate(
             ['email' => 'demo@practiqapp.com'],
             [
                 'name'        => 'Demo Admin',
@@ -48,6 +51,7 @@ class DemoSeeder extends Seeder
                 'practice_id' => $practice->id,
             ]
         );
+        PracticeAccessRoles::assignOwner($demoAdmin);
 
         // ── Cleanup old demo data from previous resets ────────────────────────
         // demo:reset runs db:seed (not migrate:fresh), so records accumulate.
@@ -121,6 +125,7 @@ class DemoSeeder extends Seeder
                 'practice_id' => $practice->id,
             ]
         );
+        $sarahUser->assignRole(User::ROLE_PRACTITIONER);
 
         $practitioner1 = Practitioner::firstOrCreate(
             ['practice_id' => $practice->id, 'user_id' => $sarahUser->id],
@@ -141,6 +146,7 @@ class DemoSeeder extends Seeder
                 'practice_id' => $practice->id,
             ]
         );
+        $marcusUser->assignRole(User::ROLE_PRACTITIONER);
 
         $practitioner2 = Practitioner::firstOrCreate(
             ['practice_id' => $practice->id, 'user_id' => $marcusUser->id],
@@ -1314,5 +1320,10 @@ class DemoSeeder extends Seeder
         $this->command->info('✔ Inventory products seeded');
         $this->command->info('✔ Legal forms (4 disciplines)');
         $this->command->info('✔ Default communication templates seeded');
+    }
+
+    private function ensurePracticeAccessRoles(): void
+    {
+        PracticeAccessRoles::ensureRoles();
     }
 }

@@ -38,8 +38,11 @@ class CheckoutLineFactory extends Factory
             'checkout_session_id'  => CheckoutSession::factory(),
             'practice_id'          => Practice::factory(),
             'sequence'             => 0,
+            'line_type'            => CheckoutLine::TYPE_CUSTOM,
+            'service_fee_id'       => null,
             'description'          => $faker->randomElement(self::$descriptions),
             'amount'               => $faker->randomFloat(2, 50, 175),
+            'unit_price'           => null,
             'inventory_product_id' => null,
             'quantity'             => null,
         ];

@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Practices\Tables;
 
+use App\Support\PracticeType;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteBulkAction;
@@ -19,6 +20,12 @@ class PracticesTable
             ->columns([
                 TextColumn::make('name')->searchable()->sortable(),
                 TextColumn::make('slug')->searchable(),
+                TextColumn::make('practice_type')
+                    ->label('Practice Type')
+                    ->formatStateUsing(fn ($state, $record) => PracticeType::label(
+                        PracticeType::normalize($state, $record?->discipline),
+                    ))
+                    ->sortable(),
                 TextColumn::make('timezone')->sortable(),
                 IconColumn::make('is_active')->boolean()->label('Active'),
                 TextColumn::make('created_at')->dateTime()->sortable()->toggleable(isToggledHiddenByDefault: true),

@@ -4,6 +4,8 @@ namespace App\Models;
 
 use App\Models\Concerns\BelongsToPractice;
 use App\Models\Traits\HasAuditLog;
+use App\Support\ClinicalStyle;
+use App\Support\PracticeType;
 use App\Traits\HasAccessToken;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -12,12 +14,12 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class MedicalHistory extends Model
 {
-    use HasFactory, HasAccessToken, BelongsToPractice, HasAuditLog;
+    use BelongsToPractice, HasAccessToken, HasAuditLog, HasFactory;
 
     protected $table = 'medical_histories';
 
     protected $fillable = [
-        'practice_id', 'patient_id', 'appointment_id',
+        'practice_id', 'patient_id', 'appointment_id', 'practitioner_id',
         'status', 'submitted_on', 'access_token',
         'reason_for_visit', 'current_concerns', 'relevant_history',
         'medications', 'notes', 'summary_text',
@@ -40,25 +42,25 @@ class MedicalHistory extends Model
     protected function casts(): array
     {
         return [
-            'submitted_on'             => 'datetime',
-            'consent_signed_at'        => 'datetime',
-            'current_medications'      => 'array',
-            'allergies'                => 'array',
-            'past_diagnoses'           => 'array',
-            'past_surgeries'           => 'array',
+            'submitted_on' => 'datetime',
+            'consent_signed_at' => 'datetime',
+            'current_medications' => 'array',
+            'allergies' => 'array',
+            'past_diagnoses' => 'array',
+            'past_surgeries' => 'array',
             'previous_treatments_tried' => 'array',
-            'discipline_responses'     => 'array',
-            'previous_episodes'        => 'boolean',
-            'is_pregnant'              => 'boolean',
-            'has_pacemaker'            => 'boolean',
-            'takes_blood_thinners'     => 'boolean',
-            'has_bleeding_disorder'    => 'boolean',
-            'has_infectious_disease'   => 'boolean',
-            'had_previous_treatment'   => 'boolean',
-            'other_practitioner'       => 'boolean',
-            'consent_given'            => 'boolean',
-            'pain_scale'               => 'integer',
-            'sleep_hours'              => 'integer',
+            'discipline_responses' => 'array',
+            'previous_episodes' => 'boolean',
+            'is_pregnant' => 'boolean',
+            'has_pacemaker' => 'boolean',
+            'takes_blood_thinners' => 'boolean',
+            'has_bleeding_disorder' => 'boolean',
+            'has_infectious_disease' => 'boolean',
+            'had_previous_treatment' => 'boolean',
+            'other_practitioner' => 'boolean',
+            'consent_given' => 'boolean',
+            'pain_scale' => 'integer',
+            'sleep_hours' => 'integer',
         ];
     }
 
@@ -82,33 +84,33 @@ class MedicalHistory extends Model
         }
 
         return match (true) {
-            $this->pain_scale <= 3  => 'Mild',
-            $this->pain_scale <= 6  => 'Moderate',
-            $this->pain_scale <= 9  => 'Severe',
+            $this->pain_scale <= 3 => 'Mild',
+            $this->pain_scale <= 6 => 'Moderate',
+            $this->pain_scale <= 9 => 'Severe',
             $this->pain_scale >= 10 => 'Worst Possible',
-            default                 => null,
+            default => null,
         };
     }
 
     public function getOnsetTypeLabelAttribute(): ?string
     {
         return match ($this->onset_type) {
-            'sudden'    => 'Sudden / Acute',
-            'gradual'   => 'Gradual / Chronic',
+            'sudden' => 'Sudden / Acute',
+            'gradual' => 'Gradual / Chronic',
             'recurring' => 'Recurring',
-            default     => $this->onset_type,
+            default => $this->onset_type,
         };
     }
 
     public function getDisciplineLabelAttribute(): ?string
     {
         return match ($this->discipline) {
-            'acupuncture'    => 'Acupuncture',
-            'massage'        => 'Massage Therapy',
-            'chiropractic'   => 'Chiropractic',
-            'physiotherapy'  => 'Physiotherapy',
-            'general'        => 'General',
-            default          => $this->discipline,
+            'acupuncture' => 'Acupuncture',
+            'massage' => 'Massage Therapy',
+            'chiropractic' => 'Chiropractic',
+            'physiotherapy' => 'Physiotherapy',
+            'general' => 'General',
+            default => $this->discipline,
         };
     }
 
@@ -135,6 +137,7 @@ class MedicalHistory extends Model
 
     /**
      * Return a structured summary of discipline-specific responses for display.
+     *
      * @return array{label: string, key: string, data: array}
      */
     public function getDisciplineSection(): array
@@ -142,11 +145,22 @@ class MedicalHistory extends Model
         $responses = $this->discipline_responses ?? [];
 
         return match ($this->discipline) {
-            'acupuncture'  => ['label' => 'TCM Assessment',            'key' => 'tcm',     'data' => $responses['tcm']     ?? []],
-            'massage'      => ['label' => 'Massage Preferences',       'key' => 'massage', 'data' => $responses['massage'] ?? []],
-            'chiropractic' => ['label' => 'Chiropractic Assessment',   'key' => 'chiro',   'data' => $responses['chiro']   ?? []],
-            'physiotherapy' => ['label' => 'Physiotherapy Assessment', 'key' => 'physio',  'data' => $responses['physio']  ?? []],
-            default         => ['label' => 'Additional Information',   'key' => 'other',   'data' => $responses],
+            'acupuncture' => ['label' => $this->acupunctureIntakeLabel(), 'key' => 'tcm',     'data' => $responses['tcm'] ?? []],
+            'massage' => ['label' => 'Massage Preferences',       'key' => 'massage', 'data' => $responses['massage'] ?? []],
+            'chiropractic' => ['label' => 'Chiropractic Assessment',   'key' => 'chiro',   'data' => $responses['chiro'] ?? []],
+            'physiotherapy' => ['label' => 'Physiotherapy Assessment', 'key' => 'physio',  'data' => $responses['physio'] ?? []],
+            default => ['label' => 'Additional Information',   'key' => 'other',   'data' => $responses],
+        };
+    }
+
+    private function acupunctureIntakeLabel(): string
+    {
+        $practiceType = ClinicalStyle::fromMedicalHistory($this);
+
+        return match ($practiceType) {
+            PracticeType::TCM_ACUPUNCTURE => 'TCM Assessment',
+            PracticeType::FIVE_ELEMENT_ACUPUNCTURE => 'Five Element Acupuncture Intake',
+            default => 'Acupuncture Intake',
         };
     }
 
@@ -193,5 +207,10 @@ class MedicalHistory extends Model
     public function appointment(): BelongsTo
     {
         return $this->belongsTo(Appointment::class);
+    }
+
+    public function practitioner(): BelongsTo
+    {
+        return $this->belongsTo(Practitioner::class)->withoutGlobalScopes();
     }
 }

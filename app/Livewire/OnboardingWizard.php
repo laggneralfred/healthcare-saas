@@ -6,6 +6,8 @@ use App\Models\CommunicationRule;
 use App\Models\MessageTemplate;
 use App\Models\Practice;
 use App\Models\Practitioner;
+use App\Support\PracticeAccessRoles;
+use App\Support\PracticeType;
 use Illuminate\Support\Str;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -31,6 +33,7 @@ class OnboardingWizard extends Component
     public string $practitionerName = '';
     public string $licenseNumber = '';
     public string $discipline = '';
+    public string $practiceType = PracticeType::GENERAL_WELLNESS;
 
     public bool $setupLegalLater = true;
 
@@ -43,7 +46,7 @@ class OnboardingWizard extends Component
         'timezone'                   => 'required|string|max:100',
         'practitionerName'           => 'required|string|max:255',
         'licenseNumber'              => 'required|string|max:255',
-        'discipline'                 => 'required|in:acupuncture,massage,chiropractic,physiotherapy',
+        'practiceType'               => 'required|in:general_wellness,tcm_acupuncture,five_element_acupuncture,chiropractic,massage_therapy,physiotherapy',
     ];
 
     public function mount(): void
@@ -57,7 +60,8 @@ class OnboardingWizard extends Component
             }
             $this->practice    = $practice;
             $this->practiceName = $practice->name;
-            $this->discipline   = $practice->discipline ?? 'acupuncture';
+            $this->practiceType = PracticeType::fromPractice($practice);
+            $this->discipline   = PracticeType::disciplineFallback($this->practiceType);
             $this->timezone     = $practice->timezone ?? 'America/Los_Angeles';
         }
     }
@@ -107,7 +111,7 @@ class OnboardingWizard extends Component
         $this->validate([
             'practiceName'               => 'required|string|max:255',
             'practitionerName'           => 'required|string|max:255',
-            'discipline'                 => 'required|in:acupuncture,massage,chiropractic,physiotherapy',
+            'practiceType'               => 'required|in:general_wellness,tcm_acupuncture,five_element_acupuncture,chiropractic,massage_therapy,physiotherapy',
             'defaultAppointmentDuration' => 'required|in:15,30,45,60',
             'defaultReminderHours'       => 'required|in:0,24,48',
             'timezone'                   => 'required|string|max:100',
@@ -127,7 +131,8 @@ class OnboardingWizard extends Component
                 'slug'                        => $slug,
                 'timezone'                    => $this->timezone,
                 'is_active'                   => true,
-                'discipline'                  => $this->discipline,
+                'discipline'                  => PracticeType::disciplineFallback($this->practiceType),
+                'practice_type'               => $this->practiceType,
                 'trial_ends_at'               => now()->addDays(30),
                 'setup_completed_at'          => now(),
                 'default_appointment_duration' => $this->defaultAppointmentDuration,
@@ -138,13 +143,22 @@ class OnboardingWizard extends Component
         } else {
             $this->practice->update([
                 'name'                        => $this->practiceName,
-                'discipline'                  => $this->discipline,
+                'discipline'                  => PracticeType::disciplineFallback($this->practiceType),
+                'practice_type'               => $this->practiceType,
                 'timezone'                    => $this->timezone,
                 'setup_completed_at'          => now(),
                 'default_appointment_duration' => $this->defaultAppointmentDuration,
                 'default_reminder_hours'       => $this->defaultReminderHours,
             ]);
         }
+
+        $user = auth()->user()->fresh();
+
+        if ($user && (int) $user->practice_id === (int) $this->practice->id) {
+            PracticeAccessRoles::assignOwner($user);
+        }
+
+        PracticeAccessRoles::ensurePracticeHasOwner($this->practice);
 
         $practitioner = Practitioner::firstOrCreate(
             ['practice_id' => $this->practice->id, 'user_id' => auth()->id()],
@@ -242,7 +256,7 @@ class OnboardingWizard extends Component
         $this->validate([
             'practitionerName' => 'required|string|max:255',
             'licenseNumber'    => 'required|string|max:255',
-            'discipline'       => 'required|in:acupuncture,massage,chiropractic,physiotherapy',
+            'practiceType'     => 'required|in:general_wellness,tcm_acupuncture,five_element_acupuncture,chiropractic,massage_therapy,physiotherapy',
         ]);
     }
 

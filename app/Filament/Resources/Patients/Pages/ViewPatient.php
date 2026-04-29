@@ -2,6 +2,9 @@
 
 namespace App\Filament\Resources\Patients\Pages;
 
+use App\Filament\Resources\Appointments\AppointmentResource;
+use App\Filament\Resources\Encounters\EncounterResource;
+use App\Filament\Resources\MedicalHistories\MedicalHistoryResource;
 use App\Filament\Resources\Patients\PatientResource;
 use App\Models\Patient;
 use App\Models\States\Appointment\Cancelled as AppointmentCancelled;
@@ -36,19 +39,19 @@ class ViewPatient extends ViewRecord
                 ->icon('heroicon-o-clipboard-document-list')
                 ->color('warning')
                 ->url(fn () => $this->record->medicalHistory
-                    ? \App\Filament\Resources\MedicalHistories\MedicalHistoryResource::getUrl('edit', ['record' => $this->record->medicalHistory->id])
-                    : \App\Filament\Resources\MedicalHistories\MedicalHistoryResource::getUrl('create', ['patient_id' => $this->record->id])),
+                    ? MedicalHistoryResource::getUrl('edit', ['record' => $this->record->medicalHistory->id])
+                    : MedicalHistoryResource::getUrl('create', ['patient_id' => $this->record->id])),
 
             Action::make('new_encounter')
                 ->label('New Visit')
                 ->icon('heroicon-o-document')
-                ->url(fn () => \App\Filament\Resources\Encounters\EncounterResource::getUrl('create', ['patient_id' => $this->record->id]))
+                ->url(fn () => EncounterResource::getUrl('create', ['patient_id' => $this->record->id]))
                 ->color('primary'),
 
             Action::make('new_appointment')
                 ->label('New Appointment')
                 ->icon('heroicon-o-calendar')
-                ->url(fn () => \App\Filament\Resources\Appointments\AppointmentResource::getUrl('create', ['patient_id' => $this->record->id]))
+                ->url(fn () => AppointmentResource::getUrl('create', ['patient_id' => $this->record->id]))
                 ->color('success'),
         ];
     }
@@ -56,26 +59,26 @@ class ViewPatient extends ViewRecord
     protected function resolveRecord($key): Model
     {
         return Patient::with([
-            'encounters'        => fn ($q) => $q->with('practitioner.user')->orderByDesc('visit_date'),
-            'appointments'      => fn ($q) => $q->with('practitioner.user', 'appointmentType', 'encounter')->orderByDesc('start_datetime'),
-            'medicalHistories'  => fn ($q) => $q->where('status', 'complete')->latest(),
+            'encounters' => fn ($q) => $q->with('practitioner.user')->orderByDesc('visit_date'),
+            'appointments' => fn ($q) => $q->with('practitioner.user', 'appointmentType', 'encounter')->orderByDesc('start_datetime'),
+            'medicalHistories' => fn ($q) => $q->where('status', 'complete')->latest(),
             'medicalHistory',
-            'checkoutSessions'  => fn ($q) => $q->latest(),
-            'consentRecords'    => fn ($q) => $q->where('status', 'complete')->latest(),
+            'checkoutSessions' => fn ($q) => $q->latest(),
+            'consentRecords' => fn ($q) => $q->where('status', 'complete')->latest(),
             'practice',
         ])->findOrFail($key);
     }
 
     public function infolist(Schema $schema): Schema
     {
-        $patient       = $this->record;
-        $latestIntake  = $patient->medicalHistories->first();
-        $encounters    = $patient->encounters;
+        $patient = $this->record;
+        $latestIntake = $patient->medicalHistories->first();
+        $encounters = $patient->encounters;
         $lastEncounter = $encounters->first();
 
         $nextAppointment = $patient->appointments
             ->filter(fn ($a) => $a->start_datetime->isFuture()
-                && !($a->status instanceof AppointmentCancelled))
+                && ! ($a->status instanceof AppointmentCancelled))
             ->sortBy('start_datetime')
             ->first();
 
@@ -86,15 +89,15 @@ class ViewPatient extends ViewRecord
 
         $upcomingAppointments = $patient->appointments
             ->filter(fn ($a) => $a->start_datetime->isFuture()
-                && !($a->status instanceof AppointmentCancelled))
+                && ! ($a->status instanceof AppointmentCancelled))
             ->sortBy('start_datetime');
 
         $outstandingBalance = $patient->checkoutSessions
-            ->filter(fn ($c) => !($c->state instanceof Paid))
+            ->filter(fn ($c) => ! ($c->state instanceof Paid))
             ->sum('amount_total');
 
-        $hasCompletedIntake   = $latestIntake !== null;
-        $hasSignedConsent     = $patient->consentRecords->isNotEmpty();
+        $hasCompletedIntake = $latestIntake !== null;
+        $hasSignedConsent = $patient->consentRecords->isNotEmpty();
         $hasOutstandingPayment = $outstandingBalance > 0;
 
         // Determine status: New (no visits), Active (visited in 12 months), Inactive (older)
@@ -112,20 +115,20 @@ class ViewPatient extends ViewRecord
             ViewEntry::make('overview')
                 ->view('filament.resources.patients.view-patient')
                 ->viewData([
-                    'patient'               => $patient,
-                    'latestIntake'          => $latestIntake,
-                    'encounters'            => $encounters,
-                    'lastEncounter'         => $lastEncounter,
-                    'nextAppointment'       => $nextAppointment,
-                    'upcomingAppointments'  => $upcomingAppointments,
-                    'pastAppointments'      => $pastAppointments,
-                    'outstandingBalance'    => $outstandingBalance,
-                    'hasCompletedIntake'    => $hasCompletedIntake,
-                    'hasSignedConsent'      => $hasSignedConsent,
+                    'patient' => $patient,
+                    'latestIntake' => $latestIntake,
+                    'encounters' => $encounters,
+                    'lastEncounter' => $lastEncounter,
+                    'nextAppointment' => $nextAppointment,
+                    'upcomingAppointments' => $upcomingAppointments,
+                    'pastAppointments' => $pastAppointments,
+                    'outstandingBalance' => $outstandingBalance,
+                    'hasCompletedIntake' => $hasCompletedIntake,
+                    'hasSignedConsent' => $hasSignedConsent,
                     'hasOutstandingPayment' => $hasOutstandingPayment,
-                    'status'                => $status,
-                    'checkoutSessions'      => $patient->checkoutSessions,
-                    'discipline'            => $discipline,
+                    'status' => $status,
+                    'checkoutSessions' => $patient->checkoutSessions,
+                    'discipline' => $discipline,
                 ])
                 ->columnSpanFull(),
         ]);

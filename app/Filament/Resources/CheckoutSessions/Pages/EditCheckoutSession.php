@@ -3,22 +3,101 @@
 namespace App\Filament\Resources\CheckoutSessions\Pages;
 
 use App\Filament\Resources\CheckoutSessions\CheckoutSessionResource;
+use App\Models\CheckoutPayment;
+use App\Models\PracticePaymentMethod;
 use App\Models\States\CheckoutSession\Draft;
 use App\Models\States\CheckoutSession\Open;
+use App\Models\States\CheckoutSession\Paid;
 use App\Models\States\CheckoutSession\PaymentDue;
 use App\Models\States\CheckoutSession\Voided;
 use Filament\Actions\Action;
 use Filament\Actions\DeleteAction;
+use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
+use Filament\Notifications\Notification;
 use Filament\Resources\Pages\EditRecord;
 
 class EditCheckoutSession extends EditRecord
 {
     protected static string $resource = CheckoutSessionResource::class;
 
+    protected function mutateFormDataBeforeSave(array $data): array
+    {
+        unset(
+            $data['practice_id'],
+            $data['patient_id'],
+            $data['appointment_id'],
+            $data['encounter_id'],
+            $data['practitioner_id'],
+        );
+
+        return $data;
+    }
+
     protected function getHeaderActions(): array
     {
         return [
+            Action::make('recordPayment')
+                ->label('Record Payment')
+                ->icon('heroicon-o-banknotes')
+                ->color('success')
+                ->hidden(fn () => auth()->user()?->isDemo())
+                ->visible(fn ($record) => $record->state instanceof Open || $record->state instanceof PaymentDue)
+                ->form([
+                    TextInput::make('amount')
+                        ->label('Amount')
+                        ->numeric()
+                        ->minValue(0)
+                        ->required()
+                        ->default(fn ($record) => number_format((float) $record->amount_due, 2, '.', '')),
+                    Select::make('payment_method')
+                        ->label('Payment Method')
+                        ->options(fn ($record): array => PracticePaymentMethod::enabledOptionsForPractice($record->practice_id))
+                        ->required(),
+                    DateTimePicker::make('paid_at')
+                        ->label('Paid At')
+                        ->default(now())
+                        ->required(),
+                    TextInput::make('reference')
+                        ->maxLength(255),
+                    Textarea::make('notes')
+                        ->rows(2),
+                ])
+                ->modalHeading('Record payment')
+                ->action(function (array $data, $record) {
+                    if (! $this->hasEnabledPaymentMethods($record)) {
+                        $this->notifyNoEnabledPaymentMethods();
+
+                        return;
+                    }
+
+                    try {
+                        $record->recordPayment($data + ['created_by_user_id' => auth()->id()]);
+                    } catch (\InvalidArgumentException $exception) {
+                        Notification::make()
+                            ->title($exception->getMessage())
+                            ->danger()
+                            ->send();
+
+                        return;
+                    }
+
+                    $this->refreshFormData(['amount_paid', 'paid_on', 'state']);
+
+                    Notification::make()
+                        ->title('Payment recorded.')
+                        ->success()
+                        ->send();
+                }),
+
+            Action::make('viewSuperbill')
+                ->label('View Superbill')
+                ->icon('heroicon-o-document-text')
+                ->color('gray')
+                ->url(fn ($record) => CheckoutSessionResource::getUrl('superbill', ['record' => $record])),
+
             // draft → open
             Action::make('openSession')
                 ->label('Open Session')
@@ -34,7 +113,7 @@ class EditCheckoutSession extends EditRecord
                     $this->refreshFormData(['state']);
                 }),
 
-            // open / payment_due → paid (with tender type selection)
+            // open / payment_due → paid (with payment record)
             Action::make('markPaid')
                 ->label('Mark Paid')
                 ->icon('heroicon-o-check-circle')
@@ -42,15 +121,32 @@ class EditCheckoutSession extends EditRecord
                 ->hidden(fn () => auth()->user()?->isDemo())
                 ->visible(fn ($record) => $record->state instanceof Open || $record->state instanceof PaymentDue)
                 ->form([
-                    Select::make('tender_type')
+                    Select::make('payment_method')
                         ->label('Payment Method')
-                        ->options(['cash' => 'Cash', 'card' => 'Card'])
+                        ->options(fn ($record): array => PracticePaymentMethod::enabledOptionsForPractice($record->practice_id))
+                        ->default(fn ($record): ?string => $this->defaultPaymentMethodFor($record))
                         ->required(),
                 ])
                 ->modalHeading('Record payment')
-                ->modalDescription('Select the payment method to mark this session as paid.')
+                ->modalDescription('This records a payment for the remaining balance and marks the session paid.')
                 ->action(function (array $data, $record) {
-                    $record->markPaid($data['tender_type']);
+                    if (! $this->hasEnabledPaymentMethods($record)) {
+                        $this->notifyNoEnabledPaymentMethods();
+
+                        return;
+                    }
+
+                    try {
+                        $record->markPaid($data['payment_method']);
+                    } catch (\InvalidArgumentException $exception) {
+                        Notification::make()
+                            ->title($exception->getMessage())
+                            ->danger()
+                            ->send();
+
+                        return;
+                    }
+
                     $this->refreshFormData(['state', 'amount_paid', 'tender_type', 'paid_on']);
                 }),
 
@@ -86,5 +182,37 @@ class EditCheckoutSession extends EditRecord
 
             DeleteAction::make(),
         ];
+    }
+
+    private function defaultPaymentMethodFor($record): ?string
+    {
+        $options = PracticePaymentMethod::enabledOptionsForPractice($record->practice_id);
+
+        if ($options === []) {
+            return null;
+        }
+
+        if ((float) $record->amount_total <= 0 && array_key_exists(CheckoutPayment::METHOD_COMPED, $options)) {
+            return CheckoutPayment::METHOD_COMPED;
+        }
+
+        if (array_key_exists(CheckoutPayment::METHOD_CARD_EXTERNAL, $options)) {
+            return CheckoutPayment::METHOD_CARD_EXTERNAL;
+        }
+
+        return array_key_first($options);
+    }
+
+    private function hasEnabledPaymentMethods($record): bool
+    {
+        return PracticePaymentMethod::enabledOptionsForPractice($record->practice_id) !== [];
+    }
+
+    private function notifyNoEnabledPaymentMethods(): void
+    {
+        Notification::make()
+            ->title('No payment methods are enabled for this practice.')
+            ->danger()
+            ->send();
     }
 }

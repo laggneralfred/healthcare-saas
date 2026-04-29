@@ -5,9 +5,13 @@ namespace App\Filament\Resources\Encounters\Pages;
 use App\Filament\Resources\Encounters\EncounterResource;
 use App\Filament\Resources\Encounters\Pages\Concerns\HandlesEncounterAIActions;
 use App\Models\Appointment;
+use App\Models\Practice;
 use App\Models\Practitioner;
 use App\Services\EncounterDataValidator;
 use App\Services\EncounterNoteDocument;
+use App\Services\PracticeContext;
+use App\Support\ClinicalStyle;
+use App\Support\PracticeType;
 use Filament\Actions\Action;
 use Filament\Resources\Pages\CreateRecord;
 use Filament\Schemas\Schema;
@@ -58,7 +62,9 @@ class CreateEncounter extends CreateRecord
 
         if ($data) {
             if (! empty($data['discipline'])) {
-                $data['visit_note_document'] = EncounterNoteDocument::template($data['discipline']);
+                $data['visit_note_document'] = EncounterNoteDocument::template(
+                    $this->currentPracticeType($data['practitioner_id'] ?? null),
+                );
             }
 
             $this->form->fill(array_filter($data, fn ($value) => $value !== null));
@@ -99,5 +105,27 @@ class CreateEncounter extends CreateRecord
             'Physical Therapy', 'Physiotherapy' => 'physiotherapy',
             default => null,
         };
+    }
+
+    private function currentPracticeType(?int $practitionerId = null): string
+    {
+        if ($practitionerId) {
+            $practitioner = Practitioner::query()
+                ->with('practice:id,practice_type,discipline')
+                ->select(['id', 'practice_id', 'clinical_style'])
+                ->whereKey($practitionerId)
+                ->first();
+
+            if ($practitioner) {
+                return ClinicalStyle::fromPractitioner($practitioner, $practitioner->practice);
+            }
+        }
+
+        $practice = Practice::query()
+            ->select(['practice_type', 'discipline'])
+            ->whereKey(PracticeContext::currentPracticeId())
+            ->first();
+
+        return PracticeType::fromPractice($practice);
     }
 }

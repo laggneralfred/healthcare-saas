@@ -5,6 +5,7 @@ namespace App\Filament\Resources\CheckoutSessions;
 use App\Filament\Resources\CheckoutSessions\Pages\CreateCheckoutSession;
 use App\Filament\Resources\CheckoutSessions\Pages\EditCheckoutSession;
 use App\Filament\Resources\CheckoutSessions\Pages\ListCheckoutSessions;
+use App\Filament\Resources\CheckoutSessions\Pages\ViewSuperbill;
 use App\Filament\Resources\CheckoutSessions\Pages\ViewCheckoutSession;
 use App\Filament\Resources\CheckoutSessions\Schemas\CheckoutSessionForm;
 use App\Filament\Resources\CheckoutSessions\Tables\CheckoutSessionsTable;
@@ -51,6 +52,7 @@ class CheckoutSessionResource extends Resource
             'create' => CreateCheckoutSession::route('/create'),
             'view'   => ViewCheckoutSession::route('/{record}'),
             'edit'   => EditCheckoutSession::route('/{record}/edit'),
+            'superbill' => ViewSuperbill::route('/{record}/superbill'),
         ];
     }
 }

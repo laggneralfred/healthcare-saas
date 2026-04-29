@@ -2,6 +2,8 @@
 
 namespace App\Filament\Resources\Patients\RelationManagers;
 
+use App\Filament\Resources\MedicalHistories\MedicalHistoryResource;
+use App\Support\PracticeType;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteBulkAction;
@@ -28,23 +30,19 @@ class MedicalHistoriesRelationManager extends RelationManager
         return $table
             ->recordTitleAttribute('status')
             ->columns([
-                TextColumn::make('discipline')
+                TextColumn::make('practice.practice_type')
+                    ->label('Practice Type')
                     ->badge()
-                    ->color(fn (?string $state) => match ($state) {
-                        'acupuncture'   => 'info',
-                        'massage'       => 'success',
-                        'chiropractic'  => 'warning',
-                        'physiotherapy' => 'primary',
-                        default         => 'gray',
+                    ->color(fn ($record) => match (PracticeType::fromPractice($record?->practice)) {
+                        PracticeType::TCM_ACUPUNCTURE, PracticeType::FIVE_ELEMENT_ACUPUNCTURE => 'info',
+                        PracticeType::MASSAGE_THERAPY => 'success',
+                        PracticeType::CHIROPRACTIC => 'warning',
+                        PracticeType::PHYSIOTHERAPY => 'primary',
+                        default => 'gray',
                     })
-                    ->formatStateUsing(fn (?string $state) => match ($state) {
-                        'acupuncture'   => 'Acupuncture',
-                        'massage'       => 'Massage',
-                        'chiropractic'  => 'Chiropractic',
-                        'physiotherapy' => 'Physiotherapy',
-                        'general'       => 'General',
-                        default         => '—',
-                    })
+                    ->formatStateUsing(fn ($state, $record) => PracticeType::label(
+                        PracticeType::fromPractice($record?->practice),
+                    ))
                     ->placeholder('—'),
 
                 TextColumn::make('chief_complaint')
@@ -57,9 +55,9 @@ class MedicalHistoriesRelationManager extends RelationManager
                     ->badge()
                     ->color(fn ($state) => match (true) {
                         $state === null => 'gray',
-                        $state <= 3     => 'success',
-                        $state <= 6     => 'warning',
-                        default         => 'danger',
+                        $state <= 3 => 'success',
+                        $state <= 6 => 'warning',
+                        default => 'danger',
                     })
                     ->formatStateUsing(fn ($state) => $state !== null ? "{$state}/10" : '—')
                     ->placeholder('—'),
@@ -90,13 +88,13 @@ class MedicalHistoriesRelationManager extends RelationManager
             ->defaultSort('created_at', 'desc')
             ->headerActions([
                 CreateAction::make()
-                    ->url(fn () => \App\Filament\Resources\MedicalHistories\MedicalHistoryResource::getUrl('create', [
+                    ->url(fn () => MedicalHistoryResource::getUrl('create', [
                         'patient_id' => $this->getOwnerRecord()->getKey(),
                     ])),
             ])
             ->recordActions([
                 ViewAction::make()
-                    ->url(fn ($record) => \App\Filament\Resources\MedicalHistories\MedicalHistoryResource::getUrl('view', ['record' => $record])),
+                    ->url(fn ($record) => MedicalHistoryResource::getUrl('view', ['record' => $record])),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
