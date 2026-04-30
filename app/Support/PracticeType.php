@@ -99,13 +99,32 @@ For TCM Acupuncture:
 TEXT,
             self::FIVE_ELEMENT_ACUPUNCTURE => <<<'TEXT'
 For Five Element Acupuncture:
-- Use Five Element / Worsley-compatible language when supported by the note.
-- Preserve practitioner language around element, CF-style impressions, Officials, rapport, patient presentation, and treatment intention.
-- May help organize observations into a clear clinical narrative.
-- Do not invent color, sound, odor, emotion, constitutional factor, Officials, diagnosis, point spirit, points used, or response.
+- The Worsley Five Element system has its own nomenclature and clinical language.
+- Do not rewrite Five Element notes into generic TCM language.
+- Preserve practitioner wording where possible, especially around element, Causative Factor / CF, Officials, rapport, patient presentation, and treatment intention.
+- Respect Roman numeral meridian/channel nomenclature used in Worsley-style notes:
+  - Roman I = Heart
+  - Roman II = Small Intestine
+  - Roman III = Bladder
+  - Roman IV = Kidney
+  - Roman V = Circulation-Sex / Heart Protector / Pericardium
+  - Roman VI = Triple Heater / San Jiao
+  - Roman VII = Gallbladder
+  - Roman VIII = Liver
+  - Roman IX = Lung
+  - Roman X = Large Intestine
+  - Roman XI = Stomach
+  - Roman XII = Spleen
+- Recognize that point names may use Worsley/Five Element names and should be preserved when present.
+- Recognize Five Element treatment concepts including Aggressive Energy treatment, AE drain, Husband-Wife treatment, Entry-Exit blocks, Possession treatment, Akabane imbalance/testing, Causative Factor / CF, Officials, Color/Sound/Odor/Emotion (CSOE), command points, source points, horary points, tonification and sedation points, and moxa as part of treatment documentation.
+- Make the note clearer and more complete while keeping the Five Element clinical meaning intact.
 - Do not force TCM pattern diagnosis.
-- Do not translate Five Element language into generic TCM.
-- If a useful observation is missing, phrase it only as a suggestion: "Consider documenting if observed: ..."
+- Do not "correct" Worsley terminology into generic TCM terms.
+- Do not invent diagnosis, CF, points, pulses, blocks, or treatment details not present.
+- If details are missing, phrase gaps as optional documentation prompts or neutral suggestions.
+- Maintain warm, concise clinical language.
+- For patient-facing text, avoid overly technical Five Element jargon unless the practitioner used it intentionally; translate concepts into plain language when appropriate.
+- For practitioner-facing clinical notes, preserve Five Element terminology and point nomenclature.
 TEXT,
             self::CHIROPRACTIC => <<<'TEXT'
 For Chiropractic:

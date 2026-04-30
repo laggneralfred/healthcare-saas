@@ -16,6 +16,12 @@ Workflow documentation:
 - `docs/follow-up-workflow.md`
 - Covers Follow-Up -> Invite Back -> Appointment Request -> Staff Handling.
 - Includes staff steps, patient steps, non-goals, data/models, safety and tenancy notes, manual QA checklist, demo script, and roadmap ideas.
+- `docs/local-follow-up-test-data.md`
+- Local/demo data can be seeded with `php artisan demo:seed-follow-up-workflow`.
+- The local seed command creates fake patients under `Local Follow-Up Test Practice` and refuses production.
+- Public landing page now presents Practiq as calm, relationship-centered software for small clinics.
+- Public user guide route: `/user-instructions`.
+- Five Element acupuncture AI improve-note context now includes Worsley-specific guidance, Roman numeral channel mappings, and treatment concept preservation rules.
 
 ### UX / Navigation Cleanup
 

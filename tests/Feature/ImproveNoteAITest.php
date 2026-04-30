@@ -172,7 +172,7 @@ it('AIService includes TCM acupuncture practice type context in improve note pro
         && str_contains($request['input'], 'Practice Type: TCM Acupuncture'));
 });
 
-it('AIService includes Five Element practice type context without forcing TCM', function () {
+it('AIService includes Worsley Five Element practice type context for improve note and AI Draft prompts', function () {
     config([
         'services.ai.provider' => 'openai',
         'services.ai.openai.api_key' => 'test-key',
@@ -190,10 +190,44 @@ it('AIService includes Five Element practice type context without forcing TCM', 
     ]);
 
     Http::assertSent(fn ($request) => str_contains($request['instructions'], 'For Five Element Acupuncture')
-        && str_contains($request['instructions'], 'Worsley-compatible')
-        && str_contains($request['instructions'], 'Preserve practitioner language around element')
+        && str_contains($request['instructions'], 'The Worsley Five Element system has its own nomenclature')
+        && str_contains($request['instructions'], 'Do not rewrite Five Element notes into generic TCM language')
+        && str_contains($request['instructions'], 'Roman I = Heart')
+        && str_contains($request['instructions'], 'Roman VII = Gallbladder')
+        && str_contains($request['instructions'], 'Aggressive Energy treatment')
+        && str_contains($request['instructions'], 'Husband-Wife treatment')
+        && str_contains($request['instructions'], 'Entry-Exit blocks')
+        && str_contains($request['instructions'], 'Causative Factor / CF')
+        && str_contains($request['instructions'], 'Do not invent diagnosis, CF, points, pulses, blocks, or treatment details not present')
+        && str_contains($request['instructions'], 'For practitioner-facing clinical notes, preserve Five Element terminology')
         && str_contains($request['instructions'], 'Do not force TCM pattern diagnosis')
-        && str_contains($request['instructions'], 'Do not translate Five Element language into generic TCM')
+        && str_contains($request['input'], 'Practice Type: Five Element Acupuncture'));
+});
+
+it('AIService includes Worsley Five Element practice type context in field improve prompts', function () {
+    config([
+        'services.ai.provider' => 'openai',
+        'services.ai.openai.api_key' => 'test-key',
+        'services.ai.openai.model' => 'gpt-test',
+    ]);
+
+    Http::fake([
+        'api.openai.com/v1/responses' => Http::response([
+            'output_text' => 'Improved Five Element-compatible field.',
+        ]),
+    ]);
+
+    app(AIService::class)->improveField('AE drain documented with moxa on command points', 'Treatment Notes', [
+        'practice_type' => PracticeType::FIVE_ELEMENT_ACUPUNCTURE,
+    ]);
+
+    Http::assertSent(fn ($request) => str_contains($request['instructions'], 'provided Treatment Notes text')
+        && str_contains($request['instructions'], 'The Worsley Five Element system has its own nomenclature')
+        && str_contains($request['instructions'], 'Roman I = Heart')
+        && str_contains($request['instructions'], 'Roman VII = Gallbladder')
+        && str_contains($request['instructions'], 'Aggressive Energy treatment')
+        && str_contains($request['instructions'], 'Husband-Wife treatment')
+        && str_contains($request['instructions'], 'moxa as part of treatment documentation')
         && str_contains($request['input'], 'Practice Type: Five Element Acupuncture'));
 });
 
@@ -217,7 +251,9 @@ it('AIService does not include acupuncture-specific instructions for non-acupunc
     Http::assertSent(fn ($request) => str_contains($request['instructions'], $expectedInstruction)
         && ! str_contains($request['instructions'], 'For TCM Acupuncture')
         && ! str_contains($request['instructions'], 'For Five Element Acupuncture')
-        && ! str_contains($request['instructions'], 'Worsley-compatible')
+        && ! str_contains($request['instructions'], 'Worsley Five Element')
+        && ! str_contains($request['instructions'], 'Roman I = Heart')
+        && ! str_contains($request['instructions'], 'Aggressive Energy treatment')
         && ! str_contains($request['instructions'], 'pattern diagnosis'));
 })->with([
     'general wellness' => [PracticeType::GENERAL_WELLNESS, 'For General Wellness'],
@@ -225,6 +261,31 @@ it('AIService does not include acupuncture-specific instructions for non-acupunc
     'massage therapy' => [PracticeType::MASSAGE_THERAPY, 'For Massage Therapy'],
     'physiotherapy' => [PracticeType::PHYSIOTHERAPY, 'For Physiotherapy'],
 ]);
+
+it('AIService keeps Worsley guidance out of TCM acupuncture improve prompts', function () {
+    config([
+        'services.ai.provider' => 'openai',
+        'services.ai.openai.api_key' => 'test-key',
+        'services.ai.openai.model' => 'gpt-test',
+    ]);
+
+    Http::fake([
+        'api.openai.com/v1/responses' => Http::response([
+            'output_text' => 'Improved TCM-compatible note.',
+        ]),
+    ]);
+
+    app(AIService::class)->improveNote('neck tight, LV qi constraint noted', [
+        'practice_type' => PracticeType::TCM_ACUPUNCTURE,
+    ]);
+
+    Http::assertSent(fn ($request) => str_contains($request['instructions'], 'For TCM Acupuncture')
+        && ! str_contains($request['instructions'], 'Worsley Five Element')
+        && ! str_contains($request['instructions'], 'Roman I = Heart')
+        && ! str_contains($request['instructions'], 'Roman VII = Gallbladder')
+        && ! str_contains($request['instructions'], 'Aggressive Energy treatment')
+        && ! str_contains($request['instructions'], 'Husband-Wife treatment'));
+});
 
 it('resets an existing simple visit note from the encounter practice when ambient practice context is stale', function () {
     $visitPractice = Practice::factory()->create([

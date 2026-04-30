@@ -86,7 +86,10 @@ it('AIService documentation checks do not receive practice type-specific instruc
     Http::assertSent(fn ($request) => str_contains($request['instructions'], 'documentation completeness assistant')
         && ! str_contains($request['instructions'], 'For TCM Acupuncture')
         && ! str_contains($request['instructions'], 'For Five Element Acupuncture')
-        && ! str_contains($request['instructions'], 'Worsley-compatible')
+        && ! str_contains($request['instructions'], 'Worsley Five Element')
+        && ! str_contains($request['instructions'], 'Roman I = Heart')
+        && ! str_contains($request['instructions'], 'Aggressive Energy treatment')
+        && ! str_contains($request['instructions'], 'Husband-Wife treatment')
         && ! str_contains($request['input'], 'Practice Type:')
         && str_contains($request['input'], 'Discipline: acupuncture')
         && str_contains($request['input'], 'Chief complaint: Neck tension'));
