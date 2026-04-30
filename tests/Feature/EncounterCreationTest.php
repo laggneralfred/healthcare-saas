@@ -270,6 +270,64 @@ it('uses the Five Element acupuncture practice type visit note template', functi
     Livewire::test(CreateEncounter::class)
         ->set('data.discipline', 'acupuncture')
         ->assertSet('data.visit_note_document', EncounterNoteDocument::template(PracticeType::FIVE_ELEMENT_ACUPUNCTURE));
+
+    expect(EncounterNoteDocument::template(PracticeType::FIVE_ELEMENT_ACUPUNCTURE))
+        ->toContain("Pulses pre:\n")
+        ->toContain("Pulses post:\n")
+        ->toContain("Pulse movement:\n");
+});
+
+it('shows Five Element pulse documentation helpers only for Five Element acupuncture visits', function () {
+    $fiveElementPractice = Practice::factory()->create([
+        'insurance_billing_enabled' => false,
+        'practice_type' => PracticeType::FIVE_ELEMENT_ACUPUNCTURE,
+    ]);
+    [
+        'user' => $fiveElementUser,
+        'patient' => $fiveElementPatient,
+        'practitioner' => $fiveElementPractitioner,
+    ] = encounterCreationFixtures($fiveElementPractice);
+    $fiveElementEncounter = Encounter::factory()->create([
+        'practice_id' => $fiveElementPractice->id,
+        'patient_id' => $fiveElementPatient->id,
+        'practitioner_id' => $fiveElementPractitioner->id,
+        'discipline' => 'acupuncture',
+        'visit_date' => '2026-04-25',
+        'status' => 'draft',
+    ]);
+
+    $this->actingAs($fiveElementUser);
+
+    Livewire::test(EditEncounter::class, ['record' => $fiveElementEncounter->id])
+        ->assertSee('Five Element Pulse Documentation')
+        ->assertSee('Pulses before treatment')
+        ->assertSee('K --, Sp --, Ht -, PC -; St ++, GB ++.')
+        ->assertSee('Five Element pulse shorthand')
+        ->assertSee('L, LI, St, Sp, Ht, SI, B, K, PC, TB, GB, Lv');
+
+    $tcmPractice = Practice::factory()->create([
+        'insurance_billing_enabled' => false,
+        'practice_type' => PracticeType::TCM_ACUPUNCTURE,
+    ]);
+    [
+        'user' => $tcmUser,
+        'patient' => $tcmPatient,
+        'practitioner' => $tcmPractitioner,
+    ] = encounterCreationFixtures($tcmPractice);
+    $tcmEncounter = Encounter::factory()->create([
+        'practice_id' => $tcmPractice->id,
+        'patient_id' => $tcmPatient->id,
+        'practitioner_id' => $tcmPractitioner->id,
+        'discipline' => 'acupuncture',
+        'visit_date' => '2026-04-25',
+        'status' => 'draft',
+    ]);
+
+    $this->actingAs($tcmUser);
+
+    Livewire::test(EditEncounter::class, ['record' => $tcmEncounter->id])
+        ->assertDontSee('Five Element Pulse Documentation')
+        ->assertDontSee('Five Element pulse shorthand');
 });
 
 it('uses the chiropractic practice type visit note template', function () {

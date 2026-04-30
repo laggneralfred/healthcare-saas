@@ -198,7 +198,12 @@ it('AIService includes Worsley Five Element practice type context for improve no
         && str_contains($request['instructions'], 'Husband-Wife treatment')
         && str_contains($request['instructions'], 'Entry-Exit blocks')
         && str_contains($request['instructions'], 'Causative Factor / CF')
+        && str_contains($request['instructions'], 'Worsley/Classical Five Element pulse notes are comparative and energetic')
+        && str_contains($request['instructions'], 'Recognize pulse symbols +++, ++, +, =, -, --, ---, and 0')
+        && str_contains($request['instructions'], 'Recognize official abbreviations L, LI, St, Sp, Ht, SI, B, K, PC, TB, GB, and Lv')
+        && str_contains($request['instructions'], 'Preserve pre/post pulse shorthand')
         && str_contains($request['instructions'], 'Do not invent diagnosis, CF, points, pulses, blocks, or treatment details not present')
+        && str_contains($request['instructions'], 'If pulse information is missing, suggest optional pulse documentation prompts')
         && str_contains($request['instructions'], 'For practitioner-facing clinical notes, preserve Five Element terminology')
         && str_contains($request['instructions'], 'Do not force TCM pattern diagnosis')
         && str_contains($request['input'], 'Practice Type: Five Element Acupuncture'));
@@ -284,7 +289,9 @@ it('AIService keeps Worsley guidance out of TCM acupuncture improve prompts', fu
         && ! str_contains($request['instructions'], 'Roman I = Heart')
         && ! str_contains($request['instructions'], 'Roman VII = Gallbladder')
         && ! str_contains($request['instructions'], 'Aggressive Energy treatment')
-        && ! str_contains($request['instructions'], 'Husband-Wife treatment'));
+        && ! str_contains($request['instructions'], 'Husband-Wife treatment')
+        && ! str_contains($request['instructions'], 'Worsley/Classical Five Element pulse notes are comparative')
+        && ! str_contains($request['instructions'], 'Recognize pulse symbols +++, ++, +, =, -, --, ---, and 0'));
 });
 
 it('resets an existing simple visit note from the encounter practice when ambient practice context is stale', function () {

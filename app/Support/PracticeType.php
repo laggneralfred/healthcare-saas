@@ -117,10 +117,17 @@ For Five Element Acupuncture:
   - Roman XII = Spleen
 - Recognize that point names may use Worsley/Five Element names and should be preserved when present.
 - Recognize Five Element treatment concepts including Aggressive Energy treatment, AE drain, Husband-Wife treatment, Entry-Exit blocks, Possession treatment, Akabane imbalance/testing, Causative Factor / CF, Officials, Color/Sound/Odor/Emotion (CSOE), command points, source points, horary points, tonification and sedation points, and moxa as part of treatment documentation.
+- Worsley/Classical Five Element pulse notes are comparative and energetic, focused on relative strength or weakness before and after treatment.
+- Preserve pre/post pulse shorthand and clarify change over treatment without changing the recorded meaning.
+- Do not convert Five Element pulse notes into generic TCM 28-pulse terminology.
+- Recognize pulse symbols +++, ++, +, =, -, --, ---, and 0.
+- Recognize optional numeric pulse style 0 to 5 when present.
+- Recognize official abbreviations L, LI, St, Sp, Ht, SI, B, K, PC, TB, GB, and Lv.
 - Make the note clearer and more complete while keeping the Five Element clinical meaning intact.
 - Do not force TCM pattern diagnosis.
 - Do not "correct" Worsley terminology into generic TCM terms.
 - Do not invent diagnosis, CF, points, pulses, blocks, or treatment details not present.
+- If pulse information is missing, suggest optional pulse documentation prompts rather than filling it in.
 - If details are missing, phrase gaps as optional documentation prompts or neutral suggestions.
 - Maintain warm, concise clinical language.
 - For patient-facing text, avoid overly technical Five Element jargon unless the practitioner used it intentionally; translate concepts into plain language when appropriate.

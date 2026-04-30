@@ -22,6 +22,9 @@ class AcupunctureEncounterFactory extends Factory
             'tongue_body'        => null,
             'tongue_coating'     => null,
             'pulse_quality'      => null,
+            'pulse_before_treatment' => null,
+            'pulse_after_treatment' => null,
+            'pulse_change_interpretation' => null,
             'zang_fu_diagnosis'  => null,
             'five_elements'      => null,
             'csor_color'         => null,
@@ -61,6 +64,9 @@ class AcupunctureEncounterFactory extends Factory
             'pulse_quality' => $faker->randomElement([
                 'Wiry', 'Slippery', 'Thready', 'Weak', 'Floating', 'Deep', 'Choppy',
             ]),
+            'pulse_before_treatment' => 'K --, Sp --, Ht -, PC -; St ++, GB ++.',
+            'pulse_after_treatment' => 'K +, Sp =, Ht =, PC =; St +, GB +.',
+            'pulse_change_interpretation' => 'Overall more even; K and Sp improved; GB still relatively strong.',
             'zang_fu_diagnosis' => $faker->randomElement([
                 'Liver/Spleen Disharmony',
                 'Kidney/Heart Not Communicating',

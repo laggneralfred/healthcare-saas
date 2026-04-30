@@ -50,6 +50,9 @@ class AcupunctureExtensionTest extends TestCase
             'csor_sound' => 'Shouting',
             'csor_odor' => 'Rancid',
             'csor_emotion' => 'Anger',
+            'pulse_before_treatment' => 'K --, Sp --, Ht -, PC -; St ++, GB ++.',
+            'pulse_after_treatment' => 'K +, Sp =, Ht =, PC =; St +, GB +.',
+            'pulse_change_interpretation' => 'Overall more even; GB still relatively strong.',
         ];
 
         $acupuncture = AcupunctureEncounter::create($acupunctureData);
@@ -61,6 +64,9 @@ class AcupunctureExtensionTest extends TestCase
             'csor_sound' => 'Shouting',
             'csor_odor' => 'Rancid',
             'csor_emotion' => 'Anger',
+            'pulse_before_treatment' => 'K --, Sp --, Ht -, PC -; St ++, GB ++.',
+            'pulse_after_treatment' => 'K +, Sp =, Ht =, PC =; St +, GB +.',
+            'pulse_change_interpretation' => 'Overall more even; GB still relatively strong.',
         ]);
         
         $this->assertEquals(['Wood', 'Fire'], AcupunctureEncounter::find($acupuncture->id)->five_elements);

@@ -24,6 +24,9 @@ Workflow documentation:
 - Public landing page now presents Practiq as calm, relationship-centered software for small clinics.
 - Public user guide route: `/user-instructions`.
 - Five Element acupuncture AI improve-note context now includes Worsley-specific guidance, Roman numeral channel mappings, and treatment concept preservation rules.
+- Five Element acupuncture visit notes now include concise pulse prompts (`Pulses pre`, `Pulses post`, `Pulse movement`) plus optional Worsley/Classical Five Element pulse text fields on acupuncture encounter details.
+- Practice Settings now exposes `Documentation & Billing Mode`, backed by `practices.insurance_billing_enabled`: Simple Visit Note Mode is `false`, and SOAP / Insurance Documentation Mode is `true`.
+- The existing export page is available from the Reports navigation as `Exports` at `/admin/export-data`.
 
 ### UX / Navigation Cleanup
 
@@ -446,10 +449,23 @@ Diff checks:
 
 - `git diff --check` passed.
 
-Use explicit local test DB env when running tests:
+Use the sequential feature-suite script for autonomous local feature test runs:
+
+```bash
+composer test:feature
+```
+
+The script runs:
 
 ```bash
 DB_CONNECTION=pgsql DB_HOST=127.0.0.1 DB_PORT=5433 DB_DATABASE=healthcare_saas_test DB_USERNAME=healthcare DB_PASSWORD=secret php artisan test tests/Feature
+```
+
+Run migration-heavy feature tests sequentially unless isolated parallel test databases are explicitly configured. Do not use `--parallel` against the shared local PostgreSQL test schema; it can create duplicate-table or missing-table migration collisions. If a parallel collision happens, refresh the test database, then rerun sequentially:
+
+```bash
+DB_HOST=127.0.0.1 DB_PORT=5433 php artisan migrate:fresh --env=testing
+composer test:feature
 ```
 
 The sandbox may block direct PostgreSQL access; rerun with approval/escalation if the connection fails before assertions.

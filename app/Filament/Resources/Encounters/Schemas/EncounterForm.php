@@ -117,6 +117,11 @@ class EncounterForm
         return PracticeType::fromPractice($practice);
     }
 
+    private static function isFiveElementStyle(?Encounter $record = null, ?int $practitionerId = null): bool
+    {
+        return self::currentPracticeType($record, $practitionerId) === PracticeType::FIVE_ELEMENT_ACUPUNCTURE;
+    }
+
     private static function applyDisciplineTemplate(callable $set, Get $get, ?string $discipline, ?Encounter $record = null): void
     {
         $document = (string) $get('visit_note_document');
@@ -231,6 +236,17 @@ HTML);
         return new HtmlString(<<<HTML
 <div class="rounded-lg border border-sky-100 bg-sky-50 px-3 py-2 text-sm leading-6 text-sky-900 dark:border-sky-900/60 dark:bg-sky-950/30 dark:text-sky-100">
     Tip: On your phone, tap the microphone on your keyboard to dictate your note.
+</div>
+HTML);
+    }
+
+    private static function renderFiveElementPulseReference(): HtmlString
+    {
+        return new HtmlString(<<<HTML
+<div class="rounded-lg border border-amber-100 bg-amber-50 px-3 py-3 text-sm leading-6 text-amber-950 dark:border-amber-900/60 dark:bg-amber-950/30 dark:text-amber-100">
+    <div class="font-semibold">Five Element pulse shorthand</div>
+    <div class="mt-1">+++ very strong / excess; ++ strong; + slightly strong; = even / balanced; - slightly weak; -- weak; --- very weak / depleted; 0 absent or barely perceptible.</div>
+    <div class="mt-1">Officials: L, LI, St, Sp, Ht, SI, B, K, PC, TB, GB, Lv. Optional numeric style: 0 absent, 1 very weak, 2 weak, 3 moderate, 4 strong, 5 very strong.</div>
 </div>
 HTML);
     }
@@ -644,6 +660,57 @@ HTML);
                                 ])->columns([
                                     'default' => 1,
                                     'md' => 2,
+                                ]),
+
+                            Section::make('Five Element Pulse Documentation')
+                                ->description('Record the comparative pulse picture before and after treatment.')
+                                ->visible(fn (Get $get, ?Encounter $record = null): bool => self::isFiveElementStyle(
+                                    $record,
+                                    $get('practitioner_id') ? (int) $get('practitioner_id') : null,
+                                ))
+                                ->schema([
+                                    Html::make(fn (): HtmlString => self::renderFiveElementPulseReference())
+                                        ->hiddenOn('view')
+                                        ->columnSpanFull(),
+
+                                    Placeholder::make('pulse_before_treatment')
+                                        ->label('Pulses before treatment')
+                                        ->content(fn ($record) => $record?->acupunctureEncounter?->pulse_before_treatment ?? '—')
+                                        ->visibleOn('view')
+                                        ->columnSpanFull(),
+
+                                    Textarea::make('acupunctureEncounter.pulse_before_treatment')
+                                        ->label('Pulses before treatment')
+                                        ->helperText('Record the relative strength or weakness of the officials before treatment. Example: K --, Sp --, Ht -, PC -; St ++, GB ++.')
+                                        ->rows(3)
+                                        ->visibleOn('edit')
+                                        ->columnSpanFull(),
+
+                                    Placeholder::make('pulse_after_treatment')
+                                        ->label('Pulses after treatment')
+                                        ->content(fn ($record) => $record?->acupunctureEncounter?->pulse_after_treatment ?? '—')
+                                        ->visibleOn('view')
+                                        ->columnSpanFull(),
+
+                                    Textarea::make('acupunctureEncounter.pulse_after_treatment')
+                                        ->label('Pulses after treatment')
+                                        ->helperText('Record what changed after treatment. Example: K +, Sp =, Ht =, PC =; St +, GB +. Overall more even.')
+                                        ->rows(3)
+                                        ->visibleOn('edit')
+                                        ->columnSpanFull(),
+
+                                    Placeholder::make('pulse_change_interpretation')
+                                        ->label('Pulse change / interpretation')
+                                        ->content(fn ($record) => $record?->acupunctureEncounter?->pulse_change_interpretation ?? '—')
+                                        ->visibleOn('view')
+                                        ->columnSpanFull(),
+
+                                    Textarea::make('acupunctureEncounter.pulse_change_interpretation')
+                                        ->label('Pulse change / interpretation')
+                                        ->helperText('Note whether the pulses became more even, which officials changed, and which remained unchanged.')
+                                        ->rows(3)
+                                        ->visibleOn('edit')
+                                        ->columnSpanFull(),
                                 ]),
 
                             Section::make('Treatment Details')
