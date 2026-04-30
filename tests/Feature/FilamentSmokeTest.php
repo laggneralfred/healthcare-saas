@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Filament\Pages\CommunicationsDashboard;
 use App\Filament\Pages\DashboardPage;
+use App\Filament\Pages\ExportDataPage;
 use App\Filament\Pages\FrontDeskDashboard;
 use App\Filament\Pages\SchedulePage;
 use App\Models\ActivityLog;
@@ -187,6 +188,8 @@ class FilamentSmokeTest extends TestCase
         $this->assertSame('Calendar', SchedulePage::getNavigationGroup());
         $this->assertSame('Reports', DashboardPage::getNavigationLabel());
         $this->assertSame('Reports', DashboardPage::getNavigationGroup());
+        $this->assertSame('Exports', ExportDataPage::getNavigationLabel());
+        $this->assertSame('Reports', ExportDataPage::getNavigationGroup());
         $this->assertSame('Follow-Up', CommunicationsDashboard::getNavigationLabel());
         $this->assertSame('Follow-Up', CommunicationsDashboard::getNavigationGroup());
 

@@ -5,6 +5,9 @@ namespace Database\Seeders;
 use App\Models\Appointment;
 use App\Models\AppointmentRequest;
 use App\Models\AppointmentType;
+use App\Models\CheckoutLine;
+use App\Models\CheckoutPayment;
+use App\Models\CheckoutSession;
 use App\Models\Encounter;
 use App\Models\MessageLog;
 use App\Models\Patient;
@@ -12,10 +15,12 @@ use App\Models\PatientCommunication;
 use App\Models\PatientCommunicationPreference;
 use App\Models\Practice;
 use App\Models\Practitioner;
+use App\Models\ServiceFee;
 use App\Models\States\Appointment\Cancelled;
 use App\Models\States\Appointment\Completed;
 use App\Models\States\Appointment\NoShow;
 use App\Models\States\Appointment\Scheduled;
+use App\Models\States\CheckoutSession\Open;
 use App\Models\User;
 use App\Support\PracticeAccessRoles;
 use Illuminate\Database\Seeder;
@@ -35,6 +40,8 @@ class LocalFollowUpWorkflowSeeder extends Seeder
     private User $admin;
     private Practitioner $practitioner;
     private AppointmentType $followUpType;
+    private array $appointmentTypes = [];
+    private array $serviceFees = [];
     private array $patients = [];
     private array $requestLinks = [];
 
@@ -47,6 +54,7 @@ class LocalFollowUpWorkflowSeeder extends Seeder
         DB::transaction(function (): void {
             $this->setupPracticeAndUsers();
             $this->clearExistingLocalWorkflowData();
+            $this->seedServiceFees();
             $this->setupAppointmentTypes();
             $this->seedPatients();
             $this->seedCareStatusScenarios();
@@ -111,6 +119,20 @@ class LocalFollowUpWorkflowSeeder extends Seeder
 
     private function clearExistingLocalWorkflowData(): void
     {
+        $checkoutSessionIds = CheckoutSession::withoutPracticeScope()
+            ->where('practice_id', $this->practice->id)
+            ->pluck('id');
+
+        CheckoutPayment::withoutPracticeScope()
+            ->whereIn('checkout_session_id', $checkoutSessionIds)
+            ->delete();
+        CheckoutLine::withoutPracticeScope()
+            ->whereIn('checkout_session_id', $checkoutSessionIds)
+            ->delete();
+        CheckoutSession::withoutPracticeScope()
+            ->where('practice_id', $this->practice->id)
+            ->delete();
+
         AppointmentRequest::withoutPracticeScope()->where('practice_id', $this->practice->id)->delete();
         MessageLog::withoutPracticeScope()->where('practice_id', $this->practice->id)->delete();
         PatientCommunication::withoutPracticeScope()->where('practice_id', $this->practice->id)->delete();
@@ -120,18 +142,59 @@ class LocalFollowUpWorkflowSeeder extends Seeder
         Patient::withoutPracticeScope()->where('practice_id', $this->practice->id)->delete();
     }
 
+    private function seedServiceFees(): void
+    {
+        $fees = [
+            'Initial Acupuncture Visit' => ['125.00', 'Longer first visit for intake, assessment, and treatment.'],
+            'Follow-Up Acupuncture Visit' => ['95.00', 'Standard follow-up acupuncture treatment.'],
+            'Five Element Acupuncture Treatment' => ['110.00', 'Five Element acupuncture treatment visit.'],
+            'Herbal Consultation' => ['65.00', 'Focused herbal consultation or formula review.'],
+            'Moxa / Adjunctive Treatment' => ['45.00', 'Adjunctive moxa or supportive treatment.'],
+            'Cupping Add-on' => ['35.00', 'Cupping added to a visit when appropriate.'],
+            'Wellness Consultation' => ['85.00', 'General wellness consultation visit.'],
+        ];
+
+        foreach ($fees as $name => [$price, $description]) {
+            $this->serviceFees[$name] = ServiceFee::withoutPracticeScope()->updateOrCreate(
+                [
+                    'practice_id' => $this->practice->id,
+                    'name' => $name,
+                ],
+                [
+                    'short_description' => $description,
+                    'default_price' => $price,
+                    'is_active' => true,
+                ],
+            );
+        }
+    }
+
     private function setupAppointmentTypes(): void
     {
-        $this->followUpType = AppointmentType::withoutPracticeScope()->updateOrCreate(
-            [
-                'practice_id' => $this->practice->id,
-                'name' => 'Local Follow-Up Visit',
-            ],
-            [
-                'duration_minutes' => 45,
-                'is_active' => true,
-            ],
-        );
+        $types = [
+            'initial_acupuncture' => ['Initial Acupuncture Visit', 75, 'Initial Acupuncture Visit'],
+            'follow_up_acupuncture' => ['Follow-Up Acupuncture Visit', 45, 'Follow-Up Acupuncture Visit'],
+            'five_element' => ['Five Element Acupuncture Treatment', 60, 'Five Element Acupuncture Treatment'],
+            'herbal_consultation' => ['Herbal Consultation', 30, 'Herbal Consultation'],
+            'wellness_consultation' => ['Wellness Consultation', 45, 'Wellness Consultation'],
+            'local_follow_up' => ['Local Follow-Up Visit', 45, 'Follow-Up Acupuncture Visit'],
+        ];
+
+        foreach ($types as $key => [$name, $duration, $feeName]) {
+            $this->appointmentTypes[$key] = AppointmentType::withoutPracticeScope()->updateOrCreate(
+                [
+                    'practice_id' => $this->practice->id,
+                    'name' => $name,
+                ],
+                [
+                    'duration_minutes' => $duration,
+                    'is_active' => true,
+                    'default_service_fee_id' => $this->serviceFees[$feeName]->id,
+                ],
+            );
+        }
+
+        $this->followUpType = $this->appointmentTypes['local_follow_up'];
     }
 
     private function seedPatients(): void
@@ -155,6 +218,8 @@ class LocalFollowUpWorkflowSeeder extends Seeder
             ['No Email Test Patient', Patient::LANGUAGE_ENGLISH, null],
             ['Opted Out Test Patient', Patient::LANGUAGE_ENGLISH, self::TEST_EMAIL],
             ['Mobile Visit Note Patient', Patient::LANGUAGE_ENGLISH, self::TEST_EMAIL],
+            ['Checkout Service Fee Patient', Patient::LANGUAGE_ENGLISH, self::TEST_EMAIL],
+            ['Five Element Fee Patient', Patient::LANGUAGE_ENGLISH, self::TEST_EMAIL],
         ];
 
         foreach ($patients as [$name, $language, $email]) {
@@ -206,6 +271,16 @@ class LocalFollowUpWorkflowSeeder extends Seeder
         $this->createCompletedVisit('Other Language Patient', daysAgo: 75, note: 'Patient may benefit from maintenance care follow-up.');
         $this->createCompletedVisit('No Email Test Patient', daysAgo: 38, note: 'Eligible follow-up patient without email on file.');
         $this->createCompletedVisit('Opted Out Test Patient', daysAgo: 39, note: 'Eligible follow-up patient with email opt-out enabled.');
+        $this->createCheckoutReadyVisit(
+            'Checkout Service Fee Patient',
+            $this->appointmentTypes['follow_up_acupuncture'],
+            'Checkout-ready follow-up visit with a seeded default service fee.'
+        );
+        $this->createCheckoutReadyVisit(
+            'Five Element Fee Patient',
+            $this->appointmentTypes['five_element'],
+            'Five Element checkout-ready visit with a seeded default service fee.'
+        );
 
         $appointment = $this->createFutureAppointment('Mobile Visit Note Patient', daysFromNow: 0, hour: 15);
         Encounter::withoutPracticeScope()->create([
@@ -233,23 +308,24 @@ class LocalFollowUpWorkflowSeeder extends Seeder
         $this->createFreshRequestLink('Spanish Followup Patient');
     }
 
-    private function createCompletedVisit(string $patientName, int $daysAgo, string $note): void
+    private function createCompletedVisit(string $patientName, int $daysAgo, string $note, ?AppointmentType $appointmentType = null): Encounter
     {
         $patient = $this->patients[$patientName];
+        $appointmentType ??= $this->followUpType;
         $start = now($this->practice->timezone)->subDays($daysAgo)->setTime(10, 0);
 
         $appointment = Appointment::withoutPracticeScope()->create([
             'practice_id' => $this->practice->id,
             'patient_id' => $patient->id,
             'practitioner_id' => $this->practitioner->id,
-            'appointment_type_id' => $this->followUpType->id,
+            'appointment_type_id' => $appointmentType->id,
             'status' => Completed::$name,
             'start_datetime' => $start,
-            'end_datetime' => $start->copy()->addMinutes(45),
+            'end_datetime' => $start->copy()->addMinutes($appointmentType->duration_minutes),
             'notes' => $note,
         ]);
 
-        Encounter::withoutPracticeScope()->create([
+        return Encounter::withoutPracticeScope()->create([
             'practice_id' => $this->practice->id,
             'patient_id' => $patient->id,
             'appointment_id' => $appointment->id,
@@ -265,6 +341,34 @@ class LocalFollowUpWorkflowSeeder extends Seeder
             'plan' => 'Recommend gentle follow-up and home care as appropriate.',
             'visit_notes' => $note,
         ]);
+    }
+
+    private function createCheckoutReadyVisit(string $patientName, AppointmentType $appointmentType, string $note): void
+    {
+        $encounter = $this->createCompletedVisit($patientName, daysAgo: 1, note: $note, appointmentType: $appointmentType);
+        $appointment = $encounter->appointment()->with('appointmentType.defaultServiceFee')->firstOrFail();
+        $serviceFee = $appointment->appointmentType?->defaultServiceFee;
+
+        $checkout = CheckoutSession::withoutPracticeScope()->create([
+            'practice_id' => $this->practice->id,
+            'appointment_id' => $appointment->id,
+            'encounter_id' => $encounter->id,
+            'patient_id' => $encounter->patient_id,
+            'practitioner_id' => $encounter->practitioner_id,
+            'state' => Open::$name,
+            'charge_label' => $appointmentType->name,
+            'notes' => 'Local demo checkout session with seeded service fee line.',
+        ]);
+
+        if ($serviceFee) {
+            CheckoutLine::withoutPracticeScope()->create([
+                'checkout_session_id' => $checkout->id,
+                'practice_id' => $this->practice->id,
+                'sequence' => 1,
+                'line_type' => CheckoutLine::TYPE_SERVICE,
+                'service_fee_id' => $serviceFee->id,
+            ]);
+        }
     }
 
     private function createFutureAppointment(string $patientName, int $daysFromNow, int $hour = 11): Appointment

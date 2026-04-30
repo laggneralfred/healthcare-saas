@@ -54,6 +54,7 @@
             "@php artisan config:clear --ansi",
             "@php artisan test"
         ],
+        "test:feature": "bash scripts/test-feature-suite.sh",
         "post-autoload-dump": [
             "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
             "@php artisan package:discover --ansi",
