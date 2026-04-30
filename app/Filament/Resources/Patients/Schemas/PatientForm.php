@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Patients\Schemas;
 
+use App\Models\Patient;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Select;
@@ -64,6 +65,12 @@ class PatientForm
                             ->label('Pronouns')
                             ->placeholder('e.g. He/Him, She/Her, They/Them')
                             ->maxLength(50)
+                            ->columnSpan(2),
+                        Select::make('preferred_language')
+                            ->label('Preferred Language')
+                            ->options(Patient::LANGUAGE_OPTIONS)
+                            ->default(Patient::LANGUAGE_ENGLISH)
+                            ->helperText('Used for reminders, follow-ups, and patient-facing messages.')
                             ->columnSpan(2),
                     ])
                     ->columns(2)

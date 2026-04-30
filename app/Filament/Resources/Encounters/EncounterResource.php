@@ -35,7 +35,7 @@ class EncounterResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedClipboardDocument;
 
-    protected static string|\UnitEnum|null $navigationGroup = 'Patients';
+    protected static string|\UnitEnum|null $navigationGroup = 'Visits';
 
     protected static ?int $navigationGroupSort = 2;
 

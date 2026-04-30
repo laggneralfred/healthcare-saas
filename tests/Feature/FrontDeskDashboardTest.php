@@ -7,6 +7,7 @@ use App\Filament\Resources\CheckoutSessions\CheckoutSessionResource;
 use App\Filament\Resources\Encounters\EncounterResource;
 use App\Mail\BookingConfirmationMail;
 use App\Models\Appointment;
+use App\Models\AppointmentRequest;
 use App\Models\AppointmentType;
 use App\Models\CheckoutPayment;
 use App\Models\CheckoutSession;
@@ -49,6 +50,7 @@ class FrontDeskDashboardTest extends TestCase
             'practice_id' => $practice->id,
             'first_name' => 'Current',
             'last_name' => 'Patient',
+            'preferred_language' => 'es',
         ]);
         $otherPatient = Patient::factory()->create([
             'practice_id' => $otherPractice->id,
@@ -68,7 +70,108 @@ class FrontDeskDashboardTest extends TestCase
         Livewire::test(FrontDeskDashboard::class)
             ->assertSee('Today’s Schedule')
             ->assertSee('Current Patient')
+            ->assertSee('Care Status: Active')
+            ->assertSee('Spanish')
             ->assertDontSee('Other Practice');
+    }
+
+    public function test_front_desk_dashboard_shows_pending_appointment_requests(): void
+    {
+        [$practice, $admin] = $this->practiceWithAdmin();
+        $patient = Patient::factory()->create([
+            'practice_id' => $practice->id,
+            'first_name' => 'Nora',
+            'last_name' => 'Request',
+            'name' => 'Nora Request',
+        ]);
+
+        AppointmentRequest::withoutPracticeScope()->create([
+            'practice_id' => $practice->id,
+            'patient_id' => $patient->id,
+            'token_hash' => hash('sha256', 'front-desk-token'),
+            'status' => AppointmentRequest::STATUS_PENDING,
+            'preferred_times' => 'Tuesday morning or Thursday after 2',
+            'note' => 'Prefers late afternoon if possible.',
+            'submitted_at' => now(),
+        ]);
+
+        $this->actingAs($admin);
+
+        Livewire::test(FrontDeskDashboard::class)
+            ->assertSee('Appointment Requests')
+            ->assertSee('These patients requested a follow-up. Review their preferences and schedule manually.')
+            ->assertSee('Nora Request')
+            ->assertSee('Tuesday morning or Thursday after 2')
+            ->assertSee('Prefers late afternoon if possible.')
+            ->assertSee('Appointment requests')
+            ->assertSee('View Request')
+            ->assertSee('Mark Contacted')
+            ->assertSee('Mark Scheduled')
+            ->assertSee('Dismiss')
+            ->assertSee('Create Appointment');
+    }
+
+    public function test_front_desk_appointment_request_status_actions_hide_request_from_pending_list(): void
+    {
+        [$practice, $admin] = $this->practiceWithAdmin();
+        $contactedPatient = Patient::factory()->create(['practice_id' => $practice->id, 'first_name' => 'Cora', 'last_name' => 'Contacted']);
+        $scheduledPatient = Patient::factory()->create(['practice_id' => $practice->id, 'first_name' => 'Sam', 'last_name' => 'Scheduled']);
+        $dismissedPatient = Patient::factory()->create(['practice_id' => $practice->id, 'first_name' => 'Dana', 'last_name' => 'Dismissed']);
+
+        $contacted = $this->appointmentRequestFor($practice, $contactedPatient, 'Cora wants Wednesday');
+        $scheduled = $this->appointmentRequestFor($practice, $scheduledPatient, 'Sam wants Thursday');
+        $dismissed = $this->appointmentRequestFor($practice, $dismissedPatient, 'Dana wants Friday');
+
+        $this->actingAs($admin);
+
+        $component = Livewire::test(FrontDeskDashboard::class)
+            ->assertSee('Cora Contacted')
+            ->assertSee('Sam Scheduled')
+            ->assertSee('Dana Dismissed');
+
+        $component
+            ->call('markAppointmentRequestContacted', $contacted->id)
+            ->call('markAppointmentRequestScheduled', $scheduled->id)
+            ->call('dismissAppointmentRequest', $dismissed->id)
+            ->assertDontSee('Cora wants Wednesday')
+            ->assertDontSee('Sam wants Thursday')
+            ->assertDontSee('Dana wants Friday');
+
+        $this->assertSame(AppointmentRequest::STATUS_CONTACTED, $contacted->refresh()->status);
+        $this->assertSame(AppointmentRequest::STATUS_SCHEDULED, $scheduled->refresh()->status);
+        $this->assertSame(AppointmentRequest::STATUS_DISMISSED, $dismissed->refresh()->status);
+    }
+
+    public function test_front_desk_appointment_request_actions_are_practice_scoped(): void
+    {
+        [$practice, $admin] = $this->practiceWithAdmin();
+        $otherPractice = Practice::factory()->create(['timezone' => 'UTC']);
+        $otherPatient = Patient::factory()->create(['practice_id' => $otherPractice->id]);
+        $otherRequest = $this->appointmentRequestFor($otherPractice, $otherPatient, 'Other practice request');
+
+        $this->actingAs($admin);
+
+        Livewire::test(FrontDeskDashboard::class)
+            ->assertDontSee('Other practice request')
+            ->call('markAppointmentRequestScheduled', $otherRequest->id);
+
+        $this->assertSame(AppointmentRequest::STATUS_PENDING, $otherRequest->refresh()->status);
+    }
+
+    public function test_front_desk_create_appointment_link_prefills_request_patient(): void
+    {
+        [$practice, $admin] = $this->practiceWithAdmin();
+        $patient = Patient::factory()->create(['practice_id' => $practice->id]);
+        $request = $this->appointmentRequestFor($practice, $patient, 'Any afternoon');
+
+        $this->actingAs($admin);
+
+        $url = Livewire::test(FrontDeskDashboard::class)
+            ->instance()
+            ->createAppointmentUrl($request);
+
+        $this->assertStringContainsString('/appointments/create', $url);
+        $this->assertStringContainsString('patient_id=' . $patient->id, $url);
     }
 
     public function test_front_desk_dashboard_is_available_to_operations_roles_not_practitioners(): void
@@ -553,5 +656,17 @@ class FrontDeskDashboardTest extends TestCase
         }
 
         return $appointment;
+    }
+
+    private function appointmentRequestFor(Practice $practice, Patient $patient, string $preferredTimes): AppointmentRequest
+    {
+        return AppointmentRequest::withoutPracticeScope()->create([
+            'practice_id' => $practice->id,
+            'patient_id' => $patient->id,
+            'token_hash' => hash('sha256', $preferredTimes . $patient->id),
+            'status' => AppointmentRequest::STATUS_PENDING,
+            'preferred_times' => $preferredTimes,
+            'submitted_at' => now(),
+        ]);
     }
 }

@@ -193,6 +193,48 @@ HTML);
 HTML);
     }
 
+    private static function renderMobileVisitNoteStyles(): HtmlString
+    {
+        return new HtmlString(<<<HTML
+<style>
+    textarea.practiq-visit-note-field,
+    textarea.practiq-soap-note-field {
+        font-size: 1rem;
+        line-height: 1.7;
+    }
+
+    @media (max-width: 768px) {
+        .practiq-encounter-main {
+            order: -1;
+        }
+
+        .practiq-encounter-sidebar {
+            order: 1;
+        }
+
+        textarea.practiq-visit-note-field {
+            min-height: 62vh;
+            padding: 1rem;
+        }
+
+        textarea.practiq-soap-note-field {
+            min-height: 9rem;
+            padding: 0.875rem;
+        }
+    }
+</style>
+HTML);
+    }
+
+    private static function renderDictationTip(): HtmlString
+    {
+        return new HtmlString(<<<HTML
+<div class="rounded-lg border border-sky-100 bg-sky-50 px-3 py-2 text-sm leading-6 text-sky-900 dark:border-sky-900/60 dark:bg-sky-950/30 dark:text-sky-100">
+    Tip: On your phone, tap the microphone on your keyboard to dictate your note.
+</div>
+HTML);
+    }
+
     private static function simpleNoteAssist(): array
     {
         return [
@@ -337,6 +379,8 @@ HTML);
     public static function configure(Schema $schema): Schema
     {
         return $schema->components([
+            Html::make(fn (): HtmlString => self::renderMobileVisitNoteStyles())
+                ->columnSpanFull(),
             Hidden::make('practice_id')
                 ->default(fn () => PracticeContext::currentPracticeId()),
             Hidden::make('appointment_id'),
@@ -359,6 +403,7 @@ HTML);
                 'lg' => 4,
             ])->columnSpanFull()->schema([
                 Grid::make(1)
+                    ->extraAttributes(['class' => 'practiq-encounter-sidebar'])
                     ->columnSpan([
                         'default' => 1,
                         'lg' => 1,
@@ -445,6 +490,7 @@ HTML);
                     ]),
 
                 Tabs::make('Visit Documentation')
+                    ->extraAttributes(['class' => 'practiq-encounter-main'])
                     ->columnSpan([
                         'default' => 1,
                         'lg' => 3,
@@ -456,16 +502,22 @@ HTML);
                                 ->visible(fn (?Encounter $record = null): bool => self::simpleVisitNoteMode($record))
                                 ->schema([
                                     Html::make(fn (): HtmlString => self::renderModeIndicator(false)),
+                                    Html::make(fn (): HtmlString => self::renderDictationTip())
+                                        ->hiddenOn('view')
+                                        ->columnSpanFull(),
                                     Textarea::make('visit_note_document')
                                         ->label('Visit Note')
-                                        ->helperText('Changes are saved when you click Save Note.')
+                                        ->helperText('Write naturally first. You can organize or improve the note later. Changes are saved when you click Save Note.')
                                         ->default(fn (Get $get, ?Encounter $record = null): string => EncounterNoteDocument::template(self::currentPracticeType(
                                             $record,
                                             $get('practitioner_id') ? (int) $get('practitioner_id') : null,
                                         )))
                                         ->rows(24)
                                         ->extraInputAttributes([
-                                            'class' => 'text-base leading-7 px-5 py-4 bg-white dark:bg-gray-950 font-normal',
+                                            'class' => 'practiq-visit-note-field text-base leading-7 px-5 py-4 bg-white dark:bg-gray-950 font-normal',
+                                            'autocomplete' => 'off',
+                                            'autocapitalize' => 'sentences',
+                                            'spellcheck' => 'true',
                                         ])
                                         ->columnSpanFull()
                                         ->disabledOn('view'),
@@ -492,32 +544,38 @@ HTML);
                                     Textarea::make('chief_complaint')
                                         ->label('Chief Complaint')
                                         ->rows(2)
+                                        ->extraInputAttributes(['class' => 'practiq-soap-note-field'])
                                         ->required()
                                         ->disabledOn('view'),
                                     Textarea::make('subjective')
                                         ->label(self::aiAssistedLabel('Subjective', 'subjective'))
                                         ->rows(6)
+                                        ->extraInputAttributes(['class' => 'practiq-soap-note-field'])
                                         ->disabledOn('view'),
                                     ...self::aiFieldAssist('subjective'),
                                     Textarea::make('objective')
                                         ->label(self::aiAssistedLabel('Objective', 'objective'))
                                         ->rows(6)
+                                        ->extraInputAttributes(['class' => 'practiq-soap-note-field'])
                                         ->disabledOn('view'),
                                     ...self::aiFieldAssist('objective'),
                                     Textarea::make('assessment')
                                         ->label(self::aiAssistedLabel('Assessment', 'assessment'))
                                         ->rows(6)
+                                        ->extraInputAttributes(['class' => 'practiq-soap-note-field'])
                                         ->disabledOn('view'),
                                     ...self::aiFieldAssist('assessment'),
                                     Textarea::make('plan')
                                         ->label(self::aiAssistedLabel('Plan', 'plan'))
                                         ->rows(6)
+                                        ->extraInputAttributes(['class' => 'practiq-soap-note-field'])
                                         ->columnSpanFull()
                                         ->disabledOn('view'),
                                     ...self::aiFieldAssist('plan'),
                                     Textarea::make('visit_notes')
                                         ->label(self::aiAssistedLabel('General Visit Note (Optional)', 'visit_notes'))
                                         ->rows(5)
+                                        ->extraInputAttributes(['class' => 'practiq-soap-note-field'])
                                         ->columnSpanFull()
                                         ->disabledOn('view'),
                                     ...self::aiFieldAssist('visit_notes'),
@@ -583,7 +641,10 @@ HTML);
                                     TextInput::make('acupunctureEncounter.zang_fu_diagnosis')
                                         ->label('Zang-Fu Diagnosis')
                                         ->visibleOn('edit'),
-                                ])->columns(2),
+                                ])->columns([
+                                    'default' => 1,
+                                    'md' => 2,
+                                ]),
 
                             Section::make('Treatment Details')
                                 ->schema([
@@ -618,7 +679,10 @@ HTML);
                                         ->rows(3)
                                         ->visibleOn('edit')
                                         ->columnSpanFull(),
-                                ])->columns(2),
+                                ])->columns([
+                                    'default' => 1,
+                                    'md' => 2,
+                                ]),
                         ])->visible(fn ($record) => $record?->discipline === 'acupuncture'),
 
                         Tab::make('Massage')->schema([

@@ -23,9 +23,9 @@ class ServiceFeeResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedCurrencyDollar;
 
-    protected static string|\UnitEnum|null $navigationGroup = 'Billing';
+    protected static string|\UnitEnum|null $navigationGroup = 'Checkout';
 
-    protected static ?int $navigationGroupSort = 41;
+    protected static ?int $navigationGroupSort = 60;
 
     protected static ?int $navigationSort = 2;
 

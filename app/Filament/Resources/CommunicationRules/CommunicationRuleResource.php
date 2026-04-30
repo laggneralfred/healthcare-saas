@@ -22,8 +22,10 @@ class CommunicationRuleResource extends Resource
 
     protected static ?string $model = CommunicationRule::class;
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedClock;
-    protected static string|\UnitEnum|null $navigationGroup = 'Communications';
-    protected static ?int $navigationGroupSort = 21;
+    protected static string|\UnitEnum|null $navigationGroup = 'Follow-Up';
+    protected static ?int $navigationGroupSort = 50;
+
+    protected static ?string $navigationLabel = 'Follow-Up Rules';
     protected static ?int $navigationSort = 2;
 
     public static function form(Schema $schema): Schema

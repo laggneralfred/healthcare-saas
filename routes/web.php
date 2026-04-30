@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\PracticeSwitchController;
 use App\Http\Controllers\StripeWebhookController;
+use App\Livewire\Public\AppointmentRequestForm;
 use App\Livewire\Public\BookingCalendar;
 use App\Livewire\Public\ConsentForm;
 use App\Livewire\Public\IntakeForm;
@@ -10,6 +11,7 @@ use App\Models\Appointment;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Services\PatientCareStatusService;
 use App\Services\PracticeContext;
 
 Route::get('/', function () {
@@ -38,6 +40,7 @@ Route::get('/book/{practice:slug}', BookingCalendar::class)->name('booking.show'
 // Public token-based forms — no authentication required
 Route::get('/intake/{token}', IntakeForm::class)->name('intake.show');
 Route::get('/consent/{token}', ConsentForm::class)->name('consent.show');
+Route::get('/appointment-request/{token}', AppointmentRequestForm::class)->name('appointment-request.show');
 
 // Public trial registration — no authentication required
 use App\Http\Controllers\RegistrationController;
@@ -92,15 +95,25 @@ Route::get('/admin/calendar/events', function (Request $request) {
         'no_show'     => '#9ca3af',
     ];
 
+    $careStatusService = app(PatientCareStatusService::class);
+
     $events = Appointment::where('practice_id', $practiceId)
         ->whereNotIn('status', ['cancelled'])
         ->whereBetween('start_datetime', [$start, $end])
-        ->with(['patient', 'practitioner.user', 'appointmentType'])
+        ->with([
+            'patient.appointments',
+            'patient.encounters',
+            'practitioner.user',
+            'appointmentType',
+        ])
         ->get()
-        ->map(function ($appt) use ($statusColors, $timezone) {
+        ->map(function ($appt) use ($careStatusService, $statusColors, $timezone) {
             $patientName      = $appt->patient?->full_name ?: $appt->patient?->name ?? 'Unknown';
             $practitionerName = $appt->practitioner?->user?->name ?? '';
             $statusKey        = $appt->getRawOriginal('status') ?? 'scheduled';
+            $careStatus       = $appt->patient
+                ? $careStatusService->forPatient($appt->patient)
+                : null;
 
             return [
                 'id'    => $appt->id,
@@ -115,6 +128,12 @@ Route::get('/admin/calendar/events', function (Request $request) {
                 'extendedProps' => [
                     'status'          => $statusKey,
                     'appointmentType' => $appt->appointmentType?->name ?? '',
+                    'care_status_key' => $careStatus['key'] ?? null,
+                    'care_status_label' => $careStatus['label'] ?? null,
+                    'care_status_color' => $careStatus['color'] ?? null,
+                    'care_status_helper' => $careStatus['helper'] ?? null,
+                    'preferred_language' => $appt->patient?->preferred_language,
+                    'preferred_language_label' => $appt->patient?->preferred_language_label,
                 ],
             ];
         });

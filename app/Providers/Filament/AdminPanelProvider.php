@@ -144,11 +144,13 @@ HTML;
                 AccountWidget::class,
             ])
             ->navigationGroups([
+                NavigationGroup::make('Today'),
+                NavigationGroup::make('Calendar'),
                 NavigationGroup::make('Patients'),
-                NavigationGroup::make('Schedule'),
-                NavigationGroup::make('Communications'),
-                NavigationGroup::make('Inventory'),
-                NavigationGroup::make('Billing'),
+                NavigationGroup::make('Visits'),
+                NavigationGroup::make('Follow-Up'),
+                NavigationGroup::make('Checkout'),
+                NavigationGroup::make('Reports'),
                 NavigationGroup::make('Settings'),
             ])
             ->middleware([

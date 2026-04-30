@@ -21,9 +21,11 @@ class InventoryMovementResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
 
-    protected static string|\UnitEnum|null $navigationGroup = 'Inventory';
+    protected static string|\UnitEnum|null $navigationGroup = 'Checkout';
 
-    protected static ?int $navigationGroupSort = 31;
+    protected static ?int $navigationGroupSort = 60;
+
+    protected static ?string $navigationLabel = 'Stock Movements';
 
     protected static ?int $navigationSort = 2;
 

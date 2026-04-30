@@ -12,16 +12,16 @@ use Filament\Support\Icons\Heroicon;
 class SchedulePage extends Page
 {
     protected static ?string               $slug            = 'schedule';
-    protected static ?string               $title           = 'Schedule';
-    protected static ?string               $navigationLabel = 'Calendar View';
+    protected static ?string               $title           = 'Calendar';
+    protected static ?string               $navigationLabel = 'Calendar';
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedCalendarDays;
-    protected static string|\UnitEnum|null  $navigationGroup = 'Schedule';
+    protected static string|\UnitEnum|null  $navigationGroup = 'Calendar';
     protected static ?int                  $navigationSort  = 0;
     protected string $view = 'filament.pages.schedule';
 
     public function getTitle(): string
     {
-        return 'Schedule';
+        return 'Calendar';
     }
 
     protected function getHeaderActions(): array

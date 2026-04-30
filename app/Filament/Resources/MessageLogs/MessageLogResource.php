@@ -18,8 +18,10 @@ class MessageLogResource extends Resource
 
     protected static ?string $model = MessageLog::class;
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedEnvelope;
-    protected static string|\UnitEnum|null $navigationGroup = 'Communications';
-    protected static ?int $navigationGroupSort = 22;
+    protected static string|\UnitEnum|null $navigationGroup = 'Follow-Up';
+    protected static ?int $navigationGroupSort = 50;
+
+    protected static ?string $navigationLabel = 'Message History';
     protected static ?int $navigationSort = 3;
 
     public static function form(Schema $schema): Schema

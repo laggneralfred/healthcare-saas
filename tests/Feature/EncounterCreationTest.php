@@ -334,6 +334,7 @@ it('shows reset template in simple visit note mode only', function () {
     Livewire::test(CreateEncounter::class)
         ->assertSee('Reset Template')
         ->assertSee('Changes are saved when you click Save Note.')
+        ->assertSee('Tip: On your phone, tap the microphone on your keyboard to dictate your note.')
         ->assertDontSee('Note Provenance')
         ->assertDontSee('Original Source')
         ->assertDontSee('Final Practitioner Note')
@@ -346,6 +347,7 @@ it('shows reset template in simple visit note mode only', function () {
 
     Livewire::test(CreateEncounter::class)
         ->assertDontSee('Reset Template')
+        ->assertDontSee('Tip: On your phone, tap the microphone on your keyboard to dictate your note.')
         ->assertSee('Insurance SOAP Note');
 });
 

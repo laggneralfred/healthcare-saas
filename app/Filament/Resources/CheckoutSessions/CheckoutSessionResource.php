@@ -24,9 +24,11 @@ class CheckoutSessionResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedShoppingCart;
 
-    protected static string|\UnitEnum|null $navigationGroup = 'Billing';
+    protected static string|\UnitEnum|null $navigationGroup = 'Checkout';
 
-    protected static ?int $navigationGroupSort = 40;
+    protected static ?int $navigationGroupSort = 60;
+
+    protected static ?string $navigationLabel = 'Checkout';
 
     protected static ?int $navigationSort = 1;
 

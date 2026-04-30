@@ -22,9 +22,9 @@ class PracticePaymentMethodResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedCreditCard;
 
-    protected static string|\UnitEnum|null $navigationGroup = 'Billing';
+    protected static string|\UnitEnum|null $navigationGroup = 'Checkout';
 
-    protected static ?int $navigationGroupSort = 40;
+    protected static ?int $navigationGroupSort = 60;
 
     protected static ?int $navigationSort = 3;
 

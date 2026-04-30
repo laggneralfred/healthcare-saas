@@ -29,6 +29,7 @@ class ImportPatients extends Page
     protected static ?string $title = 'Import Patients';
     protected static ?string $navigationLabel = 'Import Patients';
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedArrowUp;
+    protected static string|\UnitEnum|null $navigationGroup = 'Settings';
     protected static bool $shouldRegisterNavigation = true;
     protected static ?int $navigationSort = 50;
 

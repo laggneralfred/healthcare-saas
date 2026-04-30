@@ -31,7 +31,7 @@
 {{-- Header --}}
 <div style="background:#ffffff;border:1px solid #e2e8f0;border-radius:0.75rem;padding:1.5rem 2rem;margin-bottom:1.5rem;">
     <p style="margin:0;font-size:1.75rem;font-weight:700;color:#0f172a;">{{ $practice->name }}</p>
-    <p style="margin:0.25rem 0 0;font-size:0.875rem;color:#64748b;">Dashboard &mdash; {{ now()->format('F Y') }}</p>
+    <p style="margin:0.25rem 0 0;font-size:0.875rem;color:#64748b;">Reports &mdash; {{ now()->format('F Y') }}</p>
 </div>
 
 {{-- Today's Schedule Widget --}}

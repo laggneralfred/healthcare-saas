@@ -29,6 +29,7 @@ class PatientFactory extends Factory
             'dob'                              => $faker->dateTimeBetween('-80 years', '-18 years')->format('Y-m-d'),
             'gender'                           => $faker->randomElement(['Male', 'Female', 'Other', 'Prefer not to say']),
             'pronouns'                         => $faker->optional(0.3)->randomElement(['He/Him', 'She/Her', 'They/Them', 'He/They', 'She/They']),
+            'preferred_language'               => 'en',
             'address_line_1'                   => $faker->streetAddress(),
             'address_line_2'                   => $faker->optional(0.3)->secondaryAddress(),
             'city'                             => $faker->city(),

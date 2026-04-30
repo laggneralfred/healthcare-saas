@@ -17,9 +17,10 @@ use Illuminate\Support\Number;
 class DashboardPage extends Page
 {
     protected static ?string                    $slug                     = 'dashboard';
-    protected static ?string                    $title                    = 'Dashboard';
-    protected static ?string                    $navigationLabel          = 'Dashboard';
+    protected static ?string                    $title                    = 'Reports';
+    protected static ?string                    $navigationLabel          = 'Reports';
     protected static string|BackedEnum|null     $navigationIcon           = Heroicon::OutlinedHome;
+    protected static string|\UnitEnum|null      $navigationGroup          = 'Reports';
     protected static bool                       $shouldRegisterNavigation = true;
     protected static ?int                       $navigationSort           = -1;
     protected string $view = 'filament.pages.dashboard';

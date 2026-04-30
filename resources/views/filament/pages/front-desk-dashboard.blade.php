@@ -4,9 +4,13 @@
             No practice selected. Use the practice switcher in the top bar.
         </div>
     @else
+        <div style="margin-bottom:16px;">
+            <p style="margin:0;font-size:13px;color:#6b7280;">Here is what needs your attention today.</p>
+        </div>
+
         <div style="background:#ffffff;border:1px solid #e5e7eb;border-radius:8px;padding:16px;margin-bottom:16px;">
             <h2 style="margin:0 0 12px;font-size:16px;font-weight:700;color:#111827;">Alerts</h2>
-            <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;">
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;">
                 @foreach($alerts as $alert)
                     <div style="border:1px solid #e5e7eb;border-radius:8px;padding:14px;">
                         <div style="font-size:12px;font-weight:600;color:#6b7280;text-transform:uppercase;">{{ $alert['label'] }}</div>
@@ -35,12 +39,24 @@
                         </thead>
                         <tbody>
                             @forelse($todayAppointments as $appointment)
+                                @php
+                                    $careStatus = $this->careStatusForAppointment($appointment);
+                                    $language = $appointment->patient?->preferred_language ?? 'en';
+                                @endphp
                                 <tr style="border-top:1px solid #f3f4f6;">
                                     <td style="padding:11px 14px;color:#111827;">{{ $appointment->start_datetime?->format('g:i A') ?? '—' }}</td>
                                     <td style="padding:11px 14px;color:#111827;">
                                         <a href="{{ $this->patientUrl($appointment->patient) }}" style="color:#111827;font-weight:600;text-decoration:none;">
                                             {{ $appointment->patient?->name ?? 'Patient' }}
                                         </a>
+                                        <div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:5px;">
+                                            @if($careStatus)
+                                                <span style="display:inline-flex;align-items:center;border-radius:9999px;padding:2px 7px;font-size:11px;font-weight:600;{{ $this->careStatusBadgeStyle($careStatus) }}">Care Status: {{ $careStatus['label'] }}</span>
+                                            @endif
+                                            @if($language !== 'en')
+                                                <span style="display:inline-flex;align-items:center;border-radius:9999px;padding:2px 7px;font-size:11px;font-weight:600;background:#f3f4f6;color:#374151;">{{ $appointment->patient?->preferred_language_label }}</span>
+                                            @endif
+                                        </div>
                                     </td>
                                     <td style="padding:11px 14px;color:#374151;">{{ $appointment->practitioner?->user?->name ?? 'Unassigned' }}</td>
                                     <td style="padding:11px 14px;color:#374151;">{{ str($appointment->status)->replace('_', ' ')->title() }}</td>
@@ -113,6 +129,44 @@
             </div>
 
             <div style="display:grid;gap:16px;">
+                <section style="background:#ffffff;border:1px solid #e5e7eb;border-radius:8px;overflow:hidden;">
+                    <div style="padding:16px 18px;border-bottom:1px solid #e5e7eb;">
+                        <h2 style="margin:0;font-size:16px;font-weight:700;color:#111827;">Appointment Requests</h2>
+                        <p style="margin:4px 0 0;font-size:13px;color:#6b7280;">These patients requested a follow-up. Review their preferences and schedule manually.</p>
+                    </div>
+                    <div style="padding:12px 18px;">
+                        @forelse($appointmentRequestItems as $request)
+                            <div style="display:flex;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid #f3f4f6;flex-wrap:wrap;">
+                                <div style="min-width:0;flex:1 1 220px;">
+                                    <a href="{{ $this->patientUrl($request->patient) }}" style="font-size:13px;font-weight:700;color:#111827;text-decoration:none;">
+                                        {{ $request->patient?->name ?? 'Patient' }}
+                                    </a>
+                                    <div style="font-size:12px;color:#6b7280;margin-top:2px;">Submitted {{ $request->submitted_at?->format('M j, g:i A') ?? 'recently' }}</div>
+                                    <div style="font-size:13px;color:#374151;margin-top:6px;white-space:pre-line;">{{ $request->preferred_times }}</div>
+                                    @if($request->note)
+                                        <div style="font-size:12px;color:#6b7280;margin-top:6px;white-space:pre-line;">{{ $request->note }}</div>
+                                    @endif
+                                </div>
+                                <div style="display:flex;gap:8px;align-items:flex-start;flex-wrap:wrap;justify-content:flex-end;">
+                                    <a href="{{ $this->patientUrl($request->patient) }}" style="font-size:12px;font-weight:600;color:#2563eb;text-decoration:none;white-space:nowrap;">View Request</a>
+                                    <a href="{{ $this->createAppointmentUrl($request) }}" style="font-size:12px;font-weight:600;color:#047857;text-decoration:none;white-space:nowrap;">Create Appointment</a>
+                                    <button wire:click="markAppointmentRequestContacted({{ $request->id }})" type="button" style="background:#f3f4f6;color:#374151;border:0;border-radius:6px;padding:5px 8px;font-size:12px;font-weight:600;cursor:pointer;">
+                                        Mark Contacted
+                                    </button>
+                                    <button wire:click="markAppointmentRequestScheduled({{ $request->id }})" type="button" style="background:#2563eb;color:#ffffff;border:0;border-radius:6px;padding:5px 8px;font-size:12px;font-weight:600;cursor:pointer;">
+                                        Mark Scheduled
+                                    </button>
+                                    <button wire:click="dismissAppointmentRequest({{ $request->id }})" type="button" style="background:#ffffff;color:#6b7280;border:1px solid #d1d5db;border-radius:6px;padding:5px 8px;font-size:12px;font-weight:600;cursor:pointer;">
+                                        Dismiss
+                                    </button>
+                                </div>
+                            </div>
+                        @empty
+                            <p style="margin:0;padding:12px 0;color:#9ca3af;font-size:13px;">No appointment requests waiting.</p>
+                        @endforelse
+                    </div>
+                </section>
+
                 <section style="background:#ffffff;border:1px solid #e5e7eb;border-radius:8px;overflow:hidden;">
                     <div style="padding:16px 18px;border-bottom:1px solid #e5e7eb;">
                         <h2 style="margin:0;font-size:16px;font-weight:700;color:#111827;">Arrivals / Waiting</h2>

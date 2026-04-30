@@ -118,6 +118,7 @@ class ImportSessionJob implements ShouldQueue
                         'phone'         => $phoneParsed,
                         'dob'           => $dobParsed,
                         'gender'        => $genderLower,
+                        'preferred_language' => Patient::normalizePreferredLanguage($row['preferred_language'] ?? null),
                         'address_line_1' => ($row['address_line_1'] ?? $row['address'] ?? null) ?: null,
                         'address_line_2' => ($row['address_line_2'] ?? null) ?: null,
                         'city'          => ($row['city'] ?? null) ?: null,

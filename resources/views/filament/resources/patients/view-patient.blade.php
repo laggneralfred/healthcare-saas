@@ -15,15 +15,13 @@
         default        => 'background-color:#f3f4f6;color:#374151;',
     };
 
-    $statusBadgeStyle = match($status) {
-        'active'   => 'background-color:#d1fae5;color:#065f46;',
-        'inactive' => 'background-color:#fee2e2;color:#991b1b;',
-        default    => 'background-color:#e0f2fe;color:#0c4a6e;',
-    };
-    $statusLabel = match($status) {
-        'active'   => 'Active',
-        'inactive' => 'Inactive',
-        default    => 'New Patient',
+    $careStatusBadgeStyle = match($careStatus['color'] ?? 'gray') {
+        'success' => 'background-color:#d1fae5;color:#065f46;',
+        'warning' => 'background-color:#fef3c7;color:#92400e;',
+        'danger' => 'background-color:#fee2e2;color:#991b1b;',
+        'info' => 'background-color:#e0f2fe;color:#0c4a6e;',
+        'primary' => 'background-color:#dbeafe;color:#1e40af;',
+        default => 'background-color:#f3f4f6;color:#374151;',
     };
 
     $encounterViewUrl   = fn($enc)  => \App\Filament\Resources\Encounters\EncounterResource::getUrl('view', ['record' => $enc->id]);
@@ -49,15 +47,18 @@
                 <h2 style="font-size:1.375rem;font-weight:700;color:#111827;margin:0;">
                     {{ $patient->name }}
                 </h2>
-                <span style="display:inline-flex;align-items:center;gap:0.375rem;padding:0.2rem 0.6rem;border-radius:9999px;font-size:0.75rem;font-weight:600;{{ $statusBadgeStyle }}">
+                <span title="Care status helps you see who may need attention or a gentle follow-up." style="display:inline-flex;align-items:center;gap:0.375rem;padding:0.2rem 0.6rem;border-radius:9999px;font-size:0.75rem;font-weight:600;{{ $careStatusBadgeStyle }}">
                     <span style="width:0.45rem;height:0.45rem;border-radius:50%;background-color:currentColor;display:inline-block;"></span>
-                    {{ $statusLabel }}
+                    Care Status: {{ $careStatus['label'] ?? 'New' }}
                 </span>
                 @if(!empty($discipline))
                 <span style="padding:0.2rem 0.6rem;border-radius:9999px;font-size:0.75rem;font-weight:600;{{ $disciplineBadgeStyle }}">
                     {{ $disciplineLabel($discipline) }}
                 </span>
                 @endif
+                <span style="padding:0.2rem 0.6rem;border-radius:9999px;font-size:0.75rem;font-weight:600;background-color:#f3f4f6;color:#374151;">
+                    {{ $patient->preferred_language_label }}
+                </span>
             </div>
             <div style="display:flex;gap:1.5rem;flex-wrap:wrap;font-size:0.875rem;color:#6b7280;">
                 @if($patient->dob)
@@ -178,6 +179,31 @@
                 </div>
             </div>
         </div>
+
+        @if(($communications ?? collect())->isNotEmpty())
+        <div style="background-color:#ffffff;border:1px solid #e5e7eb;border-radius:0.5rem;padding:1.25rem;margin-top:1rem;">
+            <h3 style="font-size:0.8rem;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;color:#6b7280;margin:0 0 1rem 0;">Recent Follow-Up</h3>
+            <div style="display:flex;flex-direction:column;gap:0.75rem;">
+                @foreach($communications as $communication)
+                <div style="border-top:1px solid #f3f4f6;padding-top:0.75rem;">
+                    <div style="display:flex;justify-content:space-between;gap:0.75rem;align-items:center;">
+                        <span style="font-size:0.85rem;font-weight:600;color:#1f2937;">{{ $communication->type_label }}</span>
+                        <span style="font-size:0.75rem;color:#6b7280;">{{ $communication->created_at?->format('M j, Y') }}</span>
+                    </div>
+                    <div style="display:flex;gap:0.375rem;flex-wrap:wrap;margin-top:0.35rem;">
+                        <span style="padding:0.1rem 0.45rem;border-radius:9999px;font-size:0.7rem;font-weight:600;background-color:#f3f4f6;color:#374151;">{{ $communication->status_label }}</span>
+                        @if($communication->language)
+                        <span style="padding:0.1rem 0.45rem;border-radius:9999px;font-size:0.7rem;font-weight:600;background-color:#f3f4f6;color:#374151;">{{ strtoupper($communication->language) }}</span>
+                        @endif
+                    </div>
+                    @if($communication->subject)
+                    <div style="font-size:0.8rem;color:#4b5563;margin-top:0.35rem;">{{ $communication->subject }}</div>
+                    @endif
+                </div>
+                @endforeach
+            </div>
+        </div>
+        @endif
     </div>
 
     {{-- ── RIGHT: TABS ───────────────────────────────────────────────────── --}}

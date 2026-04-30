@@ -61,7 +61,11 @@ class PatientResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        $query = static::getPracticeScopedEloquentQuery();
+        $query = static::getPracticeScopedEloquentQuery()
+            ->with([
+                'appointments',
+                'encounters',
+            ]);
         $user = auth()->user();
 
         if ($user?->isPractitioner() && ! $user->canManageOperations()) {

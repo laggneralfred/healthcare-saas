@@ -12,6 +12,25 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Patient extends Model
 {
     use HasFactory, BelongsToPractice, HasAuditLog;
+
+    public const LANGUAGE_ENGLISH = 'en';
+    public const LANGUAGE_SPANISH = 'es';
+    public const LANGUAGE_CHINESE = 'zh';
+    public const LANGUAGE_VIETNAMESE = 'vi';
+    public const LANGUAGE_FRENCH = 'fr';
+    public const LANGUAGE_GERMAN = 'de';
+    public const LANGUAGE_OTHER = 'other';
+
+    public const LANGUAGE_OPTIONS = [
+        self::LANGUAGE_ENGLISH => 'English',
+        self::LANGUAGE_SPANISH => 'Spanish',
+        self::LANGUAGE_CHINESE => 'Chinese',
+        self::LANGUAGE_VIETNAMESE => 'Vietnamese',
+        self::LANGUAGE_FRENCH => 'French',
+        self::LANGUAGE_GERMAN => 'German',
+        self::LANGUAGE_OTHER => 'Other',
+    ];
+
     protected $fillable = [
         'practice_id',
         'name',
@@ -24,6 +43,7 @@ class Patient extends Model
         'dob',
         'gender',
         'pronouns',
+        'preferred_language',
         'address_line_1',
         'address_line_2',
         'city',
@@ -61,6 +81,44 @@ class Patient extends Model
     public function getFullNameAttribute(): string
     {
         return trim("{$this->first_name} {$this->last_name}");
+    }
+
+    public function setPreferredLanguageAttribute(?string $value): void
+    {
+        $this->attributes['preferred_language'] = self::normalizePreferredLanguage($value);
+    }
+
+    public function getPreferredLanguageLabelAttribute(): string
+    {
+        return self::LANGUAGE_OPTIONS[$this->preferred_language ?: self::LANGUAGE_ENGLISH]
+            ?? self::LANGUAGE_OPTIONS[self::LANGUAGE_OTHER];
+    }
+
+    public static function normalizePreferredLanguage(?string $value): string
+    {
+        $normalized = strtolower(trim((string) $value));
+
+        if ($normalized === '') {
+            return self::LANGUAGE_ENGLISH;
+        }
+
+        $aliases = [
+            'english' => self::LANGUAGE_ENGLISH,
+            'spanish' => self::LANGUAGE_SPANISH,
+            'espanol' => self::LANGUAGE_SPANISH,
+            'chinese' => self::LANGUAGE_CHINESE,
+            'mandarin' => self::LANGUAGE_CHINESE,
+            'cantonese' => self::LANGUAGE_CHINESE,
+            'vietnamese' => self::LANGUAGE_VIETNAMESE,
+            'french' => self::LANGUAGE_FRENCH,
+            'german' => self::LANGUAGE_GERMAN,
+        ];
+
+        $normalized = $aliases[$normalized] ?? $normalized;
+
+        return array_key_exists($normalized, self::LANGUAGE_OPTIONS)
+            ? $normalized
+            : self::LANGUAGE_OTHER;
     }
 
     public function setPhoneAttribute(?string $value): void
@@ -157,6 +215,11 @@ class Patient extends Model
     public function checkoutSessions(): HasMany
     {
         return $this->hasMany(CheckoutSession::class);
+    }
+
+    public function communications(): HasMany
+    {
+        return $this->hasMany(PatientCommunication::class);
     }
 
     public function consentRecords(): HasMany

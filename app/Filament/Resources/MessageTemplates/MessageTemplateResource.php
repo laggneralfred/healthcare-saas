@@ -22,8 +22,8 @@ class MessageTemplateResource extends Resource
 
     protected static ?string $model = MessageTemplate::class;
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedDocumentText;
-    protected static string|\UnitEnum|null $navigationGroup = 'Communications';
-    protected static ?int $navigationGroupSort = 20;
+    protected static string|\UnitEnum|null $navigationGroup = 'Follow-Up';
+    protected static ?int $navigationGroupSort = 50;
     protected static ?int $navigationSort = 1;
 
     public static function form(Schema $schema): Schema

@@ -9,6 +9,7 @@ use App\Filament\Resources\MedicalHistories\MedicalHistoryResource;
 use App\Filament\Resources\Patients\PatientResource;
 use App\Mail\BookingConfirmationMail;
 use App\Models\Appointment;
+use App\Models\AppointmentRequest;
 use App\Models\CheckoutSession;
 use App\Models\Encounter;
 use App\Models\Patient;
@@ -18,6 +19,7 @@ use App\Models\States\Appointment\Completed;
 use App\Models\States\Appointment\InProgress;
 use App\Models\States\Appointment\Scheduled;
 use App\Models\States\CheckoutSession\Open;
+use App\Services\PatientCareStatusService;
 use App\Services\PracticeContext;
 use BackedEnum;
 use Filament\Notifications\Notification;
@@ -30,15 +32,15 @@ class FrontDeskDashboard extends Page
 {
     protected static ?string $slug = 'front-desk';
 
-    protected static ?string $title = 'Front Desk Dashboard';
+    protected static ?string $title = 'Today';
 
-    protected static ?string $navigationLabel = 'Front Desk';
+    protected static ?string $navigationLabel = 'Today';
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedQueueList;
 
-    protected static string|\UnitEnum|null $navigationGroup = 'Schedule';
+    protected static string|\UnitEnum|null $navigationGroup = 'Today';
 
-    protected static ?int $navigationSort = -2;
+    protected static ?int $navigationSort = 0;
 
     protected string $view = 'filament.pages.front-desk-dashboard';
 
@@ -60,6 +62,7 @@ class FrontDeskDashboard extends Page
         $appointments = $practice ? $this->todayAppointments($practice) : new Collection;
         $intakeItems = $practice ? $this->intakeItems($practice) : new Collection;
         $checkoutItems = $practice ? $this->checkoutItems($practice) : new Collection;
+        $appointmentRequestItems = $practice ? $this->appointmentRequestItems($practice) : new Collection;
 
         return [
             'practice' => $practice,
@@ -67,8 +70,9 @@ class FrontDeskDashboard extends Page
             'arrivalItems' => $appointments->filter(fn (Appointment $appointment): bool => $appointment->status instanceof InProgress)->values(),
             'intakeItems' => $intakeItems,
             'checkoutItems' => $checkoutItems,
+            'appointmentRequestItems' => $appointmentRequestItems,
             'patientResults' => $practice ? $this->patientResults($practice) : new Collection,
-            'alerts' => $this->alerts($appointments, $intakeItems, $checkoutItems),
+            'alerts' => $this->alerts($appointments, $intakeItems, $checkoutItems, $appointmentRequestItems),
             'appointmentsUrl' => AppointmentResource::getUrl('index'),
             'patientsUrl' => PatientResource::getUrl('index'),
             'createPatientUrl' => PatientResource::getUrl('create'),
@@ -87,11 +91,26 @@ class FrontDeskDashboard extends Page
         [$startOfDay, $endOfDay] = $this->dayBounds($practice);
 
         return Appointment::withoutPracticeScope()
-            ->with(['patient', 'practitioner.user', 'appointmentType', 'medicalHistory', 'consentRecord'])
+            ->with([
+                'patient.appointments',
+                'patient.encounters',
+                'practitioner.user',
+                'appointmentType',
+                'medicalHistory',
+                'consentRecord',
+            ])
             ->where('practice_id', $practice->id)
             ->whereBetween('start_datetime', [$startOfDay, $endOfDay])
             ->orderBy('start_datetime')
-            ->get();
+            ->get()
+            ->each(function (Appointment $appointment): void {
+                if ($appointment->patient) {
+                    $appointment->patient->setAttribute(
+                        'care_status_summary',
+                        app(PatientCareStatusService::class)->forPatient($appointment->patient)
+                    );
+                }
+            });
     }
 
     private function intakeItems(Practice $practice): Collection
@@ -123,6 +142,17 @@ class FrontDeskDashboard extends Page
             ->get();
     }
 
+    private function appointmentRequestItems(Practice $practice): Collection
+    {
+        return AppointmentRequest::withoutPracticeScope()
+            ->with(['patient'])
+            ->where('practice_id', $practice->id)
+            ->where('status', AppointmentRequest::STATUS_PENDING)
+            ->latest('submitted_at')
+            ->limit(8)
+            ->get();
+    }
+
     private function patientResults(Practice $practice): Collection
     {
         $search = trim($this->patientSearch);
@@ -143,7 +173,7 @@ class FrontDeskDashboard extends Page
             ->get();
     }
 
-    private function alerts(Collection $appointments, Collection $intakeItems, Collection $checkoutItems): array
+    private function alerts(Collection $appointments, Collection $intakeItems, Collection $checkoutItems, Collection $appointmentRequestItems): array
     {
         return [
             [
@@ -160,6 +190,11 @@ class FrontDeskDashboard extends Page
                 'label' => 'Ready for checkout',
                 'count' => $checkoutItems->count(),
                 'tone' => 'primary',
+            ],
+            [
+                'label' => 'Appointment requests',
+                'count' => $appointmentRequestItems->count(),
+                'tone' => $appointmentRequestItems->isEmpty() ? 'success' : 'warning',
             ],
         ];
     }
@@ -184,11 +219,90 @@ class FrontDeskDashboard extends Page
         return PatientResource::getUrl('view', ['record' => $patient]);
     }
 
+    public function createAppointmentUrl(AppointmentRequest $request): string
+    {
+        return AppointmentResource::getUrl('create') . '?' . http_build_query([
+            'patient_id' => $request->patient_id,
+            'return_url' => static::getUrl(),
+        ]);
+    }
+
+    public function markAppointmentRequestContacted(int $requestId): void
+    {
+        $request = $this->authorizedAppointmentRequest($requestId);
+
+        if (! $request) {
+            $this->notifyUnavailableAppointmentRequest();
+
+            return;
+        }
+
+        $request->update(['status' => AppointmentRequest::STATUS_CONTACTED]);
+
+        Notification::make()
+            ->title('Appointment request marked contacted.')
+            ->success()
+            ->send();
+    }
+
+    public function markAppointmentRequestScheduled(int $requestId): void
+    {
+        $request = $this->authorizedAppointmentRequest($requestId);
+
+        if (! $request) {
+            $this->notifyUnavailableAppointmentRequest();
+
+            return;
+        }
+
+        $request->update(['status' => AppointmentRequest::STATUS_SCHEDULED]);
+
+        Notification::make()
+            ->title('Appointment request marked scheduled.')
+            ->success()
+            ->send();
+    }
+
+    public function dismissAppointmentRequest(int $requestId): void
+    {
+        $request = $this->authorizedAppointmentRequest($requestId);
+
+        if (! $request) {
+            $this->notifyUnavailableAppointmentRequest();
+
+            return;
+        }
+
+        $request->update(['status' => AppointmentRequest::STATUS_DISMISSED]);
+
+        Notification::make()
+            ->title('Appointment request dismissed.')
+            ->success()
+            ->send();
+    }
+
     public function medicalHistoryUrl(Appointment $appointment): ?string
     {
         return $appointment->medicalHistory
             ? MedicalHistoryResource::getUrl('view', ['record' => $appointment->medicalHistory])
             : null;
+    }
+
+    public function careStatusForAppointment(Appointment $appointment): ?array
+    {
+        return $appointment->patient?->getAttribute('care_status_summary');
+    }
+
+    public function careStatusBadgeStyle(?array $careStatus): string
+    {
+        return match ($careStatus['color'] ?? 'gray') {
+            'success' => 'background:#d1fae5;color:#065f46;',
+            'warning' => 'background:#fef3c7;color:#92400e;',
+            'danger' => 'background:#fee2e2;color:#991b1b;',
+            'info' => 'background:#e0f2fe;color:#0c4a6e;',
+            'primary' => 'background:#dbeafe;color:#1e40af;',
+            default => 'background:#f3f4f6;color:#374151;',
+        };
     }
 
     public function checkoutUrl(CheckoutSession $checkout): string
@@ -345,10 +459,31 @@ class FrontDeskDashboard extends Page
         return $appointment;
     }
 
+    private function authorizedAppointmentRequest(int $requestId): ?AppointmentRequest
+    {
+        $practiceId = PracticeContext::currentPracticeId();
+
+        if (! $practiceId || ! (auth()->user()?->canManageOperations() ?? false)) {
+            return null;
+        }
+
+        return AppointmentRequest::withoutPracticeScope()
+            ->where('practice_id', $practiceId)
+            ->find($requestId);
+    }
+
     private function notifyUnavailableAction(): void
     {
         Notification::make()
             ->title('This action is not available for that appointment.')
+            ->danger()
+            ->send();
+    }
+
+    private function notifyUnavailableAppointmentRequest(): void
+    {
+        Notification::make()
+            ->title('This appointment request is not available.')
             ->danger()
             ->send();
     }

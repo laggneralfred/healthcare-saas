@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Jobs\DryRunImportJob;
+use App\Jobs\ImportPatientsJob;
 use App\Jobs\ImportSessionJob;
 use App\Models\ImportHistory;
 use App\Models\ImportSession;
@@ -42,13 +43,14 @@ class CsvImporterTest extends TestCase
     public function test_mapper_resolves_synonym(): void
     {
         $mapper = new CsvColumnMapper();
-        $result = $mapper->suggest(['fname', 'surname', 'telephone', 'zip', 'dob']);
+        $result = $mapper->suggest(['fname', 'surname', 'telephone', 'zip', 'dob', 'primary language']);
 
         $this->assertEquals('first_name',  $result[0]['field']);
         $this->assertEquals('last_name',   $result[1]['field']);
         $this->assertEquals('phone',       $result[2]['field']);
         $this->assertEquals('postal_code', $result[3]['field']);
         $this->assertEquals('dob',         $result[4]['field']);
+        $this->assertEquals('preferred_language', $result[5]['field']);
         $this->assertEquals('high', $result[0]['confidence']);
     }
 
@@ -79,6 +81,7 @@ class CsvImporterTest extends TestCase
         $this->assertEquals('(Skip)', $options['']);
         $this->assertArrayHasKey('first_name', $options);
         $this->assertArrayHasKey('postal_code', $options);
+        $this->assertArrayHasKey('preferred_language', $options);
     }
 
     // ── ImportSession model ───────────────────────────────────────────────────
@@ -209,9 +212,9 @@ class CsvImporterTest extends TestCase
 
     public function test_import_session_job_creates_patients_from_csv(): void
     {
-        $csv = "first_name,last_name,email,phone,dob,gender,address_line_1,address_line_2,city,state,postal_code,country,emergency_contact_name,occupation\n"
-             . "Alice,Smith,alice@example.com,(707) 555-0101,1985-06-15,female,123 Main St,Apt 4,San Rafael,CA,94901,USA,Mary Smith,Yoga Teacher\n"
-             . "Bob,Jones,bob@example.com,(707) 555-0202,1990-03-22,male,456 Oak Ave,Suite B,Novato,CA,94945,USA,Sue Jones,Engineer\n";
+        $csv = "first_name,last_name,email,phone,dob,gender,preferred_language,address_line_1,address_line_2,city,state,postal_code,country,emergency_contact_name,occupation\n"
+             . "Alice,Smith,alice@example.com,(707) 555-0101,1985-06-15,female,Spanish,123 Main St,Apt 4,San Rafael,CA,94901,USA,Mary Smith,Yoga Teacher\n"
+             . "Bob,Jones,bob@example.com,(707) 555-0202,1990-03-22,male,en,456 Oak Ave,Suite B,Novato,CA,94945,USA,Sue Jones,Engineer\n";
 
         Storage::disk('local')->put('imports/1/import.csv', $csv);
 
@@ -222,8 +225,8 @@ class CsvImporterTest extends TestCase
             'original_filename'=> 'import.csv',
             'total_rows'       => 2,
             'valid_rows'       => 2,
-            'detected_headers' => ['first_name', 'last_name', 'email', 'phone', 'dob', 'gender', 'address_line_1', 'address_line_2', 'city', 'state', 'postal_code', 'country', 'emergency_contact_name', 'occupation'],
-            'column_mappings'  => [0 => 'first_name', 1 => 'last_name', 2 => 'email', 3 => 'phone', 4 => 'dob', 5 => 'gender', 6 => 'address_line_1', 7 => 'address_line_2', 8 => 'city', 9 => 'state', 10 => 'postal_code', 11 => 'country', 12 => 'emergency_contact_name', 13 => 'occupation'],
+            'detected_headers' => ['first_name', 'last_name', 'email', 'phone', 'dob', 'gender', 'preferred_language', 'address_line_1', 'address_line_2', 'city', 'state', 'postal_code', 'country', 'emergency_contact_name', 'occupation'],
+            'column_mappings'  => [0 => 'first_name', 1 => 'last_name', 2 => 'email', 3 => 'phone', 4 => 'dob', 5 => 'gender', 6 => 'preferred_language', 7 => 'address_line_1', 8 => 'address_line_2', 9 => 'city', 10 => 'state', 11 => 'postal_code', 12 => 'country', 13 => 'emergency_contact_name', 14 => 'occupation'],
         ]);
 
         (new ImportSessionJob($session->id))->handle();
@@ -239,6 +242,7 @@ class CsvImporterTest extends TestCase
         $this->assertEquals('Alice', $alice->first_name);
         $this->assertEquals('Smith', $alice->last_name);
         $this->assertEquals('Female', $alice->gender);
+        $this->assertEquals('es', $alice->preferred_language);
         $this->assertEquals('1985-06-15', $alice->dob->format('Y-m-d'));
         $this->assertEquals('123 Main St', $alice->address_line_1);
         $this->assertEquals('Apt 4', $alice->address_line_2);
@@ -349,5 +353,33 @@ class CsvImporterTest extends TestCase
         $response->assertOk();
         $this->assertStringContainsString('text/csv', $response->headers->get('Content-Type'));
         $this->assertStringContainsString('first_name', $response->getContent());
+        $this->assertStringContainsString('preferred_language', $response->getContent());
+    }
+
+    public function test_legacy_import_job_creates_patient_with_preferred_language(): void
+    {
+        $history = ImportHistory::create([
+            'practice_id' => $this->practice->id,
+            'filename' => 'legacy.csv',
+            'total_rows' => 1,
+            'status' => 'pending',
+        ]);
+
+        $rows = [[
+            'first_name' => 'Language',
+            'last_name' => 'Patient',
+            'email' => 'language-patient@example.test',
+            'preferred_language' => 'German',
+        ]];
+
+        (new ImportPatientsJob($this->practice->id, $history->id, $rows, []))->handle();
+
+        $patient = Patient::withoutPracticeScope()
+            ->where('practice_id', $this->practice->id)
+            ->where('email', 'language-patient@example.test')
+            ->firstOrFail();
+
+        $this->assertEquals('de', $patient->preferred_language);
+        $this->assertEquals('German', $patient->preferred_language_label);
     }
 }

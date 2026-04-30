@@ -9,6 +9,7 @@ use App\Filament\Resources\Patients\PatientResource;
 use App\Models\Patient;
 use App\Models\States\Appointment\Cancelled as AppointmentCancelled;
 use App\Models\States\CheckoutSession\Paid;
+use App\Services\PatientCareStatusService;
 use Filament\Actions\Action;
 use Filament\Infolists\Components\ViewEntry;
 use Filament\Resources\Pages\ViewRecord;
@@ -64,6 +65,7 @@ class ViewPatient extends ViewRecord
             'medicalHistories' => fn ($q) => $q->where('status', 'complete')->latest(),
             'medicalHistory',
             'checkoutSessions' => fn ($q) => $q->latest(),
+            'communications' => fn ($q) => $q->latest()->limit(5),
             'consentRecords' => fn ($q) => $q->where('status', 'complete')->latest(),
             'practice',
         ])->findOrFail($key);
@@ -100,16 +102,8 @@ class ViewPatient extends ViewRecord
         $hasSignedConsent = $patient->consentRecords->isNotEmpty();
         $hasOutstandingPayment = $outstandingBalance > 0;
 
-        // Determine status: New (no visits), Active (visited in 12 months), Inactive (older)
-        if (! $lastEncounter) {
-            $status = 'new';
-        } elseif (now()->diffInMonths($lastEncounter->visit_date, false) >= -12) {
-            $status = 'active';
-        } else {
-            $status = 'inactive';
-        }
-
         $discipline = $patient->practice?->discipline;
+        $careStatus = app(PatientCareStatusService::class)->forPatient($patient);
 
         return $schema->components([
             ViewEntry::make('overview')
@@ -126,8 +120,9 @@ class ViewPatient extends ViewRecord
                     'hasCompletedIntake' => $hasCompletedIntake,
                     'hasSignedConsent' => $hasSignedConsent,
                     'hasOutstandingPayment' => $hasOutstandingPayment,
-                    'status' => $status,
+                    'careStatus' => $careStatus,
                     'checkoutSessions' => $patient->checkoutSessions,
+                    'communications' => $patient->communications,
                     'discipline' => $discipline,
                 ])
                 ->columnSpanFull(),

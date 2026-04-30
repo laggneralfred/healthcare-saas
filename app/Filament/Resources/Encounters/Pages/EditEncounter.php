@@ -24,6 +24,8 @@ class EditEncounter extends EditRecord
 
     protected static string $resource = EncounterResource::class;
 
+    public static bool $formActionsAreSticky = true;
+
     public bool $noteSaved = false;
 
     public function getTitle(): string|Htmlable

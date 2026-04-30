@@ -127,6 +127,7 @@ class CSVImportService
             'phone',
             'dob',
             'gender',
+            'preferred_language',
             'address_line_1',
             'address_line_2',
             'city',

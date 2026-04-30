@@ -19,6 +19,7 @@ class ExportDataPage extends Page
     protected static ?string $title = 'Export Your Data';
 
     protected static ?string $navigationLabel = 'Export Data';
+    protected static string|\UnitEnum|null $navigationGroup = 'Reports';
 
     protected static ?int $navigationSort = 20;
 

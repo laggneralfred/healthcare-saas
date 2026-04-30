@@ -35,19 +35,27 @@ it('only returns appointments for the authenticated users practice', function ()
     $typeA = AppointmentType::factory()->create(['practice_id' => $practiceA->id]);
     $typeB = AppointmentType::factory()->create(['practice_id' => $practiceB->id]);
 
-    Appointment::factory()->count(5)->create([
-        'practice_id' => $practiceA->id,
-        'patient_id' => $patientA->id,
-        'practitioner_id' => $practitionerA->id,
-        'appointment_type_id' => $typeA->id,
-    ]);
+    foreach ([9, 10, 11, 12, 13] as $hour) {
+        Appointment::factory()->create([
+            'practice_id' => $practiceA->id,
+            'patient_id' => $patientA->id,
+            'practitioner_id' => $practitionerA->id,
+            'appointment_type_id' => $typeA->id,
+            'start_datetime' => now()->setTime($hour, 0),
+            'end_datetime' => now()->setTime($hour, 45),
+        ]);
+    }
 
-    Appointment::factory()->count(3)->create([
-        'practice_id' => $practiceB->id,
-        'patient_id' => $patientB->id,
-        'practitioner_id' => $practitionerB->id,
-        'appointment_type_id' => $typeB->id,
-    ]);
+    foreach ([9, 10, 11] as $hour) {
+        Appointment::factory()->create([
+            'practice_id' => $practiceB->id,
+            'patient_id' => $patientB->id,
+            'practitioner_id' => $practitionerB->id,
+            'appointment_type_id' => $typeB->id,
+            'start_datetime' => now()->setTime($hour, 0),
+            'end_datetime' => now()->setTime($hour, 45),
+        ]);
+    }
 
     $this->actingAs($userB);
 

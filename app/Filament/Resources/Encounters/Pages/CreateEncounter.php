@@ -23,6 +23,8 @@ class CreateEncounter extends CreateRecord
 
     protected static string $resource = EncounterResource::class;
 
+    public static bool $formActionsAreSticky = true;
+
     public function getTitle(): string|Htmlable
     {
         return 'New Visit';

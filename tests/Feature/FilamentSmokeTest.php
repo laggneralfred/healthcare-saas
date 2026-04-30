@@ -2,6 +2,10 @@
 
 namespace Tests\Feature;
 
+use App\Filament\Pages\CommunicationsDashboard;
+use App\Filament\Pages\DashboardPage;
+use App\Filament\Pages\FrontDeskDashboard;
+use App\Filament\Pages\SchedulePage;
 use App\Models\ActivityLog;
 use App\Models\Appointment;
 use App\Models\AppointmentType;
@@ -19,6 +23,14 @@ use App\Models\Practice;
 use App\Models\Practitioner;
 use App\Models\ServiceFee;
 use App\Models\User;
+use App\Filament\Resources\AppointmentTypes\AppointmentTypeResource;
+use App\Filament\Resources\Appointments\AppointmentResource;
+use App\Filament\Resources\CheckoutSessions\CheckoutSessionResource;
+use App\Filament\Resources\CommunicationRules\CommunicationRuleResource;
+use App\Filament\Resources\Encounters\EncounterResource;
+use App\Filament\Resources\InventoryProducts\InventoryProductResource;
+use App\Filament\Resources\MessageLogs\MessageLogResource;
+use App\Filament\Resources\PracticePaymentMethods\PracticePaymentMethodResource;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Schema;
 use Tests\TestCase;
@@ -116,6 +128,8 @@ class FilamentSmokeTest extends TestCase
             'communication_rules',
             'message_logs',
             'patient_communication_preferences',
+            'patient_communications',
+            'appointment_requests',
         ];
 
         foreach ($tables as $table) {
@@ -163,6 +177,40 @@ class FilamentSmokeTest extends TestCase
 
             $response->assertSuccessful("Custom page {$url} failed to load");
         }
+    }
+
+    public function test_navigation_uses_task_based_labels(): void
+    {
+        $this->assertSame('Today', FrontDeskDashboard::getNavigationLabel());
+        $this->assertSame('Today', FrontDeskDashboard::getNavigationGroup());
+        $this->assertSame('Calendar', SchedulePage::getNavigationLabel());
+        $this->assertSame('Calendar', SchedulePage::getNavigationGroup());
+        $this->assertSame('Reports', DashboardPage::getNavigationLabel());
+        $this->assertSame('Reports', DashboardPage::getNavigationGroup());
+        $this->assertSame('Follow-Up', CommunicationsDashboard::getNavigationLabel());
+        $this->assertSame('Follow-Up', CommunicationsDashboard::getNavigationGroup());
+
+        $this->assertSame('Calendar', AppointmentResource::getNavigationGroup());
+        $this->assertSame('Settings', AppointmentTypeResource::getNavigationGroup());
+        $this->assertSame('Visits', EncounterResource::getNavigationGroup());
+        $this->assertSame('Checkout', CheckoutSessionResource::getNavigationGroup());
+        $this->assertSame('Checkout', PracticePaymentMethodResource::getNavigationGroup());
+        $this->assertSame('Checkout', InventoryProductResource::getNavigationGroup());
+        $this->assertSame('Follow-Up', CommunicationRuleResource::getNavigationGroup());
+        $this->assertSame('Message History', MessageLogResource::getNavigationLabel());
+    }
+
+    public function test_task_based_helper_copy_renders(): void
+    {
+        $this->actingAs($this->admin)
+            ->get('/admin/front-desk')
+            ->assertSuccessful()
+            ->assertSee('Here is what needs your attention today.');
+
+        $this->actingAs($this->admin)
+            ->get('/admin/communications-dashboard')
+            ->assertSuccessful()
+            ->assertSee('Patients who may need a gentle follow-up will appear here.');
     }
 
     protected function createRecordForResource(string $resourceName)

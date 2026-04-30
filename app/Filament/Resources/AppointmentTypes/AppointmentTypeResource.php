@@ -23,7 +23,7 @@ class AppointmentTypeResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
 
-    protected static string|\UnitEnum|null $navigationGroup = 'Schedule';
+    protected static string|\UnitEnum|null $navigationGroup = 'Settings';
 
     protected static ?int $navigationGroupSort = 11;
 

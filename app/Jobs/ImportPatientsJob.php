@@ -52,6 +52,7 @@ class ImportPatientsJob implements ShouldQueue
                         $phone = $rowData['phone'] ?? null;
                         $dob = $rowData['dob'] ?? $rowData['date_of_birth'] ?? null;
                         $gender = $rowData['gender'] ?? null;
+                        $preferredLanguage = $rowData['preferred_language'] ?? null;
                         $address = $rowData['address_line_1'] ?? $rowData['address'] ?? null;
                         $city = $rowData['city'] ?? null;
                         $state = $rowData['state'] ?? null;
@@ -116,6 +117,7 @@ class ImportPatientsJob implements ShouldQueue
                             'phone' => $phoneParsed,
                             'dob' => $dobParsed,
                             'gender' => $genderLower,
+                            'preferred_language' => Patient::normalizePreferredLanguage($preferredLanguage),
                             'address_line_1' => $address ?: null,
                             'city'           => $city ?: null,
                             'state'          => $state ?: null,
