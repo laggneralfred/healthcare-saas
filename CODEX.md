@@ -27,6 +27,7 @@ Workflow documentation:
 - Five Element acupuncture visit notes now include concise pulse prompts (`Pulses pre`, `Pulses post`, `Pulse movement`) plus optional Worsley/Classical Five Element pulse text fields on acupuncture encounter details.
 - Practice Settings now exposes `Documentation & Billing Mode`, backed by `practices.insurance_billing_enabled`: Simple Visit Note Mode is `false`, and SOAP / Insurance Documentation Mode is `true`.
 - The existing export page is available from the Reports navigation as `Exports` at `/admin/export-data`.
+- Root routing is host-aware: `practiqapp.com/` and local hosts show the public landing page, while `app.practiqapp.com/` sends guests to `/login` and authenticated users to `/admin/dashboard`. The app-host `/login` route hands off to the existing Filament login at `/admin/login`.
 
 ### UX / Navigation Cleanup
 

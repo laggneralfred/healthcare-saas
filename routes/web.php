@@ -14,9 +14,23 @@ use Illuminate\Support\Facades\Route;
 use App\Services\PatientCareStatusService;
 use App\Services\PracticeContext;
 
-Route::get('/', function () {
+$isAppHost = fn (Request $request): bool => $request->getHost() === 'app.practiqapp.com';
+
+Route::get('/', function (Request $request) use ($isAppHost) {
+    if ($isAppHost($request)) {
+        return auth()->check()
+            ? redirect('/admin/dashboard')
+            : redirect('/login');
+    }
+
     return view('welcome');
 });
+
+Route::get('/login', function (Request $request) use ($isAppHost) {
+    abort_unless($isAppHost($request), 404);
+
+    return redirect('/admin/login');
+})->name('login');
 
 Route::view('/user-instructions', 'user-instructions')->name('user-instructions');
 
