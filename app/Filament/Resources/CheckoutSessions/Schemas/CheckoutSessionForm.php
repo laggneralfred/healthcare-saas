@@ -105,7 +105,7 @@ class CheckoutSessionForm
 
                                 if ($state === CheckoutLine::TYPE_SERVICE) {
                                     $set('inventory_product_id', null);
-                                    $set('quantity', null);
+                                    $set('quantity', 1);
                                 }
 
                                 if ($state === CheckoutLine::TYPE_INVENTORY) {
@@ -402,7 +402,7 @@ class CheckoutSessionForm
             }
 
             $data['inventory_product_id'] = null;
-            $data['quantity'] = null;
+            $data['quantity'] = max(1, (int) ($data['quantity'] ?? 1));
         }
 
         if ($lineType === CheckoutLine::TYPE_INVENTORY) {

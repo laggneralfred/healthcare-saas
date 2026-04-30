@@ -74,6 +74,40 @@ Exception:
 | No Email Test Patient | English | Needs Follow-Up | Missing-email helper |
 | Opted Out Test Patient | English | Needs Follow-Up | Opt-out helper |
 | Mobile Visit Note Patient | English | Active | Mobile visit note and dictation helper |
+| Checkout Service Fee Patient | English | Active | Ready-for-checkout service fee line |
+| Five Element Fee Patient | English | Active | Five Element appointment type and service fee |
+
+## Service Fees And Checkout
+
+The local test practice includes an active service fee catalog:
+
+| Service Fee | Amount |
+| --- | ---: |
+| Initial Acupuncture Visit | $125.00 |
+| Follow-Up Acupuncture Visit | $95.00 |
+| Five Element Acupuncture Treatment | $110.00 |
+| Herbal Consultation | $65.00 |
+| Moxa / Adjunctive Treatment | $45.00 |
+| Cupping Add-on | $35.00 |
+| Wellness Consultation | $85.00 |
+
+Common appointment types are linked to default service fees:
+
+- `Initial Acupuncture Visit` -> `Initial Acupuncture Visit`
+- `Follow-Up Acupuncture Visit` -> `Follow-Up Acupuncture Visit`
+- `Five Element Acupuncture Treatment` -> `Five Element Acupuncture Treatment`
+- `Herbal Consultation` -> `Herbal Consultation`
+- `Wellness Consultation` -> `Wellness Consultation`
+- `Local Follow-Up Visit` -> `Follow-Up Acupuncture Visit`
+
+Checkout supports service fee line items. When staff proceed from an appointment-linked visit note to checkout, Practiq auto-suggests the appointment type's default service fee as one editable service line if the checkout has no existing line items. Staff can edit or remove that suggested line. Staff can also add a line item with `Line Type` = `Service` and choose one of the seeded service fees; the amount fills from the service catalog and remains editable.
+
+For immediate checkout testing, the seeder also creates open checkout sessions with service lines:
+
+- `Checkout Service Fee Patient`: Follow-Up Acupuncture Visit, $95.00
+- `Five Element Fee Patient`: Five Element Acupuncture Treatment, $110.00
+
+Open Today and use the Ready for Checkout section, or open Checkout directly, to verify that service line items and totals are present.
 
 ## Appointment Requests
 
@@ -116,6 +150,11 @@ Open those links in a private/logged-out browser to test the patient-facing form
 18. Return to Today and test **Mark Contacted**, **Mark Scheduled**, and **Dismiss**.
 19. Open Schedule and confirm appointment cards show care status and language context.
 20. Open the seeded draft visit for `Mobile Visit Note Patient` and confirm the dictation helper is visible.
+21. Open Today and confirm `Checkout Service Fee Patient` appears in Ready for Checkout.
+22. Open that checkout and confirm the `Follow-Up Acupuncture Visit` service line is $95.00.
+23. Open the `Five Element Fee Patient` checkout and confirm the `Five Element Acupuncture Treatment` service line is $110.00.
+24. From an appointment-linked visit whose appointment type has a default service fee, click **Send to Checkout** and confirm the default service appears as an editable service line.
+25. Start a new checkout line manually, choose `Service`, and confirm the seeded service fee list is available.
 
 ## Safety Notes
 

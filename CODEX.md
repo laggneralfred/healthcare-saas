@@ -19,6 +19,8 @@ Workflow documentation:
 - `docs/local-follow-up-test-data.md`
 - Local/demo data can be seeded with `php artisan demo:seed-follow-up-workflow`.
 - The local seed command creates fake patients under `Local Follow-Up Test Practice` and refuses production.
+- The local Follow-Up seed data includes service fees, linked appointment type default fees, and open checkout sessions for `Checkout Service Fee Patient` and `Five Element Fee Patient`.
+- Checkout service fees live in `service_fees`; appointment types can reference `default_service_fee_id`; checkout supports selectable service line items. Appointment-linked encounter checkout now auto-suggests one editable default service line only when the checkout has no existing line items.
 - Public landing page now presents Practiq as calm, relationship-centered software for small clinics.
 - Public user guide route: `/user-instructions`.
 - Five Element acupuncture AI improve-note context now includes Worsley-specific guidance, Roman numeral channel mappings, and treatment concept preservation rules.

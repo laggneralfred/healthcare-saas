@@ -137,7 +137,7 @@ class CheckoutLine extends Model
         }
 
         $this->inventory_product_id = null;
-        $this->quantity = null;
+        $this->quantity = max(1, (int) ($this->quantity ?: 1));
         $this->description = $this->description ?: $serviceFee->name;
         $this->unit_price = $this->unit_price ?? $serviceFee->default_price;
         $this->amount = $this->amount ?? $serviceFee->default_price;

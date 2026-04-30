@@ -6,11 +6,13 @@ use App\Filament\Resources\Encounters\Pages\EditEncounter;
 use App\Filament\Resources\Encounters\Pages\ViewEncounter;
 use App\Models\Appointment;
 use App\Models\AppointmentType;
+use App\Models\CheckoutLine;
 use App\Models\CheckoutSession;
 use App\Models\Encounter;
 use App\Models\Patient;
 use App\Models\Practice;
 use App\Models\Practitioner;
+use App\Models\ServiceFee;
 use App\Models\States\CheckoutSession\Open;
 use App\Models\User;
 use App\Services\EncounterNoteDocument;
@@ -648,6 +650,140 @@ it('creates a valid checkout session and redirects after saving an appointment-l
     expect($checkout->charge_label)->toBe($appointmentType->name);
 
     $component->assertRedirect(CheckoutSessionResource::getUrl('edit', ['record' => $checkout]));
+});
+
+it('creates an editable default service line for appointment checkout when the appointment type has a default fee', function () {
+    $practice = Practice::factory()->create(['insurance_billing_enabled' => false]);
+    [
+        'user' => $user,
+        'patient' => $patient,
+        'practitioner' => $practitioner,
+        'appointment' => $appointment,
+        'appointmentType' => $appointmentType,
+    ] = encounterCreationFixtures($practice);
+    $serviceFee = ServiceFee::factory()->create([
+        'practice_id' => $practice->id,
+        'name' => 'Follow-Up Acupuncture Visit',
+        'default_price' => '95.00',
+    ]);
+    $appointmentType->update(['default_service_fee_id' => $serviceFee->id]);
+    $encounter = Encounter::factory()->create([
+        'practice_id' => $practice->id,
+        'patient_id' => $patient->id,
+        'appointment_id' => $appointment->id,
+        'practitioner_id' => $practitioner->id,
+        'discipline' => 'acupuncture',
+        'visit_date' => '2026-04-25',
+        'status' => 'draft',
+    ]);
+
+    $this->actingAs($user);
+
+    Livewire::test(EditEncounter::class, ['record' => $encounter->id])
+        ->set('data.visit_note_document', "Chief Complaint:\nAppointment-linked complaint\n\nTreatment Notes:\nSaved treatment notes.\n\nPlan / Follow-up:\nSaved plan.")
+        ->call('saveDraft')
+        ->call('proceedToCheckout');
+
+    $checkout = CheckoutSession::withoutPracticeScope()
+        ->where('appointment_id', $appointment->id)
+        ->with('checkoutLines.serviceFee')
+        ->firstOrFail();
+    $line = $checkout->checkoutLines->first();
+
+    expect($checkout->checkoutLines)->toHaveCount(1);
+    expect($line->line_type)->toBe(CheckoutLine::TYPE_SERVICE);
+    expect($line->service_fee_id)->toBe($serviceFee->id);
+    expect($line->description)->toBe('Follow-Up Acupuncture Visit');
+    expect($line->quantity)->toBe(1);
+    expect((float) $line->unit_price)->toBe(95.00);
+    expect((float) $line->amount)->toBe(95.00);
+    expect((float) $checkout->refresh()->amount_total)->toBe(95.00);
+    expect($checkout->isEditable())->toBeTrue();
+});
+
+it('does not add a default service line when an existing appointment checkout already has a line item', function () {
+    $practice = Practice::factory()->create(['insurance_billing_enabled' => false]);
+    [
+        'user' => $user,
+        'patient' => $patient,
+        'practitioner' => $practitioner,
+        'appointment' => $appointment,
+        'appointmentType' => $appointmentType,
+    ] = encounterCreationFixtures($practice);
+    $serviceFee = ServiceFee::factory()->create([
+        'practice_id' => $practice->id,
+        'default_price' => '95.00',
+    ]);
+    $appointmentType->update(['default_service_fee_id' => $serviceFee->id]);
+    $encounter = Encounter::factory()->create([
+        'practice_id' => $practice->id,
+        'patient_id' => $patient->id,
+        'appointment_id' => $appointment->id,
+        'practitioner_id' => $practitioner->id,
+        'discipline' => 'acupuncture',
+        'visit_date' => '2026-04-25',
+        'status' => 'draft',
+    ]);
+    $checkout = CheckoutSession::factory()->open()->create([
+        'practice_id' => $practice->id,
+        'appointment_id' => $appointment->id,
+        'patient_id' => $patient->id,
+        'practitioner_id' => $practitioner->id,
+        'charge_label' => 'Existing checkout',
+    ]);
+    CheckoutLine::create([
+        'checkout_session_id' => $checkout->id,
+        'practice_id' => $practice->id,
+        'sequence' => 1,
+        'line_type' => CheckoutLine::TYPE_CUSTOM,
+        'description' => 'Manual adjustment',
+        'amount' => '15.00',
+    ]);
+
+    $this->actingAs($user);
+
+    Livewire::test(EditEncounter::class, ['record' => $encounter->id])
+        ->set('data.visit_note_document', "Chief Complaint:\nAppointment-linked complaint\n\nTreatment Notes:\nSaved treatment notes.\n\nPlan / Follow-up:\nSaved plan.")
+        ->call('saveDraft')
+        ->call('proceedToCheckout');
+
+    $checkout->refresh()->load('checkoutLines');
+
+    expect($checkout->checkoutLines)->toHaveCount(1);
+    expect($checkout->checkoutLines->first()->description)->toBe('Manual adjustment');
+    expect($checkout->checkoutLines->first()->service_fee_id)->toBeNull();
+});
+
+it('does not add a checkout line when the appointment type has no default service fee', function () {
+    $practice = Practice::factory()->create(['insurance_billing_enabled' => false]);
+    [
+        'user' => $user,
+        'patient' => $patient,
+        'practitioner' => $practitioner,
+        'appointment' => $appointment,
+    ] = encounterCreationFixtures($practice);
+    $encounter = Encounter::factory()->create([
+        'practice_id' => $practice->id,
+        'patient_id' => $patient->id,
+        'appointment_id' => $appointment->id,
+        'practitioner_id' => $practitioner->id,
+        'discipline' => 'acupuncture',
+        'visit_date' => '2026-04-25',
+        'status' => 'draft',
+    ]);
+
+    $this->actingAs($user);
+
+    Livewire::test(EditEncounter::class, ['record' => $encounter->id])
+        ->set('data.visit_note_document', "Chief Complaint:\nAppointment-linked complaint\n\nTreatment Notes:\nSaved treatment notes.\n\nPlan / Follow-up:\nSaved plan.")
+        ->call('saveDraft')
+        ->call('proceedToCheckout');
+
+    $checkout = CheckoutSession::withoutPracticeScope()
+        ->where('appointment_id', $appointment->id)
+        ->firstOrFail();
+
+    expect($checkout->checkoutLines()->count())->toBe(0);
 });
 
 it('reuses an existing checkout session after saving an appointment-linked note', function () {
