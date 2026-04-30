@@ -18,6 +18,8 @@ Route::get('/', function () {
     return view('welcome');
 });
 
+Route::view('/user-instructions', 'user-instructions')->name('user-instructions');
+
 // Filament v5 homeUrl bug workaround: /admin always redirects to dashboard
 Route::get('/admin', function () {
     return redirect('/admin/dashboard');
