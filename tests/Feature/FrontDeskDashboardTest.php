@@ -192,6 +192,27 @@ class FrontDeskDashboardTest extends TestCase
         $this->assertFalse(FrontDeskDashboard::canAccess());
     }
 
+    public function test_front_desk_dashboard_shows_demo_mode_notice_for_demo_practice_only(): void
+    {
+        [$demoPractice, $demoAdmin] = $this->practiceWithAdmin();
+        $demoPractice->update(['is_demo' => true]);
+
+        $this->actingAs($demoAdmin);
+
+        Livewire::test(FrontDeskDashboard::class)
+            ->assertSee('Demo Mode')
+            ->assertSee('this practice uses seeded test data')
+            ->assertSee('Some payment, reminder, and reset behavior may differ from a live practice.');
+
+        [$livePractice, $liveAdmin] = $this->practiceWithAdmin();
+
+        $this->actingAs($liveAdmin);
+
+        Livewire::test(FrontDeskDashboard::class)
+            ->assertDontSee('Demo Mode')
+            ->assertDontSee('this practice uses seeded test data');
+    }
+
     public function test_front_desk_dashboard_surfaces_arrivals_intake_and_checkout_work(): void
     {
         [$practice, $admin] = $this->practiceWithAdmin();

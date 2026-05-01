@@ -33,6 +33,14 @@ Email behavior:
 - `No Email Demo Patient` intentionally has no email
 - `Opted Out Demo Patient` intentionally blocks email sending through `PatientCommunicationPreference`
 
+Demo mode:
+
+- the practice attached to `admin@healthcare.test` may be marked as a demo practice with `practices.is_demo = true`
+- demo mode is intended for seeded preview data and can make some behavior differ from a live practice
+- Today shows a `Demo Mode` notice when the current practice is marked demo
+- demo practices bypass subscription checks and hide or block many write-style actions, including some checkout payment actions, import/export, create/edit/delete routes, and POST/PATCH/DELETE requests through the admin panel
+- seeding does not send reminders or patient messages automatically
+
 ## Commands
 
 Local:
@@ -67,12 +75,19 @@ Target practice:
 
 - the practice attached to `admin@healthcare.test`
 
+To verify demo mode:
+
+- open Today and look for the `Demo Mode` notice near the top of the page
+- or check the database value on the practice record: `practices.is_demo`
+
 Documentation mode is controlled in Practice Settings. To test both documentation flows, toggle `Documentation & Billing Mode`:
 
 - Simple Visit Note Mode
 - SOAP / Insurance Documentation Mode
 
 The seeder uses one existing practice rather than creating separate simple/SOAP practices.
+
+To test live-like write/payment/email behavior, use a non-demo practice or temporarily test against a clearly fake local practice with `is_demo = false`. Do not disable demo mode on real customer data just to run seeded workflows.
 
 ## Seed Marker And Idempotency
 
@@ -230,6 +245,8 @@ Suggested checks:
 5. Confirm paid checkout is not shown as ready for checkout on Today.
 6. Confirm no-default-fee checkout does not invent a service line.
 
+If the current practice is in demo mode, some checkout payment actions may be hidden or blocked. The seeded records still let you verify queue visibility, line items, balances, and route targets. For live-like payment action testing, repeat the flow in a non-demo practice with fake data.
+
 ## Today Dashboard Checkout Queue
 
 The Today screen has a `Ready for Checkout` section for checkout sessions that need staff attention. This queue is for existing checkout sessions that are still open or otherwise need payment/charge review.
@@ -296,6 +313,8 @@ Seeding does not send reminders. Sending/dispatch requires explicit command, que
 9. Open Invite Back for Chinese, Vietnamese, French, German, or Other language patients and test AI translation preview when configured.
 10. Confirm no email/SMS sends automatically from preview, translation, or Save Draft.
 
+If the current practice is in demo mode, admin write requests may be blocked by demo safeguards. Use the demo dataset to inspect wording, eligibility, opt-out/missing-email states, and preview behavior. Use a non-demo fake practice when you need to verify live-like Send Email behavior.
+
 ## Appointment Request QA
 
 1. Open Invite Back for a follow-up candidate.
@@ -318,6 +337,7 @@ Today should include:
 - a checkout-ready visit
 - pending appointment requests
 - ready-for-checkout items
+- a `Demo Mode` notice when the current practice is marked as demo
 
 For checkout-specific Today testing, use the `Ready for Checkout` queue and the seeded checkout examples documented above.
 
@@ -349,6 +369,8 @@ Calendar should include:
 ## Troubleshooting
 
 - If seeded patients do not appear, confirm you are logged in as the expected user and viewing the practice attached to `admin@healthcare.test`.
+- If seeded behavior seems different from a live practice, check whether Today shows the `Demo Mode` notice or whether `practices.is_demo` is true.
+- If checkout payment, reminder, email, import/export, or write actions are unavailable, confirm whether demo mode is intentionally blocking them.
 - If Chrome freezes or dims after login, check for a password manager unsafe-password warning.
 - If emails do not arrive, check mail config, queue status, and mail logs.
 - If service fees are empty, rerun the seeder with `--reset-demo-data`.

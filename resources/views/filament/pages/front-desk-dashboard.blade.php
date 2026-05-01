@@ -8,6 +8,12 @@
             <p style="margin:0;font-size:13px;color:#6b7280;">Here is what needs your attention today.</p>
         </div>
 
+        @if($practice->is_demo)
+            <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:12px 14px;margin-bottom:16px;color:#92400e;font-size:13px;line-height:1.5;">
+                <strong>Demo Mode</strong> — this practice uses seeded test data. Some payment, reminder, and reset behavior may differ from a live practice.
+            </div>
+        @endif
+
         <div style="background:#ffffff;border:1px solid #e5e7eb;border-radius:8px;padding:16px;margin-bottom:16px;">
             <h2 style="margin:0 0 12px;font-size:16px;font-weight:700;color:#111827;">Alerts</h2>
             <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;">

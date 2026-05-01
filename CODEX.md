@@ -30,6 +30,7 @@ Workflow documentation:
 - Root routing is host-aware: `practiqapp.com/` and local hosts show the public landing page, while `app.practiqapp.com/` sends guests to `/login` and authenticated users to `/admin/dashboard`. The app-host `/login` route hands off to the existing Filament login at `/admin/login`.
 - Realistic fake/demo practice data can be seeded for the practice attached to `admin@healthcare.test` with `php artisan demo:seed-practice-realistic --user=admin@healthcare.test --base-url=https://app.practiqapp.com --reset-demo-data`. It uses marker `REALISTIC_PRACTICE_DEMO_SEED`; do not run it against real production data unless intentionally seeding a demo practice.
 - Today's Ready for Checkout cards link `Collect Payment` directly to the specific checkout session edit page, so partial, open, and no-default-fee sessions all open the exact checkout staff selected.
+- When testing seeded practices, check `practices.is_demo` or the Today `Demo Mode` notice before diagnosing checkout/payment/email differences; demo safeguards hide or block some write-style behavior by design.
 
 ### UX / Navigation Cleanup
 
