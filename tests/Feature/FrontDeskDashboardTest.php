@@ -351,7 +351,7 @@ class FrontDeskDashboardTest extends TestCase
         $appointment = $this->appointmentFor($practice, $appointmentPatient, [
             'start_datetime' => now()->setTime(11, 0),
         ]);
-        CheckoutSession::factory()->open()->create([
+        $appointmentCheckout = CheckoutSession::factory()->open()->create([
             'practice_id' => $practice->id,
             'appointment_id' => $appointment->id,
             'patient_id' => $appointmentPatient->id,
@@ -388,10 +388,74 @@ class FrontDeskDashboardTest extends TestCase
             ->assertSee('Appointment Checkout')
             ->assertSeeInOrder(['Direct visit', 'Appointment visit'])
             ->assertSee('Collect Payment')
+            ->assertSee(CheckoutSessionResource::getUrl('edit', ['record' => $ready]), false)
+            ->assertSee(CheckoutSessionResource::getUrl('edit', ['record' => $appointmentCheckout]), false)
             ->assertDontSee('Paid visit')
             ->assertDontSee('Other visit')
             ->call('collectPayment', $ready->id)
             ->assertRedirect(CheckoutSessionResource::getUrl('edit', ['record' => $ready]));
+    }
+
+    public function test_front_desk_collect_payment_links_point_to_each_specific_checkout_session(): void
+    {
+        [$practice, $admin] = $this->practiceWithAdmin();
+
+        $openCheckout = CheckoutSession::factory()->open()->create([
+            'practice_id' => $practice->id,
+            'appointment_id' => null,
+            'patient_id' => Patient::factory()->create([
+                'practice_id' => $practice->id,
+                'first_name' => 'Checkout',
+                'last_name' => 'Open',
+            ])->id,
+            'charge_label' => 'Open checkout visit',
+            'amount_total' => 9500,
+            'amount_paid' => 0,
+            'created_at' => now()->subMinutes(3),
+        ]);
+
+        $partialCheckout = CheckoutSession::factory()->open()->create([
+            'practice_id' => $practice->id,
+            'appointment_id' => null,
+            'patient_id' => Patient::factory()->create([
+                'practice_id' => $practice->id,
+                'first_name' => 'Checkout',
+                'last_name' => 'Partial',
+            ])->id,
+            'charge_label' => 'Partial checkout visit',
+            'amount_total' => 12000,
+            'amount_paid' => 0,
+            'created_at' => now()->subMinutes(2),
+        ]);
+        $partialCheckout->recordPayment([
+            'amount' => 5000,
+            'payment_method' => CheckoutPayment::METHOD_CASH,
+            'paid_at' => now(),
+        ]);
+
+        $noDefaultFeeCheckout = CheckoutSession::factory()->open()->create([
+            'practice_id' => $practice->id,
+            'appointment_id' => null,
+            'patient_id' => Patient::factory()->create([
+                'practice_id' => $practice->id,
+                'first_name' => 'Checkout',
+                'last_name' => 'No Default Fee',
+            ])->id,
+            'charge_label' => 'No default fee visit',
+            'amount_total' => 0,
+            'amount_paid' => 0,
+            'created_at' => now()->subMinute(),
+        ]);
+
+        $this->actingAs($admin);
+
+        Livewire::test(FrontDeskDashboard::class)
+            ->assertSee('Checkout Open')
+            ->assertSee('Checkout Partial')
+            ->assertSee('Checkout No Default Fee')
+            ->assertSee(CheckoutSessionResource::getUrl('edit', ['record' => $openCheckout]), false)
+            ->assertSee(CheckoutSessionResource::getUrl('edit', ['record' => $partialCheckout]), false)
+            ->assertSee(CheckoutSessionResource::getUrl('edit', ['record' => $noDefaultFeeCheckout]), false);
     }
 
     public function test_front_desk_ready_for_checkout_queue_shows_all_open_sessions_newest_first(): void

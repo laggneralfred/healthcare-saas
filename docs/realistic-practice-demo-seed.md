@@ -230,6 +230,44 @@ Suggested checks:
 5. Confirm paid checkout is not shown as ready for checkout on Today.
 6. Confirm no-default-fee checkout does not invent a service line.
 
+## Today Dashboard Checkout Queue
+
+The Today screen has a `Ready for Checkout` section for checkout sessions that need staff attention. This queue is for existing checkout sessions that are still open or otherwise need payment/charge review.
+
+Each `Collect Payment` action should open the specific checkout session edit page for that patient/visit:
+
+```text
+/admin/checkout-sessions/{id}/edit
+```
+
+Expected behavior:
+
+- open checkout sessions open their own checkout session
+- partial checkout sessions open the same existing checkout session, including prior payment and remaining balance context
+- no-default-fee checkout sessions still open their checkout session so staff can add charges manually
+- `Collect Payment` should not create a new checkout session
+- `Collect Payment` should not open a generic checkout page
+- `Collect Payment` should not open the wrong patient or visit
+
+Seeded checkout examples:
+
+| Patient | Expected Today Section | Expected Action | Expected Result | Verify In Checkout |
+| --- | --- | --- | --- | --- |
+| `Realistic Demo - Checkout Open Patient` | Ready for Checkout | Collect Payment | Opens that patient's specific checkout session edit page | Service line and open balance are ready for payment |
+| `Realistic Demo - Checkout Partial Patient` | Ready for Checkout | Collect Payment | Opens the existing partial checkout session edit page | Prior payment is visible and remaining balance is preserved |
+| `Realistic Demo - No Default Fee Patient` | Ready for Checkout | Collect Payment | Opens that patient's checkout session edit page | No automatic service line is invented; staff can add charges manually |
+
+Manual QA:
+
+1. Log in as `admin@healthcare.test`.
+2. Open Today.
+3. Find `Ready for Checkout`.
+4. Click `Collect Payment` for each seeded checkout patient.
+5. Confirm the URL changes to `/admin/checkout-sessions/{id}/edit`.
+6. Confirm each patient opens a different checkout session.
+7. Confirm the partial checkout still shows existing payment/balance context.
+8. Confirm the no-default-fee case allows manual charge entry.
+
 ## Reminder Schedule
 
 Seeded message templates/rules cover:
@@ -281,6 +319,8 @@ Today should include:
 - pending appointment requests
 - ready-for-checkout items
 
+For checkout-specific Today testing, use the `Ready for Checkout` queue and the seeded checkout examples documented above.
+
 Calendar should include:
 
 - multiple appointment states
@@ -312,6 +352,8 @@ Calendar should include:
 - If Chrome freezes or dims after login, check for a password manager unsafe-password warning.
 - If emails do not arrive, check mail config, queue status, and mail logs.
 - If service fees are empty, rerun the seeder with `--reset-demo-data`.
+- If a checkout card is missing from Today, rerun the realistic demo seeder with `--reset-demo-data`.
+- If `Collect Payment` opens the wrong place, check that the link points to `CheckoutSessionResource::getUrl('edit', ['record' => $checkout])`.
 - If tests collide or show duplicate/missing table migration errors, use `composer test:feature` instead of parallel tests.
 - If request links point to the wrong host, rerun with the correct `--base-url`.
 

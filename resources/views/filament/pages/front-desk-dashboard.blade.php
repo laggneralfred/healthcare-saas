@@ -212,9 +212,9 @@
                                         · {{ $checkout->practitioner?->user?->name ?? 'Unassigned' }}
                                     </div>
                                 </div>
-                                <button wire:click="collectPayment({{ $checkout->id }})" type="button" style="background:#2563eb;color:#ffffff;border:0;border-radius:6px;padding:5px 8px;font-size:12px;font-weight:600;cursor:pointer;">
+                                <a href="{{ $this->checkoutUrl($checkout) }}" style="display:inline-flex;align-items:center;background:#2563eb;color:#ffffff;border:0;border-radius:6px;padding:5px 8px;font-size:12px;font-weight:600;text-decoration:none;white-space:nowrap;">
                                     Collect Payment
-                                </button>
+                                </a>
                             </div>
                         @empty
                             <p style="margin:0;padding:12px 0;color:#9ca3af;font-size:13px;">No patients ready for checkout right now.</p>
