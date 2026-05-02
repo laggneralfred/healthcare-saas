@@ -148,6 +148,9 @@
                                         {{ $request->patient?->name ?? 'Patient' }}
                                     </a>
                                     <div style="font-size:12px;color:#6b7280;margin-top:2px;">Submitted {{ $request->submitted_at?->format('M j, g:i A') ?? 'recently' }}</div>
+                                    @if($request->requested_service)
+                                        <div style="font-size:12px;color:#047857;margin-top:6px;">Requested service: {{ $request->requested_service }}</div>
+                                    @endif
                                     <div style="font-size:13px;color:#374151;margin-top:6px;white-space:pre-line;">{{ $request->preferred_times }}</div>
                                     @if($request->note)
                                         <div style="font-size:12px;color:#6b7280;margin-top:6px;white-space:pre-line;">{{ $request->note }}</div>

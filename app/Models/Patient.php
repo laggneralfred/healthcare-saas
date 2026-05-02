@@ -232,6 +232,11 @@ class Patient extends Model
         return $this->hasMany(MessageLog::class);
     }
 
+    public function formSubmissions(): HasMany
+    {
+        return $this->hasMany(FormSubmission::class);
+    }
+
     public function communicationPreference(): \Illuminate\Database\Eloquent\Relations\HasOne
     {
         return $this->hasOne(PatientCommunicationPreference::class);

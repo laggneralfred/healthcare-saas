@@ -1,6 +1,11 @@
 <?php
 
 use App\Http\Controllers\Admin\PracticeSwitchController;
+use App\Http\Controllers\NewPatientFormController;
+use App\Http\Controllers\NewPatientInterestController;
+use App\Http\Controllers\PatientPortalAppointmentRequestController;
+use App\Http\Controllers\PatientPortalFormController;
+use App\Http\Controllers\PatientPortalMagicLinkController;
 use App\Http\Controllers\StripeWebhookController;
 use App\Livewire\Public\AppointmentRequestForm;
 use App\Livewire\Public\BookingCalendar;
@@ -57,6 +62,23 @@ Route::get('/book/{practice:slug}', BookingCalendar::class)->name('booking.show'
 Route::get('/intake/{token}', IntakeForm::class)->name('intake.show');
 Route::get('/consent/{token}', ConsentForm::class)->name('consent.show');
 Route::get('/appointment-request/{token}', AppointmentRequestForm::class)->name('appointment-request.show');
+Route::get('/patient/magic-link/{token}', [PatientPortalMagicLinkController::class, 'show'])->name('patient.magic-link');
+Route::get('/patient/link-unavailable', [PatientPortalMagicLinkController::class, 'invalid'])->name('patient.portal.invalid');
+Route::get('/patient/logged-out', [PatientPortalMagicLinkController::class, 'loggedOut'])->name('patient.portal.logged-out');
+Route::get('/patient/new-patient-form-submitted', [NewPatientFormController::class, 'thanks'])->name('patient.new-patient-form.thanks');
+Route::get('/patient/new-patient-form/{token}', [NewPatientFormController::class, 'show'])->name('patient.new-patient-form.show');
+Route::post('/patient/new-patient-form/{token}', [NewPatientFormController::class, 'store'])->name('patient.new-patient-form.store');
+Route::get('/patient/dashboard', [PatientPortalMagicLinkController::class, 'dashboard'])->middleware('patient.portal')->name('patient.dashboard');
+Route::get('/patient/appointments/request', [PatientPortalAppointmentRequestController::class, 'create'])->middleware('patient.portal')->name('patient.appointment-request.create');
+Route::post('/patient/appointments/request', [PatientPortalAppointmentRequestController::class, 'store'])->middleware('patient.portal')->name('patient.appointment-request.store');
+Route::get('/patient/forms', [PatientPortalFormController::class, 'index'])->middleware('patient.portal')->name('patient.forms.index');
+Route::get('/patient/forms/{formSubmission}', [PatientPortalFormController::class, 'show'])->middleware('patient.portal')->name('patient.forms.show');
+Route::post('/patient/forms/{formSubmission}', [PatientPortalFormController::class, 'store'])->middleware('patient.portal')->name('patient.forms.store');
+Route::post('/patient/logout', [PatientPortalMagicLinkController::class, 'logout'])->middleware('patient.portal')->name('patient.logout');
+Route::get('/new-patient', [NewPatientInterestController::class, 'create'])->name('new-patient.interest');
+Route::post('/new-patient/interest', [NewPatientInterestController::class, 'store'])->name('new-patient.interest.store');
+Route::get('/new-patient/thanks', [NewPatientInterestController::class, 'thanks'])->name('new-patient.thanks');
+Route::get('/new-patient/unavailable', [NewPatientInterestController::class, 'unavailable'])->name('new-patient.unavailable');
 
 // Public trial registration — no authentication required
 use App\Http\Controllers\RegistrationController;

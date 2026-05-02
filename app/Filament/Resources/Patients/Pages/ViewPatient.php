@@ -6,15 +6,23 @@ use App\Filament\Resources\Appointments\AppointmentResource;
 use App\Filament\Resources\Encounters\EncounterResource;
 use App\Filament\Resources\MedicalHistories\MedicalHistoryResource;
 use App\Filament\Resources\Patients\PatientResource;
+use App\Mail\ExistingPatientFormMail;
+use App\Mail\PatientPortalMagicLinkMail;
+use App\Models\FormSubmission;
+use App\Models\FormTemplate;
+use App\Models\MessageLog;
 use App\Models\Patient;
 use App\Models\States\Appointment\Cancelled as AppointmentCancelled;
 use App\Models\States\CheckoutSession\Paid;
 use App\Services\PatientCareStatusService;
+use App\Services\PatientPortalTokenService;
 use Filament\Actions\Action;
+use Filament\Notifications\Notification;
 use Filament\Infolists\Components\ViewEntry;
 use Filament\Resources\Pages\ViewRecord;
 use Filament\Schemas\Schema;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Mail;
 
 class ViewPatient extends ViewRecord
 {
@@ -54,7 +62,196 @@ class ViewPatient extends ViewRecord
                 ->icon('heroicon-o-calendar')
                 ->url(fn () => AppointmentResource::getUrl('create', ['patient_id' => $this->record->id]))
                 ->color('success'),
+
+            Action::make('send_portal_link')
+                ->label('Send Portal Link')
+                ->icon('heroicon-o-key')
+                ->color('info')
+                ->visible(fn () => filled($this->record->email))
+                ->requiresConfirmation()
+                ->modalHeading('Send patient portal link?')
+                ->modalDescription(fn () => 'This sends a secure magic link to '.$this->record->email.'.')
+                ->action(fn () => $this->sendPortalLink()),
+
+            Action::make('send_forms')
+                ->label('Send Forms')
+                ->icon('heroicon-o-document-text')
+                ->color('primary')
+                ->visible(fn () => filled($this->record->email))
+                ->requiresConfirmation()
+                ->modalHeading('Send forms?')
+                ->modalDescription(fn () => 'This sends a secure form link to '.$this->record->email.'. Submitted forms will wait for staff review.')
+                ->action(fn () => $this->sendForms()),
+
+            Action::make('mark_form_reviewed')
+                ->label('Mark Form Reviewed')
+                ->icon('heroicon-o-check-circle')
+                ->color('success')
+                ->visible(fn () => $this->latestSubmittedForm() !== null)
+                ->action(fn () => $this->markLatestFormReviewed()),
+
+            Action::make('archive_form')
+                ->label('Archive Form')
+                ->icon('heroicon-o-archive-box')
+                ->color('gray')
+                ->visible(fn () => $this->latestFormSubmission() !== null)
+                ->requiresConfirmation()
+                ->action(fn () => $this->archiveLatestForm()),
         ];
+    }
+
+    public function sendPortalLink(): void
+    {
+        if (! filled($this->record->email)) {
+            Notification::make()
+                ->title('Add an email address before sending a portal link.')
+                ->danger()
+                ->send();
+
+            return;
+        }
+
+        [$portalToken, $plainToken] = app(PatientPortalTokenService::class)
+            ->createForExistingPatient($this->record, auth()->user());
+
+        $portalUrl = route('patient.magic-link', ['token' => $plainToken]);
+        $subject = 'Your secure link for '.$this->record->practice->name;
+        $body = "Hi {$this->record->first_name},\n\nHere is your secure link for {$this->record->practice->name}. This link opens a basic patient dashboard and expires on {$portalToken->expires_at->format('M j, Y')}.\n\nIf you did not request this, you can ignore this email.";
+
+        $messageLog = MessageLog::withoutPracticeScope()->create([
+            'practice_id' => $this->record->practice_id,
+            'patient_id' => $this->record->id,
+            'appointment_id' => null,
+            'practitioner_id' => null,
+            'message_template_id' => null,
+            'channel' => 'email',
+            'recipient' => $this->record->email,
+            'subject' => $subject,
+            'body' => $body,
+            'status' => 'pending',
+        ]);
+
+        try {
+            Mail::to($this->record->email)->send(new PatientPortalMagicLinkMail($messageLog, $portalUrl));
+        } catch (\Throwable $exception) {
+            $messageLog->update([
+                'status' => 'failed',
+                'failed_at' => now(),
+                'failure_reason' => $exception->getMessage(),
+            ]);
+
+            Notification::make()
+                ->title('The portal link could not be sent.')
+                ->danger()
+                ->send();
+
+            return;
+        }
+
+        $messageLog->update([
+            'status' => 'sent',
+            'sent_at' => now(),
+        ]);
+
+        Notification::make()
+            ->title('Patient portal link sent.')
+            ->success()
+            ->send();
+    }
+
+    public function sendForms(): void
+    {
+        if (! filled($this->record->email)) {
+            Notification::make()
+                ->title('Add an email address before sending forms.')
+                ->danger()
+                ->send();
+
+            return;
+        }
+
+        $formTemplate = FormTemplate::findOrCreateDefaultNewPatientIntake($this->record->practice_id);
+
+        FormSubmission::withoutPracticeScope()->create([
+            'practice_id' => $this->record->practice_id,
+            'patient_id' => $this->record->id,
+            'new_patient_interest_id' => null,
+            'form_template_id' => $formTemplate->id,
+            'status' => FormSubmission::STATUS_PENDING,
+        ]);
+
+        [$portalToken, $plainToken] = app(PatientPortalTokenService::class)
+            ->createForExistingPatientForm($this->record, auth()->user());
+
+        $formUrl = route('patient.magic-link', ['token' => $plainToken]);
+        $subject = 'Forms from '.$this->record->practice->name;
+        $body = "Please complete {$formTemplate->name} for {$this->record->practice->name}. This secure link expires on {$portalToken->expires_at->format('M j, Y')}.\n\nIf you did not expect this, you can ignore this email.";
+
+        $messageLog = MessageLog::withoutPracticeScope()->create([
+            'practice_id' => $this->record->practice_id,
+            'patient_id' => $this->record->id,
+            'appointment_id' => null,
+            'practitioner_id' => null,
+            'message_template_id' => null,
+            'channel' => 'email',
+            'recipient' => $this->record->email,
+            'subject' => $subject,
+            'body' => $body,
+            'status' => 'pending',
+        ]);
+
+        try {
+            Mail::to($this->record->email)->send(new ExistingPatientFormMail($this->record, $formTemplate, $messageLog, $formUrl));
+        } catch (\Throwable $exception) {
+            $messageLog->update([
+                'status' => 'failed',
+                'failed_at' => now(),
+                'failure_reason' => $exception->getMessage(),
+            ]);
+
+            Notification::make()
+                ->title('The forms could not be sent.')
+                ->danger()
+                ->send();
+
+            return;
+        }
+
+        $messageLog->update([
+            'status' => 'sent',
+            'sent_at' => now(),
+        ]);
+
+        Notification::make()
+            ->title('Forms sent.')
+            ->success()
+            ->send();
+    }
+
+    public function markLatestFormReviewed(): void
+    {
+        $submission = $this->latestSubmittedForm();
+
+        if (! $submission) {
+            return;
+        }
+
+        $submission->update([
+            'status' => FormSubmission::STATUS_REVIEWED,
+            'reviewed_at' => now(),
+            'reviewed_by_user_id' => auth()->id(),
+        ]);
+    }
+
+    public function archiveLatestForm(): void
+    {
+        $submission = $this->latestFormSubmission();
+
+        if (! $submission) {
+            return;
+        }
+
+        $submission->update(['status' => FormSubmission::STATUS_ARCHIVED]);
     }
 
     protected function resolveRecord($key): Model
@@ -66,6 +263,7 @@ class ViewPatient extends ViewRecord
             'medicalHistory',
             'checkoutSessions' => fn ($q) => $q->latest(),
             'communications' => fn ($q) => $q->latest()->limit(5),
+            'formSubmissions' => fn ($q) => $q->with('formTemplate')->latest()->limit(10),
             'consentRecords' => fn ($q) => $q->where('status', 'complete')->latest(),
             'practice',
         ])->findOrFail($key);
@@ -123,9 +321,25 @@ class ViewPatient extends ViewRecord
                     'careStatus' => $careStatus,
                     'checkoutSessions' => $patient->checkoutSessions,
                     'communications' => $patient->communications,
+                    'formSubmissions' => $patient->formSubmissions,
                     'discipline' => $discipline,
                 ])
                 ->columnSpanFull(),
         ]);
+    }
+
+    private function latestSubmittedForm(): ?FormSubmission
+    {
+        return $this->record->formSubmissions()
+            ->where('status', FormSubmission::STATUS_SUBMITTED)
+            ->latest()
+            ->first();
+    }
+
+    private function latestFormSubmission(): ?FormSubmission
+    {
+        return $this->record->formSubmissions()
+            ->latest()
+            ->first();
     }
 }

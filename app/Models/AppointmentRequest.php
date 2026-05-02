@@ -27,6 +27,7 @@ class AppointmentRequest extends Model
         'patient_communication_id',
         'token_hash',
         'status',
+        'requested_service',
         'preferred_times',
         'note',
         'submitted_at',

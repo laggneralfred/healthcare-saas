@@ -204,6 +204,35 @@
             </div>
         </div>
         @endif
+
+        @if(($formSubmissions ?? collect())->isNotEmpty())
+        <div style="background-color:#ffffff;border:1px solid #e5e7eb;border-radius:0.5rem;padding:1.25rem;margin-top:1rem;">
+            <h3 style="font-size:0.8rem;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;color:#6b7280;margin:0 0 1rem 0;">Portal Forms</h3>
+            <div style="display:flex;flex-direction:column;gap:0.75rem;">
+                @foreach($formSubmissions as $submission)
+                <div style="border-top:1px solid #f3f4f6;padding-top:0.75rem;">
+                    <div style="display:flex;justify-content:space-between;gap:0.75rem;align-items:center;">
+                        <span style="font-size:0.85rem;font-weight:600;color:#1f2937;">{{ $submission->formTemplate?->name ?? 'Form' }}</span>
+                        <span style="font-size:0.75rem;color:#6b7280;">{{ $submission->updated_at?->format('M j, Y') }}</span>
+                    </div>
+                    <div style="display:flex;gap:0.375rem;flex-wrap:wrap;margin-top:0.35rem;">
+                        <span style="padding:0.1rem 0.45rem;border-radius:9999px;font-size:0.7rem;font-weight:600;background-color:#f3f4f6;color:#374151;">{{ \App\Models\FormSubmission::STATUS_OPTIONS[$submission->status] ?? str($submission->status)->replace('_', ' ')->title() }}</span>
+                    </div>
+                    @if($submission->submitted_data_json)
+                    <dl style="display:grid;gap:0.5rem;margin:0.65rem 0 0;">
+                        @foreach($submission->submitted_data_json as $key => $value)
+                        <div>
+                            <dt style="font-size:0.7rem;font-weight:600;color:#6b7280;text-transform:uppercase;letter-spacing:0.04em;">{{ str($key)->replace('_', ' ')->title() }}</dt>
+                            <dd style="font-size:0.8rem;color:#374151;white-space:pre-line;margin:0.15rem 0 0;">{{ is_bool($value) ? ($value ? 'Yes' : 'No') : ($value ?: '—') }}</dd>
+                        </div>
+                        @endforeach
+                    </dl>
+                    @endif
+                </div>
+                @endforeach
+            </div>
+        </div>
+        @endif
     </div>
 
     {{-- ── RIGHT: TABS ───────────────────────────────────────────────────── --}}

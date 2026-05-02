@@ -32,6 +32,16 @@ Workflow documentation:
 - Today's Ready for Checkout cards link `Collect Payment` directly to the specific checkout session edit page, so partial, open, and no-default-fee sessions all open the exact checkout staff selected.
 - When testing seeded practices, check `practices.is_demo` or the Today `Demo Mode` notice before diagnosing checkout/payment/email differences; demo safeguards hide or block some write-style behavior by design.
 - Island Massage and Acupuncture can be seeded as a live-like fake clinic with `php artisan demo:seed-island-massage-acupuncture --base-url=https://app.practiqapp.com --reset-demo-data`; login is `maria-demo@practiq.local` / `PractiqLocalTest!2026`, and the marker is `ISLAND_MASSAGE_ACUPUNCTURE_SEED`.
+- Patient portal foundation now supports existing-patient magic links at `/patient/magic-link/{token}` using `patient_portal_tokens`; only token hashes are stored, and `/patient/dashboard` is a minimal portal session page with no clinical notes.
+- New patient interest submissions live in `new_patient_interests` via `/new-patient`; they never automatically create `patients` records and must not reveal whether an email already belongs to an existing patient.
+- Staff can send intake forms to a new patient interest. The form link uses `patient_portal_tokens` with purpose `new_patient_form`, stores only a token hash, and grants access only to assigned form submissions, never the patient dashboard.
+- New patient form completions are stored in `form_submissions` against the `new_patient_interest_id`; completing forms does not create a `Patient` record.
+- New Patient Interest conversion is explicit and staff-triggered from the interest view. Submitted forms never create Patients automatically; conversion links the interest and related `form_submissions` to the created Patient.
+- Same-practice duplicate email conversion is blocked until a future merge/review flow exists. The same email in another practice does not block conversion.
+- Existing patients can request appointments from the patient portal. These are `appointment_requests` only; staff must manually create and confirm appointments, and portal patients can see only their own request statuses.
+- Existing patient forms reuse `form_templates` and `form_submissions`. Staff-sent form links use the patient portal, and submitted forms do not automatically overwrite Patient records.
+- Portal UX polish added a shared patient-facing nav, clearer request/form helper copy, and explicit reminders that appointment requests are not bookings and submitted forms wait for staff review.
+- Authenticated patient portal pages share `resources/views/patient/layout.blade.php` for the page shell, clinic name/nav area, and main content slot. Public new-patient interest and token form pages remain separate.
 
 ### UX / Navigation Cleanup
 
