@@ -31,6 +31,7 @@ use App\Filament\Resources\CommunicationRules\CommunicationRuleResource;
 use App\Filament\Resources\Encounters\EncounterResource;
 use App\Filament\Resources\InventoryProducts\InventoryProductResource;
 use App\Filament\Resources\MessageLogs\MessageLogResource;
+use App\Filament\Resources\Patients\PatientResource;
 use App\Filament\Resources\PracticePaymentMethods\PracticePaymentMethodResource;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Schema;
@@ -214,6 +215,19 @@ class FilamentSmokeTest extends TestCase
             ->get('/admin/communications-dashboard')
             ->assertSuccessful()
             ->assertSee('Patients who may need a gentle follow-up will appear here.');
+    }
+
+    public function test_patient_view_has_clear_edit_patient_information_action(): void
+    {
+        $patient = Patient::factory()->create(['practice_id' => $this->practice->id]);
+
+        $this->actingAs($this->admin)
+            ->get(PatientResource::getUrl('view', ['record' => $patient]))
+            ->assertSuccessful()
+            ->assertSee('Edit Patient Information')
+            ->assertSee(PatientResource::getUrl('edit', ['record' => $patient]), false)
+            ->assertSee('Send Portal Link')
+            ->assertSee('Send Forms');
     }
 
     protected function createRecordForResource(string $resourceName)

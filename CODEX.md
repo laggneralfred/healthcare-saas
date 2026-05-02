@@ -42,6 +42,7 @@ Workflow documentation:
 - Existing patient forms reuse `form_templates` and `form_submissions`. Staff-sent form links use the patient portal, and submitted forms do not automatically overwrite Patient records.
 - Portal UX polish added a shared patient-facing nav, clearer request/form helper copy, and explicit reminders that appointment requests are not bookings and submitted forms wait for staff review.
 - Authenticated patient portal pages share `resources/views/patient/layout.blade.php` for the page shell, clinic name/nav area, and main content slot. Public new-patient interest and token form pages remain separate.
+- Patient detail pages include a clear `Edit Patient Information` header action that routes to the normal Patient edit page while preserving portal actions.
 
 ### UX / Navigation Cleanup
 

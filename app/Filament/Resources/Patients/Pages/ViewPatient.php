@@ -38,10 +38,10 @@ class ViewPatient extends ViewRecord
                 ->color('gray'),
 
             Action::make('edit')
-                ->label('Edit Patient')
+                ->label('Edit Patient Information')
                 ->icon('heroicon-o-pencil')
                 ->url(fn () => static::getResource()::getUrl('edit', ['record' => $this->record]))
-                ->color('gray'),
+                ->color('primary'),
 
             Action::make('intake_form')
                 ->label(fn () => $this->record->medicalHistory ? 'Edit Intake' : 'Intake Form')
