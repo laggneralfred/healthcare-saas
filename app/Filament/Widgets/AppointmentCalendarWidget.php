@@ -26,16 +26,29 @@ class AppointmentCalendarWidget extends Widget
         $timezone = $practiceId
             ? Practice::find($practiceId)?->timezone ?? 'UTC'
             : 'UTC';
+        $practitionerId = request()->integer('practitioner_id');
+        $date = request('date');
 
         $todayAppointments = $practiceId
             ? $this->todayAppointments($practiceId, $timezone)
             : collect();
 
+        $contextParams = array_filter([
+            'patient_id' => request('patient_id'),
+            'appointment_request_id' => request('appointment_request_id'),
+            'appointment_type_id' => request('appointment_type_id'),
+            'practitioner_id' => $practitionerId ?: null,
+            'return_url' => request('return_url'),
+        ], fn ($value) => filled($value));
+
         return [
-            'eventsUrl'     => route('admin.calendar.events'),
-            'createBaseUrl' => AppointmentResource::getUrl('create'),
+            'eventsUrl'     => route('admin.calendar.events', array_filter([
+                'practitioner_id' => $practitionerId ?: null,
+            ])),
+            'createBaseUrl' => AppointmentResource::getUrl('create') . (filled($contextParams) ? '?' . http_build_query($contextParams) : ''),
             'calendarTimezone' => $timezone,
             'todayAppointments' => $todayAppointments,
+            'initialDate' => $date ?: null,
         ];
     }
 

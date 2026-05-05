@@ -75,6 +75,7 @@
         var CREATE_BASE_URL = @json($createBaseUrl);
         var EVENTS_URL      = @json($eventsUrl);
         var CALENDAR_TZ     = @json($calendarTimezone);
+        var INITIAL_DATE    = @json($initialDate);
 
         function initCalendar() {
             var el = document.getElementById('practiq-appt-calendar');
@@ -126,6 +127,7 @@
 
             var calendar = new FullCalendar.Calendar(el, {
                 initialView: 'timeGridWeek',
+                initialDate: INITIAL_DATE || undefined,
                 timeZone: CALENDAR_TZ,
                 headerToolbar: {
                     left:   'prev,next today',
@@ -165,7 +167,9 @@
                         + pad(dt.getDate()) + ' '
                         + pad(dt.getHours()) + ':'
                         + pad(dt.getMinutes()) + ':00';
-                    window.location.href = CREATE_BASE_URL + '?start_datetime=' + encodeURIComponent(formatted);
+                    window.location.href = CREATE_BASE_URL
+                        + (CREATE_BASE_URL.indexOf('?') === -1 ? '?' : '&')
+                        + 'start_datetime=' + encodeURIComponent(formatted);
                 },
 
                 editable: true,

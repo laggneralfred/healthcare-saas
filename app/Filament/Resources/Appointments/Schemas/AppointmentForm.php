@@ -62,6 +62,7 @@ class AppointmentForm
                     ->getOptionLabelFromRecordUsing(fn ($record) => $record->user?->name ?? "Practitioner #{$record->id}")
                     ->searchable()
                     ->preload()
+                    ->live()
                     ->required()
                     ->disabledOn('view'),
 
@@ -102,6 +103,12 @@ class AppointmentForm
                         }
                     })
                     ->disabledOn('view'),
+
+                View::make('filament.resources.appointments.pages.create-schedule-context')
+                    ->viewData(fn ($livewire): array => [
+                        'scheduleContext' => method_exists($livewire, 'scheduleContext') ? $livewire->scheduleContext() : null,
+                    ])
+                    ->visible(fn ($livewire): bool => method_exists($livewire, 'scheduleContext') && filled($livewire->scheduleContext())),
 
                 Select::make('duration_minutes')
                     ->label('Duration')

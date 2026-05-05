@@ -135,7 +135,10 @@ Route::get('/admin/calendar/events', function (Request $request) {
 
     $careStatusService = app(PatientCareStatusService::class);
 
+    $practitionerId = $request->integer('practitioner_id');
+
     $events = Appointment::where('practice_id', $practiceId)
+        ->when($practitionerId, fn ($query) => $query->where('practitioner_id', $practitionerId))
         ->whereNotIn('status', ['cancelled'])
         ->whereBetween('start_datetime', [$start, $end])
         ->with([
