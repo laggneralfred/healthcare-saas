@@ -7,7 +7,9 @@ use App\Filament\Resources\Appointments\AppointmentResource;
 use App\Filament\Resources\Appointments\Pages\Concerns\ValidatesPractitionerSchedule;
 use App\Models\Appointment;
 use App\Models\AppointmentRequest;
+use App\Models\AppointmentType;
 use App\Models\Practitioner;
+use App\Services\Scheduling\AppointmentAvailabilityService;
 use App\Services\Scheduling\PractitionerScheduleService;
 use Carbon\Carbon;
 use Filament\Resources\Pages\CreateRecord;
@@ -29,34 +31,55 @@ class CreateAppointment extends CreateRecord
 
         $state = $this->formState();
         $practitionerId = $state['practitioner_id'] ?? request('practitioner_id');
+        $appointmentTypeId = $state['appointment_type_id'] ?? request('appointment_type_id') ?? $this->appointmentRequest->appointment_type_id;
 
-        if (! $practitionerId) {
+        if (! $practitionerId && ! $appointmentTypeId) {
             return null;
         }
 
         $practiceId = auth()->user()?->practice_id;
-        $practitioner = Practitioner::withoutPracticeScope()
-            ->with('practice', 'user')
-            ->where('practice_id', $practiceId)
-            ->find($practitionerId);
+        $practice = auth()->user()?->practice;
+        $practitioner = $practitionerId
+            ? Practitioner::withoutPracticeScope()
+                ->with('practice', 'user')
+                ->where('practice_id', $practiceId)
+                ->find($practitionerId)
+            : null;
+        $appointmentType = $appointmentTypeId
+            ? AppointmentType::withoutPracticeScope()
+                ->where('practice_id', $practiceId)
+                ->find($appointmentTypeId)
+            : null;
 
-        if (! $practitioner) {
+        if (! $practice || ($practitionerId && ! $practitioner)) {
             return null;
         }
 
-        $timezone = $practitioner->practice?->timezone ?: config('app.timezone');
+        $timezone = $practice->timezone ?: config('app.timezone');
         $selectedDate = $this->contextDate($state['start_datetime'] ?? request('start_datetime'), $timezone);
         $dayStart = $selectedDate->copy()->startOfDay();
         $dayEnd = $selectedDate->copy()->endOfDay();
         $schedule = app(PractitionerScheduleService::class);
+        $suggestionStart = $selectedDate->copy()->startOfDay()->max(now($timezone));
+        $suggestionEnd = $suggestionStart->copy()->addDays(14)->endOfDay();
+        $suggestedSlots = $appointmentType
+            ? app(AppointmentAvailabilityService::class)
+                ->availableSlots($practice, $appointmentType, $practitioner, $suggestionStart, $suggestionEnd)
+                ->take(10)
+                ->map(fn (array $slot): array => $slot + [
+                    'use_url' => $this->suggestionUrl($slot),
+                ])
+            : collect();
 
         return [
             'practitioner' => $practitioner,
+            'appointmentType' => $appointmentType,
             'date' => $selectedDate,
-            'workingWindows' => $schedule->workingWindowsForDate($practitioner, $selectedDate),
-            'timeBlocks' => $schedule->blocksForRange($practitioner, $dayStart, $dayEnd),
-            'appointments' => $this->appointmentsForContext($practiceId, (int) $practitionerId, $dayStart, $dayEnd),
-            'calendarUrl' => $this->calendarContextUrl((int) $practitionerId, $selectedDate),
+            'workingWindows' => $practitioner ? $schedule->workingWindowsForDate($practitioner, $selectedDate) : collect(),
+            'timeBlocks' => $practitioner ? $schedule->blocksForRange($practitioner, $dayStart, $dayEnd) : collect(),
+            'appointments' => $practitioner ? $this->appointmentsForContext($practiceId, (int) $practitionerId, $dayStart, $dayEnd) : collect(),
+            'calendarUrl' => $practitioner ? $this->calendarContextUrl((int) $practitionerId, $selectedDate) : null,
+            'suggestedSlots' => $suggestedSlots,
         ];
     }
 
@@ -90,7 +113,8 @@ class CreateAppointment extends CreateRecord
         if ($startDatetime = request('start_datetime')) {
             $start                  = \Carbon\Carbon::parse($startDatetime);
             $fill['start_datetime'] = $start->format('Y-m-d H:i:00');
-            $duration               = auth()->user()->practice?->default_appointment_duration ?? 60;
+            $duration               = $this->durationForPrefill($fill['appointment_type_id'] ?? request('appointment_type_id'));
+            $fill['duration_minutes'] = $duration;
             $fill['end_datetime']   = $start->copy()->addMinutes((int) $duration)->format('Y-m-d H:i:00');
         }
 
@@ -155,5 +179,29 @@ class CreateAppointment extends CreateRecord
             'practitioner_id' => $practitionerId,
             'return_url' => request('return_url'),
         ], fn ($value) => filled($value)));
+    }
+
+    private function suggestionUrl(array $slot): string
+    {
+        return AppointmentResource::getUrl('create', array_filter([
+            'patient_id' => request('patient_id') ?: $this->appointmentRequest?->patient_id,
+            'appointment_request_id' => request('appointment_request_id') ?: $this->appointmentRequest?->id,
+            'appointment_type_id' => $slot['appointment_type_id'],
+            'practitioner_id' => $slot['practitioner_id'],
+            'start_datetime' => $slot['starts_at']->format('Y-m-d H:i:s'),
+            'return_url' => request('return_url'),
+        ], fn ($value) => filled($value)));
+    }
+
+    private function durationForPrefill(mixed $appointmentTypeId): int
+    {
+        $practice = auth()->user()?->practice;
+        $appointmentType = $appointmentTypeId
+            ? AppointmentType::withoutPracticeScope()
+                ->where('practice_id', auth()->user()->practice_id)
+                ->find($appointmentTypeId)
+            : null;
+
+        return (int) ($appointmentType?->duration_minutes ?: $practice?->default_appointment_duration ?: 60);
     }
 }

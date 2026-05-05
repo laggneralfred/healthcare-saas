@@ -30,6 +30,13 @@ class AppointmentSchedulingFromRequestTest extends TestCase
         PracticeAccessRoles::ensureRoles();
     }
 
+    protected function tearDown(): void
+    {
+        Carbon::setTestNow();
+
+        parent::tearDown();
+    }
+
     public function test_create_page_shows_request_context_and_preserves_prefill_values(): void
     {
         [$practice, $admin] = $this->practiceWithAdmin();
@@ -181,6 +188,83 @@ class AppointmentSchedulingFromRequestTest extends TestCase
             ->assertSee('return_url=%2Fadmin%2Ffront-desk', false);
     }
 
+    public function test_create_page_shows_suggested_openings_for_request(): void
+    {
+        Carbon::setTestNow(Carbon::parse('2026-05-05 08:00', 'America/Los_Angeles'));
+        [$practice, $admin] = $this->practiceWithAdmin();
+        $patient = Patient::factory()->create(['practice_id' => $practice->id]);
+        $appointmentType = AppointmentType::factory()->create([
+            'practice_id' => $practice->id,
+            'name' => 'Suggested Treatment',
+            'duration_minutes' => 60,
+        ]);
+        $practitioner = $this->practitionerFor($practice, 'Dr. Suggestions');
+        $this->attachType($practice, $practitioner, $appointmentType);
+        $this->workingHour($practice, $practitioner, 2, '09:00', '11:00');
+        $request = $this->appointmentRequestFor($practice, $patient, [
+            'appointment_type_id' => $appointmentType->id,
+            'practitioner_id' => $practitioner->id,
+        ]);
+
+        $this->actingAs($admin);
+
+        Livewire::withQueryParams([
+            'appointment_request_id' => $request->id,
+            'patient_id' => $patient->id,
+            'appointment_type_id' => $appointmentType->id,
+            'practitioner_id' => $practitioner->id,
+            'return_url' => '/admin/front-desk',
+        ])
+            ->test(CreateAppointment::class)
+            ->assertSee('Suggested Openings')
+            ->assertSee('Use this time')
+            ->assertSee('Tue, May 5 9:00 AM - 10:00 AM with Dr. Suggestions')
+            ->assertSee('start_datetime=2026-05-05%2009%3A00%3A00', false)
+            ->assertSee('appointment_request_id=' . $request->id, false)
+            ->assertSee('practitioner_id=' . $practitioner->id, false);
+
+        $this->assertSame(0, Appointment::withoutPracticeScope()->where('practice_id', $practice->id)->count());
+    }
+
+    public function test_use_this_time_fills_create_form_without_creating_appointment(): void
+    {
+        Carbon::setTestNow(Carbon::parse('2026-05-05 08:00', 'America/Los_Angeles'));
+        [$practice, $admin] = $this->practiceWithAdmin();
+        $patient = Patient::factory()->create(['practice_id' => $practice->id]);
+        $appointmentType = AppointmentType::factory()->create([
+            'practice_id' => $practice->id,
+            'duration_minutes' => 45,
+        ]);
+        $practitioner = $this->practitionerFor($practice, 'Dr. Manual');
+        $this->attachType($practice, $practitioner, $appointmentType);
+        $request = $this->appointmentRequestFor($practice, $patient, [
+            'appointment_type_id' => $appointmentType->id,
+            'practitioner_id' => $practitioner->id,
+        ]);
+
+        $this->actingAs($admin);
+
+        Livewire::withQueryParams([
+            'appointment_request_id' => $request->id,
+            'patient_id' => $patient->id,
+            'appointment_type_id' => $appointmentType->id,
+            'practitioner_id' => $practitioner->id,
+            'start_datetime' => '2026-05-05 09:15:00',
+        ])
+            ->test(CreateAppointment::class)
+            ->assertFormSet([
+                'patient_id' => $patient->id,
+                'appointment_type_id' => $appointmentType->id,
+                'practitioner_id' => $practitioner->id,
+                'start_datetime' => '2026-05-05 09:15',
+                'end_datetime' => '2026-05-05 10:00',
+                'duration_minutes' => 45,
+            ]);
+
+        $this->assertSame(0, Appointment::withoutPracticeScope()->where('practice_id', $practice->id)->count());
+        $this->assertSame(AppointmentRequest::STATUS_PENDING, $request->refresh()->status);
+    }
+
     private function practiceWithAdmin(): array
     {
         $practice = Practice::factory()->create(['timezone' => 'America/Los_Angeles']);
@@ -201,6 +285,26 @@ class AppointmentSchedulingFromRequestTest extends TestCase
         return Practitioner::factory()->create([
             'practice_id' => $practice->id,
             'user_id' => $user->id,
+            'is_active' => true,
+        ]);
+    }
+
+    private function attachType(Practice $practice, Practitioner $practitioner, AppointmentType $appointmentType): void
+    {
+        $practitioner->appointmentTypes()->attach($appointmentType->id, [
+            'practice_id' => $practice->id,
+            'is_active' => true,
+        ]);
+    }
+
+    private function workingHour(Practice $practice, Practitioner $practitioner, int $dayOfWeek, string $startTime, string $endTime): void
+    {
+        PractitionerWorkingHour::withoutPracticeScope()->create([
+            'practice_id' => $practice->id,
+            'practitioner_id' => $practitioner->id,
+            'day_of_week' => $dayOfWeek,
+            'start_time' => $startTime,
+            'end_time' => $endTime,
             'is_active' => true,
         ]);
     }

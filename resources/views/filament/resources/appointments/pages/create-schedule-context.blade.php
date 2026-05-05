@@ -4,6 +4,7 @@
         $workingWindows = $scheduleContext['workingWindows'];
         $timeBlocks = $scheduleContext['timeBlocks'];
         $appointments = $scheduleContext['appointments'];
+        $suggestedSlots = $scheduleContext['suggestedSlots'];
     @endphp
 
     <div style="background:#ffffff;border:1px solid #d1d5db;border-radius:8px;padding:14px 16px;margin:0 0 16px;">
@@ -11,18 +12,38 @@
             <div>
                 <h2 style="margin:0;font-size:15px;font-weight:700;color:#111827;">Schedule Context</h2>
                 <p style="margin:3px 0 0;font-size:12px;color:#6b7280;">
-                    {{ $scheduleContext['practitioner']->user?->name ?? 'Selected practitioner' }} · {{ $date->format('l, M j, Y') }}
+                    {{ $scheduleContext['practitioner']?->user?->name ?? ($scheduleContext['appointmentType']?->name ? 'Any eligible practitioner' : 'Selected practitioner') }} · {{ $date->format('l, M j, Y') }}
                 </p>
             </div>
-            <a
-                href="{{ $scheduleContext['calendarUrl'] }}"
-                style="display:inline-flex;align-items:center;border-radius:6px;background:#2563eb;color:#ffffff;padding:7px 10px;font-size:12px;font-weight:700;text-decoration:none;"
-            >
-                Open Calendar for this Practitioner
-            </a>
+            @if($scheduleContext['calendarUrl'])
+                <a
+                    href="{{ $scheduleContext['calendarUrl'] }}"
+                    style="display:inline-flex;align-items:center;border-radius:6px;background:#2563eb;color:#ffffff;padding:7px 10px;font-size:12px;font-weight:700;text-decoration:none;"
+                >
+                    Open Calendar for this Practitioner
+                </a>
+            @endif
         </div>
 
-        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin-top:14px;">
+        <section style="margin-top:14px;border-top:1px solid #e5e7eb;padding-top:14px;">
+            <h3 style="margin:0 0 8px;font-size:12px;font-weight:700;text-transform:uppercase;color:#6b7280;">Suggested Openings</h3>
+            @if($suggestedSlots->isNotEmpty())
+                <div style="display:flex;flex-wrap:wrap;gap:8px;">
+                    @foreach($suggestedSlots as $slot)
+                        <a
+                            href="{{ $slot['use_url'] }}"
+                            style="display:inline-flex;align-items:center;gap:6px;border:1px solid #bfdbfe;border-radius:6px;background:#eff6ff;color:#1d4ed8;padding:7px 9px;font-size:12px;font-weight:700;text-decoration:none;"
+                        >
+                            Use this time · {{ $slot['label'] }}
+                        </a>
+                    @endforeach
+                </div>
+            @else
+                <div style="font-size:13px;color:#6b7280;">No matching openings found in the next 14 days. Try a different practitioner, service, or date range.</div>
+            @endif
+        </section>
+
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin-top:14px;border-top:1px solid #e5e7eb;padding-top:14px;">
             <section>
                 <h3 style="margin:0 0 7px;font-size:12px;font-weight:700;text-transform:uppercase;color:#6b7280;">Working Hours</h3>
                 @forelse($workingWindows as $window)
