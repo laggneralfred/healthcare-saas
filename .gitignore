@@ -22,3 +22,17 @@
 Homestead.json
 Homestead.yaml
 Thumbs.db
+# Local Codex / AI agent notes
+AGENTS.md
+.codex/
+**/.codex
+
+# Local practitioner review / research notes
+docs/practitioner-review/
+
+# Local marketing research / lead lists / outreach drafts
+marketing/leads/
+marketing/marketing/
+marketing/outreach/first_outreach_five_element.md
+marketing/outreach/first_outreach_local_clinic.md
+marketing/research/lead_sources.md
