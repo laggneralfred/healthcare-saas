@@ -21,6 +21,7 @@ use App\Models\PatientCommunicationPreference;
 use App\Models\Practice;
 use App\Models\PracticePaymentMethod;
 use App\Models\Practitioner;
+use App\Models\PractitionerWorkingHour;
 use App\Models\ServiceFee;
 use App\Models\States\Appointment\Cancelled;
 use App\Models\States\Appointment\Checkout;
@@ -89,6 +90,7 @@ class RealisticPracticeDemoSeeder extends Seeder
             $this->seedPractitioners();
             $this->seedServiceFees();
             $this->seedAppointmentTypes();
+            $this->seedWorkingHours();
             $this->seedInventoryProducts();
             $this->seedMessageTemplatesAndRules();
             $this->seedPatients();
@@ -250,6 +252,85 @@ class RealisticPracticeDemoSeeder extends Seeder
                 ],
             );
         }
+
+        $this->seedPractitionerCapabilities();
+    }
+
+    private function seedPractitionerCapabilities(): void
+    {
+        $this->attachAppointmentTypes($this->tcmPractitioner, [
+            'initial_acu',
+            'follow_up_acu',
+            'extended_acu',
+            'herbal',
+            'moxa',
+            'cupping',
+            'no_default_fee',
+        ]);
+        $this->attachAppointmentTypes($this->fiveElementPractitioner, [
+            'initial_acu',
+            'follow_up_acu',
+            'five_element',
+            'extended_acu',
+            'moxa',
+            'no_default_fee',
+        ]);
+        $this->attachAppointmentTypes($this->massagePractitioner, [
+            'massage_30',
+            'massage_60',
+            'massage_75',
+            'massage_90',
+            'bodywork_follow_up',
+            'no_default_fee',
+        ]);
+        $this->attachAppointmentTypes($this->wellnessPractitioner, [
+            'wellness_consult',
+            'wellness_follow_up',
+            'no_default_fee',
+        ]);
+    }
+
+    private function seedWorkingHours(): void
+    {
+        foreach ([1, 3, 5] as $dayOfWeek) {
+            $this->workingHour($this->fiveElementPractitioner, $dayOfWeek, '09:00', '13:00');
+            $this->workingHour($this->tcmPractitioner, $dayOfWeek, '13:00', '18:00');
+        }
+
+        foreach ([2, 4] as $dayOfWeek) {
+            $this->workingHour($this->massagePractitioner, $dayOfWeek, '10:00', '17:00');
+            $this->workingHour($this->wellnessPractitioner, $dayOfWeek, '09:00', '15:00');
+        }
+    }
+
+    private function workingHour(Practitioner $practitioner, int $dayOfWeek, string $startTime, string $endTime): void
+    {
+        PractitionerWorkingHour::withoutPracticeScope()->updateOrCreate(
+            [
+                'practice_id' => $this->practice->id,
+                'practitioner_id' => $practitioner->id,
+                'day_of_week' => $dayOfWeek,
+                'start_time' => $startTime,
+            ],
+            [
+                'end_time' => $endTime,
+                'is_active' => true,
+            ],
+        );
+    }
+
+    private function attachAppointmentTypes(Practitioner $practitioner, array $typeKeys): void
+    {
+        $sync = [];
+
+        foreach ($typeKeys as $typeKey) {
+            $sync[$this->appointmentTypes[$typeKey]->id] = [
+                'practice_id' => $this->practice->id,
+                'is_active' => true,
+            ];
+        }
+
+        $practitioner->appointmentTypes()->syncWithoutDetaching($sync);
     }
 
     private function seedInventoryProducts(): void
@@ -665,11 +746,17 @@ class RealisticPracticeDemoSeeder extends Seeder
 
     private function request(string $baseName, string $status, string $preferredTimes, string $note): void
     {
+        $typeKey = str_contains($baseName, 'Cooling') ? 'five_element' : 'follow_up_acu';
+        $practitioner = $typeKey === 'five_element' ? $this->fiveElementPractitioner : $this->tcmPractitioner;
+
         AppointmentRequest::withoutPracticeScope()->create([
             'practice_id' => $this->practice->id,
             'patient_id' => $this->patients[$baseName]->id,
             'token_hash' => hash('sha256', Str::random(64)),
             'status' => $status,
+            'requested_service' => $this->appointmentTypes[$typeKey]->name,
+            'appointment_type_id' => $this->appointmentTypes[$typeKey]->id,
+            'practitioner_id' => $practitioner->id,
             'preferred_times' => $preferredTimes,
             'note' => self::MARKER.' '.$note,
             'submitted_at' => $status === AppointmentRequest::STATUS_PENDING ? now()->subMinutes(30) : now()->subDays(2),

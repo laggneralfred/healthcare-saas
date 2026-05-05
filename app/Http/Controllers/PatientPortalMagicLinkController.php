@@ -49,6 +49,7 @@ class PatientPortalMagicLinkController extends Controller
                 ->where('practice_id', $practiceId)
                 ->findOrFail($patientId),
             'appointmentRequests' => AppointmentRequest::withoutPracticeScope()
+                ->with(['appointmentType', 'practitioner.user'])
                 ->where('practice_id', $practiceId)
                 ->where('patient_id', $patientId)
                 ->latest('submitted_at')

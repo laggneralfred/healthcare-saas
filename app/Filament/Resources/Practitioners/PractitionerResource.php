@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Practitioners;
 use App\Filament\Resources\Practitioners\Pages\CreatePractitioner;
 use App\Filament\Resources\Practitioners\Pages\EditPractitioner;
 use App\Filament\Resources\Practitioners\Pages\ListPractitioners;
+use App\Filament\Resources\Practitioners\RelationManagers;
 use App\Filament\Resources\Practitioners\Schemas\PractitionerForm;
 use App\Filament\Resources\Practitioners\Tables\PractitionersTable;
 use App\Filament\Traits\BelongsToPractice;
@@ -64,7 +65,8 @@ class PractitionerResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+            RelationManagers\WorkingHoursRelationManager::class,
+            RelationManagers\TimeBlocksRelationManager::class,
         ];
     }
 

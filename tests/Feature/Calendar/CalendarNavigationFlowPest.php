@@ -8,6 +8,7 @@ use App\Models\AppointmentType;
 use App\Models\Patient;
 use App\Models\Practice;
 use App\Models\Practitioner;
+use App\Models\PractitionerWorkingHour;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
@@ -93,6 +94,14 @@ it('create page redirects to return_url when provided', function () {
     $user = User::factory()->create(['practice_id' => $practice->id]);
     $patient = Patient::factory()->create(['practice_id' => $practice->id]);
     $practitioner = Practitioner::factory()->create(['practice_id' => $practice->id]);
+    PractitionerWorkingHour::withoutPracticeScope()->create([
+        'practice_id' => $practice->id,
+        'practitioner_id' => $practitioner->id,
+        'day_of_week' => 4,
+        'start_time' => '09:00',
+        'end_time' => '17:00',
+        'is_active' => true,
+    ]);
     $appointmentType = AppointmentType::factory()->create([
         'practice_id' => $practice->id,
         'duration_minutes' => 45,
@@ -119,6 +128,14 @@ it('edit page redirects to return_url when provided', function () {
     $user = User::factory()->create(['practice_id' => $practice->id]);
     $patient = Patient::factory()->create(['practice_id' => $practice->id]);
     $practitioner = Practitioner::factory()->create(['practice_id' => $practice->id]);
+    PractitionerWorkingHour::withoutPracticeScope()->create([
+        'practice_id' => $practice->id,
+        'practitioner_id' => $practitioner->id,
+        'day_of_week' => 4,
+        'start_time' => '09:00',
+        'end_time' => '17:00',
+        'is_active' => true,
+    ]);
     $appointmentType = AppointmentType::factory()->create([
         'practice_id' => $practice->id,
         'duration_minutes' => 45,
@@ -128,6 +145,8 @@ it('edit page redirects to return_url when provided', function () {
         'patient_id' => $patient->id,
         'practitioner_id' => $practitioner->id,
         'appointment_type_id' => $appointmentType->id,
+        'start_datetime' => '2026-04-23 09:00:00',
+        'end_datetime' => '2026-04-23 09:45:00',
     ]);
 
     $this->actingAs($user);

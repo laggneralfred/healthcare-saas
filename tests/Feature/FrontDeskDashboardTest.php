@@ -171,6 +171,7 @@ class FrontDeskDashboardTest extends TestCase
             ->createAppointmentUrl($request);
 
         $this->assertStringContainsString('/appointments/create', $url);
+        $this->assertStringContainsString('appointment_request_id=' . $request->id, $url);
         $this->assertStringContainsString('patient_id=' . $patient->id, $url);
     }
 

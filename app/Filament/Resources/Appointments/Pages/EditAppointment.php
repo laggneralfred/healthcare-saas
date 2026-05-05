@@ -4,12 +4,15 @@ namespace App\Filament\Resources\Appointments\Pages;
 
 use App\Filament\Pages\SchedulePage;
 use App\Filament\Resources\Appointments\AppointmentResource;
+use App\Filament\Resources\Appointments\Pages\Concerns\ValidatesPractitionerSchedule;
 use App\Services\AuditLogger;
 use Filament\Actions\DeleteAction;
 use Filament\Resources\Pages\EditRecord;
 
 class EditAppointment extends EditRecord
 {
+    use ValidatesPractitionerSchedule;
+
     protected static string $resource = AppointmentResource::class;
 
     protected function getHeaderActions(): array
@@ -28,6 +31,8 @@ class EditAppointment extends EditRecord
 
     protected function mutateFormDataBeforeSave(array $data): array
     {
+        $this->validatePractitionerSchedule($data);
+
         unset($data['duration_minutes']);
         return $data;
     }

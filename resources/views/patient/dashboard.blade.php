@@ -68,12 +68,19 @@
         <div class="mt-4 divide-y divide-slate-100">
             @forelse ($appointmentRequests as $request)
                 <div class="py-4 first:pt-0 last:pb-0">
+                    @php
+                        $requestLabel = $request->appointmentType?->name ?? ($request->requested_service ?: 'Appointment request');
+                    @endphp
                     <div class="flex flex-wrap items-center justify-between gap-3">
-                        <p class="font-medium text-slate-900">{{ $request->requested_service ?: 'Appointment request' }}</p>
+                        <p class="font-medium text-slate-900">{{ $requestLabel }}</p>
                         <span class="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-700">
                             {{ str($request->status)->replace('_', ' ')->title() }}
                         </span>
                     </div>
+                    <p class="mt-1 text-xs text-slate-500">
+                        Practitioner preference:
+                        {{ $request->practitioner?->user?->name ?? 'No preference' }}
+                    </p>
                     <p class="mt-1 text-xs text-slate-500">Submitted {{ $request->submitted_at?->format('M j, Y') ?? $request->created_at?->format('M j, Y') }}</p>
                     <p class="mt-2 whitespace-pre-line text-sm leading-6 text-slate-600">{{ $request->preferred_times }}</p>
                 </div>

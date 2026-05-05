@@ -10,6 +10,7 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Schema;
+use Filament\Schemas\Components\View;
 
 class AppointmentForm
 {
@@ -40,6 +41,12 @@ class AppointmentForm
     {
         return $schema
             ->components([
+                View::make('filament.resources.appointments.pages.create-request-context')
+                    ->viewData(fn ($livewire): array => [
+                        'appointmentRequest' => property_exists($livewire, 'appointmentRequest') ? $livewire->appointmentRequest : null,
+                    ])
+                    ->visible(fn ($livewire): bool => property_exists($livewire, 'appointmentRequest') && filled($livewire->appointmentRequest)),
+
                 Hidden::make('practice_id')
                     ->default(fn () => auth()->user()->practice_id),
 

@@ -220,14 +220,41 @@ class FilamentSmokeTest extends TestCase
     public function test_patient_view_has_clear_edit_patient_information_action(): void
     {
         $patient = Patient::factory()->create(['practice_id' => $this->practice->id]);
+        MedicalHistory::factory()->create([
+            'practice_id' => $this->practice->id,
+            'patient_id' => $patient->id,
+        ]);
 
         $this->actingAs($this->admin)
             ->get(PatientResource::getUrl('view', ['record' => $patient]))
             ->assertSuccessful()
             ->assertSee('Edit Patient Information')
             ->assertSee(PatientResource::getUrl('edit', ['record' => $patient]), false)
+            ->assertSee('Patient Intake Form')
+            ->assertDontSee('Edit Intake')
             ->assertSee('Send Portal Link')
             ->assertSee('Send Forms');
+    }
+
+    public function test_patient_edit_page_is_accessible_to_authorized_staff(): void
+    {
+        $patient = Patient::factory()->create(['practice_id' => $this->practice->id]);
+
+        $this->actingAs($this->admin)
+            ->get(PatientResource::getUrl('edit', ['record' => $patient]))
+            ->assertSuccessful()
+            ->assertSee('Basic Information')
+            ->assertSee('Email address');
+    }
+
+    public function test_cross_practice_staff_cannot_edit_another_practices_patient(): void
+    {
+        $otherPractice = Practice::factory()->create();
+        $otherPatient = Patient::factory()->create(['practice_id' => $otherPractice->id]);
+
+        $this->actingAs($this->admin)
+            ->get(PatientResource::getUrl('edit', ['record' => $otherPatient]))
+            ->assertNotFound();
     }
 
     protected function createRecordForResource(string $resourceName)

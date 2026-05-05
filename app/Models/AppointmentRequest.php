@@ -28,6 +28,8 @@ class AppointmentRequest extends Model
         'token_hash',
         'status',
         'requested_service',
+        'appointment_type_id',
+        'practitioner_id',
         'preferred_times',
         'note',
         'submitted_at',
@@ -79,6 +81,16 @@ class AppointmentRequest extends Model
     public function patientCommunication(): BelongsTo
     {
         return $this->belongsTo(PatientCommunication::class);
+    }
+
+    public function appointmentType(): BelongsTo
+    {
+        return $this->belongsTo(AppointmentType::class);
+    }
+
+    public function practitioner(): BelongsTo
+    {
+        return $this->belongsTo(Practitioner::class);
     }
 
     public function publicUrl(string $token): string

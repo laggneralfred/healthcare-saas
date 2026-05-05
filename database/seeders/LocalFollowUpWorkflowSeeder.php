@@ -15,6 +15,7 @@ use App\Models\PatientCommunication;
 use App\Models\PatientCommunicationPreference;
 use App\Models\Practice;
 use App\Models\Practitioner;
+use App\Models\PractitionerWorkingHour;
 use App\Models\ServiceFee;
 use App\Models\States\Appointment\Cancelled;
 use App\Models\States\Appointment\Completed;
@@ -56,6 +57,7 @@ class LocalFollowUpWorkflowSeeder extends Seeder
             $this->clearExistingLocalWorkflowData();
             $this->seedServiceFees();
             $this->setupAppointmentTypes();
+            $this->setupWorkingHours();
             $this->seedPatients();
             $this->seedCareStatusScenarios();
             $this->seedAppointmentRequests();
@@ -194,7 +196,36 @@ class LocalFollowUpWorkflowSeeder extends Seeder
             );
         }
 
+        $this->practitioner->appointmentTypes()->syncWithoutDetaching(
+            collect($this->appointmentTypes)
+                ->mapWithKeys(fn (AppointmentType $appointmentType) => [
+                    $appointmentType->id => [
+                        'practice_id' => $this->practice->id,
+                        'is_active' => true,
+                    ],
+                ])
+                ->all()
+        );
+
         $this->followUpType = $this->appointmentTypes['local_follow_up'];
+    }
+
+    private function setupWorkingHours(): void
+    {
+        foreach ([1, 2, 3, 4, 5] as $dayOfWeek) {
+            PractitionerWorkingHour::withoutPracticeScope()->updateOrCreate(
+                [
+                    'practice_id' => $this->practice->id,
+                    'practitioner_id' => $this->practitioner->id,
+                    'day_of_week' => $dayOfWeek,
+                    'start_time' => '09:00',
+                ],
+                [
+                    'end_time' => '17:00',
+                    'is_active' => true,
+                ],
+            );
+        }
     }
 
     private function seedPatients(): void
@@ -414,6 +445,9 @@ class LocalFollowUpWorkflowSeeder extends Seeder
             'patient_id' => $patient->id,
             'token_hash' => hash('sha256', Str::random(64)),
             'status' => $status,
+            'requested_service' => $this->followUpType->name,
+            'appointment_type_id' => $this->followUpType->id,
+            'practitioner_id' => $this->practitioner->id,
             'preferred_times' => $preferredTimes,
             'note' => $note,
             'submitted_at' => now()->subMinutes(15),

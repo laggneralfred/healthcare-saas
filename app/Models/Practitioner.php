@@ -7,6 +7,7 @@ use App\Models\Traits\HasAuditLog;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Practitioner extends Model
@@ -33,5 +34,22 @@ class Practitioner extends Model
     public function appointments(): HasMany
     {
         return $this->hasMany(Appointment::class);
+    }
+
+    public function workingHours(): HasMany
+    {
+        return $this->hasMany(PractitionerWorkingHour::class);
+    }
+
+    public function timeBlocks(): HasMany
+    {
+        return $this->hasMany(PractitionerTimeBlock::class);
+    }
+
+    public function appointmentTypes(): BelongsToMany
+    {
+        return $this->belongsToMany(AppointmentType::class, 'practitioner_appointment_type')
+            ->withPivot(['practice_id', 'is_active'])
+            ->withTimestamps();
     }
 }

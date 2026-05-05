@@ -6,6 +6,7 @@ use App\Models\Concerns\BelongsToPractice;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class AppointmentType extends Model
@@ -31,5 +32,12 @@ class AppointmentType extends Model
     public function defaultServiceFee(): BelongsTo
     {
         return $this->belongsTo(ServiceFee::class, 'default_service_fee_id');
+    }
+
+    public function practitioners(): BelongsToMany
+    {
+        return $this->belongsToMany(Practitioner::class, 'practitioner_appointment_type')
+            ->withPivot(['practice_id', 'is_active'])
+            ->withTimestamps();
     }
 }

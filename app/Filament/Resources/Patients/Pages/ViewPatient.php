@@ -44,7 +44,7 @@ class ViewPatient extends ViewRecord
                 ->color('primary'),
 
             Action::make('intake_form')
-                ->label(fn () => $this->record->medicalHistory ? 'Edit Intake' : 'Intake Form')
+                ->label('Patient Intake Form')
                 ->icon('heroicon-o-clipboard-document-list')
                 ->color('warning')
                 ->url(fn () => $this->record->medicalHistory

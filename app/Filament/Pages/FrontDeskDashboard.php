@@ -145,7 +145,7 @@ class FrontDeskDashboard extends Page
     private function appointmentRequestItems(Practice $practice): Collection
     {
         return AppointmentRequest::withoutPracticeScope()
-            ->with(['patient'])
+            ->with(['patient', 'appointmentType', 'practitioner.user'])
             ->where('practice_id', $practice->id)
             ->where('status', AppointmentRequest::STATUS_PENDING)
             ->latest('submitted_at')
@@ -221,10 +221,13 @@ class FrontDeskDashboard extends Page
 
     public function createAppointmentUrl(AppointmentRequest $request): string
     {
-        return AppointmentResource::getUrl('create') . '?' . http_build_query([
+        return AppointmentResource::getUrl('create') . '?' . http_build_query(array_filter([
+            'appointment_request_id' => $request->id,
             'patient_id' => $request->patient_id,
+            'appointment_type_id' => $request->appointment_type_id,
+            'practitioner_id' => $request->practitioner_id,
             'return_url' => static::getUrl(),
-        ]);
+        ], fn ($value) => $value !== null && $value !== ''));
     }
 
     public function markAppointmentRequestContacted(int $requestId): void

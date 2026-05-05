@@ -15,9 +15,38 @@
             @csrf
 
             <div>
-                <label for="requested_service" class="block text-sm font-medium text-slate-800">Requested service</label>
-                <input id="requested_service" name="requested_service" type="text" value="{{ old('requested_service') }}" class="mt-2 block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-700 focus:ring-teal-700" placeholder="Follow-up visit, massage, acupuncture, etc.">
-                @error('requested_service')
+                <label for="appointment_type_id" class="block text-sm font-medium text-slate-800">What kind of visit would you like? <span class="text-rose-700">*</span></label>
+                <select id="appointment_type_id" name="appointment_type_id" required class="mt-2 block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-700 focus:ring-teal-700" onchange="if (this.value) window.location='{{ route('patient.appointment-request.create') }}?appointment_type_id=' + this.value">
+                    <option value="">Choose a visit type</option>
+                    @foreach ($appointmentTypes as $appointmentType)
+                        <option value="{{ $appointmentType->id }}" @selected((int) old('appointment_type_id', $selectedAppointmentType?->id) === $appointmentType->id)>
+                            {{ $appointmentType->name }}
+                        </option>
+                    @endforeach
+                </select>
+                @error('appointment_type_id')
+                    <p class="mt-2 text-sm text-rose-700">{{ $message }}</p>
+                @enderror
+            </div>
+
+            <div>
+                <label for="practitioner_id" class="block text-sm font-medium text-slate-800">Do you prefer a practitioner?</label>
+                <select id="practitioner_id" name="practitioner_id" class="mt-2 block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-700 focus:ring-teal-700" @disabled(! $selectedAppointmentType)>
+                    <option value="">No preference</option>
+                    @foreach ($practitioners as $practitioner)
+                        <option value="{{ $practitioner->id }}" @selected((int) old('practitioner_id') === $practitioner->id)>
+                            {{ $practitioner->user?->name ?? 'Practitioner #'.$practitioner->id }}
+                        </option>
+                    @endforeach
+                </select>
+                @if (! $selectedAppointmentType)
+                    <p class="mt-2 text-sm text-slate-500">Choose a visit type first so we can show the right practitioners.</p>
+                @elseif ($suggestedPractitioner)
+                    <p class="mt-2 text-sm text-teal-800">
+                        Suggested: {{ $suggestedPractitioner->user?->name ?? 'Practitioner #'.$suggestedPractitioner->id }} — you have seen them before.
+                    </p>
+                @endif
+                @error('practitioner_id')
                     <p class="mt-2 text-sm text-rose-700">{{ $message }}</p>
                 @enderror
             </div>
