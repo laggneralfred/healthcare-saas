@@ -177,12 +177,40 @@ class PublicPracticeLinksTest extends TestCase
         $this->actingAs($admin);
 
         Livewire::test(EditPractice::class, ['record' => $practice->id])
-            ->assertSee('Website links')
+            ->assertSee('Website Links')
+            ->assertSee('New Patient Request')
+            ->assertSee('Use this link for people who are not yet patients. Staff reviews the request before sending forms or creating a patient record.')
+            ->assertSee('Existing Patient Access')
+            ->assertSee('Use this link for existing patients. They enter their email and receive a secure access link if there is a matching patient record.')
+            ->assertSee('Request Appointment')
+            ->assertSee('Use this link for appointment requests. Existing patients are routed through secure access before submitting a request.')
+            ->assertSee('Recommended button text')
+            ->assertSee('Copy/paste HTML snippet')
             ->assertSee(route('public.practice.new-patient', ['practiceSlug' => $practice->slug]), false)
             ->assertSee(route('public.practice.existing-patient', ['practiceSlug' => $practice->slug]), false)
             ->assertSee(route('public.practice.request-appointment', ['practiceSlug' => $practice->slug]), false)
-            ->assertSee('&lt;a href=&quot;'.route('public.practice.new-patient', ['practiceSlug' => $practice->slug]).'&quot;&gt;Request a New Patient Appointment&lt;/a&gt;', false)
-            ->assertSee('&lt;a href=&quot;'.route('public.practice.existing-patient', ['practiceSlug' => $practice->slug]).'&quot;&gt;Existing Patient Access&lt;/a&gt;', false);
+            ->assertSee('&lt;a href=&quot;'.route('public.practice.new-patient', ['practiceSlug' => $practice->slug]).'&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;Request a New Patient Appointment&lt;/a&gt;', false)
+            ->assertSee('&lt;a href=&quot;'.route('public.practice.existing-patient', ['practiceSlug' => $practice->slug]).'&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;Existing Patient Access&lt;/a&gt;', false)
+            ->assertSee('&lt;a href=&quot;'.route('public.practice.request-appointment', ['practiceSlug' => $practice->slug]).'&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;Request an Appointment&lt;/a&gt;', false);
+    }
+
+    public function test_practice_settings_warns_when_slug_is_missing(): void
+    {
+        $practice = Practice::factory()->create([
+            'name' => 'Missing Slug Clinic',
+            'slug' => '',
+        ]);
+        $admin = User::factory()->create(['practice_id' => $practice->id]);
+        $admin->assignRole(User::ROLE_ADMINISTRATOR);
+
+        $this->actingAs($admin);
+
+        Livewire::test(EditPractice::class, ['record' => $practice->id])
+            ->assertSee('Website Links')
+            ->assertSee('Add a practice slug before using website links. Edit the URL Slug field first so Practiq can generate stable public links for this practice.')
+            ->assertDontSee('/p//new-patient', false)
+            ->assertDontSee('/p//existing-patient', false)
+            ->assertDontSee('/p//request-appointment', false);
     }
 
     public function test_public_request_appointment_redirects_to_existing_patient_access(): void

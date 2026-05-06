@@ -79,24 +79,48 @@ class PracticeForm
             return new HtmlString('');
         }
 
+        if (! filled($practice->slug)) {
+            return new HtmlString(
+                '<section style="border:1px solid #fde68a;background:#fffbeb;border-radius:8px;padding:16px;margin:8px 0;">'
+                .'<h3 style="margin:0;color:#92400e;font-size:15px;font-weight:800;">Website Links</h3>'
+                .'<p style="margin:8px 0 0;color:#78350f;font-size:13px;line-height:1.5;">Add a practice slug before using website links. Edit the URL Slug field first so Practiq can generate stable public links for this practice.</p>'
+                .'</section>'
+            );
+        }
+
         $links = [
-            'New Patient Request link' => route('public.practice.new-patient', ['practiceSlug' => $practice->slug]),
-            'Existing Patient Access link' => route('public.practice.existing-patient', ['practiceSlug' => $practice->slug]),
-            'Appointment Request link' => route('public.practice.request-appointment', ['practiceSlug' => $practice->slug]),
+            [
+                'label' => 'New Patient Request',
+                'url' => route('public.practice.new-patient', ['practiceSlug' => $practice->slug]),
+                'description' => 'Use this link for people who are not yet patients. Staff reviews the request before sending forms or creating a patient record.',
+                'buttonText' => 'Request a New Patient Appointment',
+            ],
+            [
+                'label' => 'Existing Patient Access',
+                'url' => route('public.practice.existing-patient', ['practiceSlug' => $practice->slug]),
+                'description' => 'Use this link for existing patients. They enter their email and receive a secure access link if there is a matching patient record.',
+                'buttonText' => 'Existing Patient Access',
+            ],
+            [
+                'label' => 'Request Appointment',
+                'url' => route('public.practice.request-appointment', ['practiceSlug' => $practice->slug]),
+                'description' => 'Use this link for appointment requests. Existing patients are routed through secure access before submitting a request.',
+                'buttonText' => 'Request an Appointment',
+            ],
         ];
 
         $rows = collect($links)
-            ->map(function (string $url, string $label): string {
-                $snippetText = match ($label) {
-                    'New Patient Request link' => 'Request a New Patient Appointment',
-                    'Existing Patient Access link' => 'Existing Patient Access',
-                    default => 'Request an Appointment',
-                };
-                $snippet = '<a href="'.$url.'">'.$snippetText.'</a>';
+            ->map(function (array $link): string {
+                $snippet = '<a href="'.$link['url'].'" target="_blank" rel="noopener">'.$link['buttonText'].'</a>';
 
                 return '<div style="border:1px solid #e5e7eb;border-radius:8px;padding:12px;background:#ffffff;">'
-                    .'<div style="font-size:13px;font-weight:700;color:#0f172a;margin-bottom:6px;">'.e($label).'</div>'
-                    .'<div style="font-size:13px;color:#0f766e;word-break:break-all;">'.e($url).'</div>'
+                    .'<div style="font-size:14px;font-weight:800;color:#0f172a;margin-bottom:6px;">'.e($link['label']).'</div>'
+                    .'<p style="margin:0 0 8px;color:#475569;font-size:13px;line-height:1.5;">'.e($link['description']).'</p>'
+                    .'<div style="font-size:12px;font-weight:700;color:#334155;margin-bottom:4px;">Full URL</div>'
+                    .'<div style="font-size:13px;color:#0f766e;word-break:break-all;">'.e($link['url']).'</div>'
+                    .'<div style="font-size:12px;font-weight:700;color:#334155;margin:10px 0 4px;">Recommended button text</div>'
+                    .'<div style="font-size:13px;color:#334155;">'.e($link['buttonText']).'</div>'
+                    .'<div style="font-size:12px;font-weight:700;color:#334155;margin:10px 0 4px;">Copy/paste HTML snippet</div>'
                     .'<pre style="margin:10px 0 0;padding:10px;background:#f8fafc;border-radius:6px;color:#334155;font-size:12px;white-space:pre-wrap;word-break:break-all;">'.e($snippet).'</pre>'
                     .'</div>';
             })
@@ -104,7 +128,7 @@ class PracticeForm
 
         return new HtmlString(
             '<section style="border:1px solid #ccfbf1;background:#f0fdfa;border-radius:8px;padding:16px;margin:8px 0;">'
-            .'<h3 style="margin:0;color:#134e4a;font-size:15px;font-weight:800;">Website links</h3>'
+            .'<h3 style="margin:0;color:#134e4a;font-size:15px;font-weight:800;">Website Links</h3>'
             .'<p style="margin:6px 0 14px;color:#475569;font-size:13px;line-height:1.5;">Use these stable public links on the practice website. Existing-patient access never reveals whether an email exists.</p>'
             .'<div style="display:grid;gap:12px;">'.$rows.'</div>'
             .'</section>'
