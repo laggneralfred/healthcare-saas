@@ -6,6 +6,7 @@ use App\Http\Controllers\NewPatientInterestController;
 use App\Http\Controllers\PatientPortalAppointmentRequestController;
 use App\Http\Controllers\PatientPortalFormController;
 use App\Http\Controllers\PatientPortalMagicLinkController;
+use App\Http\Controllers\PublicPracticeLinksController;
 use App\Http\Controllers\StripeWebhookController;
 use App\Livewire\Public\AppointmentRequestForm;
 use App\Livewire\Public\BookingCalendar;
@@ -79,6 +80,13 @@ Route::get('/new-patient', [NewPatientInterestController::class, 'create'])->nam
 Route::post('/new-patient/interest', [NewPatientInterestController::class, 'store'])->name('new-patient.interest.store');
 Route::get('/new-patient/thanks', [NewPatientInterestController::class, 'thanks'])->name('new-patient.thanks');
 Route::get('/new-patient/unavailable', [NewPatientInterestController::class, 'unavailable'])->name('new-patient.unavailable');
+Route::get('/p/{practiceSlug}/new-patient', [PublicPracticeLinksController::class, 'newPatient'])->name('public.practice.new-patient');
+Route::post('/p/{practiceSlug}/new-patient', [PublicPracticeLinksController::class, 'storeNewPatient'])->name('public.practice.new-patient.store');
+Route::get('/p/{practiceSlug}/existing-patient', [PublicPracticeLinksController::class, 'existingPatient'])->name('public.practice.existing-patient');
+Route::post('/p/{practiceSlug}/existing-patient', [PublicPracticeLinksController::class, 'sendExistingPatientLink'])
+    ->middleware('throttle:6,1')
+    ->name('public.practice.existing-patient.store');
+Route::get('/p/{practiceSlug}/request-appointment', [PublicPracticeLinksController::class, 'requestAppointment'])->name('public.practice.request-appointment');
 
 // Public trial registration — no authentication required
 use App\Http\Controllers\RegistrationController;

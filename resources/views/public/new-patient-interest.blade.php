@@ -21,7 +21,7 @@
                     Share a little about what you are looking for. Staff will review your request and contact you if they are able to accept new patients.
                 </p>
 
-                <form method="POST" action="{{ route('new-patient.interest.store') }}" class="mt-8 space-y-5">
+                <form method="POST" action="{{ $storeRoute ?? route('new-patient.interest.store') }}" class="mt-8 space-y-5">
                     @csrf
                     <div class="grid gap-5 sm:grid-cols-2">
                         <label class="block">
