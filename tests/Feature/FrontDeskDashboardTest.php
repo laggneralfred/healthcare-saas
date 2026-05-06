@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Filament\Pages\FrontDeskDashboard;
+use App\Filament\Pages\SchedulePage;
 use App\Filament\Resources\CheckoutSessions\CheckoutSessionResource;
 use App\Filament\Resources\Encounters\EncounterResource;
 use App\Mail\BookingConfirmationMail;
@@ -173,6 +174,56 @@ class FrontDeskDashboardTest extends TestCase
         $this->assertStringContainsString('/appointments/create', $url);
         $this->assertStringContainsString('appointment_request_id=' . $request->id, $url);
         $this->assertStringContainsString('patient_id=' . $patient->id, $url);
+    }
+
+    public function test_front_desk_create_appointment_link_for_preferred_practitioner_opens_calendar(): void
+    {
+        [$practice, $admin] = $this->practiceWithAdmin();
+        $patient = Patient::factory()->create(['practice_id' => $practice->id]);
+        $appointmentType = AppointmentType::factory()->create(['practice_id' => $practice->id]);
+        $practitioner = Practitioner::factory()->create(['practice_id' => $practice->id]);
+        $request = $this->appointmentRequestFor($practice, $patient, 'Any afternoon', [
+            'appointment_type_id' => $appointmentType->id,
+            'practitioner_id' => $practitioner->id,
+        ]);
+
+        $this->actingAs($admin);
+
+        $url = Livewire::test(FrontDeskDashboard::class)
+            ->instance()
+            ->createAppointmentUrl($request);
+
+        $this->assertStringContainsString('/schedule', $url);
+        $this->assertStringNotContainsString('/appointments/create', $url);
+        $this->assertStringContainsString('appointment_request_id=' . $request->id, $url);
+        $this->assertStringContainsString('patient_id=' . $patient->id, $url);
+        $this->assertStringContainsString('appointment_type_id=' . $appointmentType->id, $url);
+        $this->assertStringContainsString('practitioner_id=' . $practitioner->id, $url);
+        $this->assertStringContainsString('return_url=', $url);
+        $this->assertSame(str_starts_with($url, SchedulePage::getUrl()), true);
+    }
+
+    public function test_front_desk_create_appointment_link_without_preference_stays_form_first(): void
+    {
+        [$practice, $admin] = $this->practiceWithAdmin();
+        $patient = Patient::factory()->create(['practice_id' => $practice->id]);
+        $appointmentType = AppointmentType::factory()->create(['practice_id' => $practice->id]);
+        $request = $this->appointmentRequestFor($practice, $patient, 'Any afternoon', [
+            'appointment_type_id' => $appointmentType->id,
+            'practitioner_id' => null,
+        ]);
+
+        $this->actingAs($admin);
+
+        $url = Livewire::test(FrontDeskDashboard::class)
+            ->instance()
+            ->createAppointmentUrl($request);
+
+        $this->assertStringContainsString('/appointments/create', $url);
+        $this->assertStringNotContainsString('/schedule?', $url);
+        $this->assertStringContainsString('appointment_request_id=' . $request->id, $url);
+        $this->assertStringContainsString('appointment_type_id=' . $appointmentType->id, $url);
+        $this->assertStringNotContainsString('practitioner_id=', $url);
     }
 
     public function test_front_desk_dashboard_is_available_to_operations_roles_not_practitioners(): void
@@ -744,15 +795,15 @@ class FrontDeskDashboardTest extends TestCase
         return $appointment;
     }
 
-    private function appointmentRequestFor(Practice $practice, Patient $patient, string $preferredTimes): AppointmentRequest
+    private function appointmentRequestFor(Practice $practice, Patient $patient, string $preferredTimes, array $attributes = []): AppointmentRequest
     {
-        return AppointmentRequest::withoutPracticeScope()->create([
+        return AppointmentRequest::withoutPracticeScope()->create(array_merge([
             'practice_id' => $practice->id,
             'patient_id' => $patient->id,
             'token_hash' => hash('sha256', $preferredTimes . $patient->id),
             'status' => AppointmentRequest::STATUS_PENDING,
             'preferred_times' => $preferredTimes,
             'submitted_at' => now(),
-        ]);
+        ], $attributes));
     }
 }

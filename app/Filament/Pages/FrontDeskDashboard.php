@@ -221,13 +221,19 @@ class FrontDeskDashboard extends Page
 
     public function createAppointmentUrl(AppointmentRequest $request): string
     {
-        return AppointmentResource::getUrl('create') . '?' . http_build_query(array_filter([
+        $params = array_filter([
             'appointment_request_id' => $request->id,
             'patient_id' => $request->patient_id,
             'appointment_type_id' => $request->appointment_type_id,
             'practitioner_id' => $request->practitioner_id,
             'return_url' => static::getUrl(),
-        ], fn ($value) => $value !== null && $value !== ''));
+        ], fn ($value) => $value !== null && $value !== '');
+
+        if ($request->practitioner_id) {
+            return SchedulePage::getUrl($params);
+        }
+
+        return AppointmentResource::getUrl('create') . '?' . http_build_query($params);
     }
 
     public function markAppointmentRequestContacted(int $requestId): void

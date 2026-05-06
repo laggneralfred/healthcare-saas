@@ -3,7 +3,9 @@
 use App\Filament\Pages\SchedulePage;
 use App\Filament\Resources\Appointments\Pages\CreateAppointment;
 use App\Filament\Resources\Appointments\Pages\EditAppointment;
+use App\Filament\Widgets\AppointmentCalendarWidget;
 use App\Models\Appointment;
+use App\Models\AppointmentRequest;
 use App\Models\AppointmentType;
 use App\Models\Patient;
 use App\Models\Practice;
@@ -44,7 +46,10 @@ it('preserves return_url from calendar to view page', function () {
 
     $this->actingAs($user);
 
-    $response = $this->getJson(route('admin.calendar.events'));
+    $response = $this->getJson(route('admin.calendar.events', [
+        'start' => $appointment->start_datetime->copy()->startOfDay()->toIso8601String(),
+        'end' => $appointment->end_datetime->copy()->endOfDay()->toIso8601String(),
+    ]));
 
     $response->assertOk();
 
@@ -155,4 +160,40 @@ it('edit page redirects to return_url when provided', function () {
         ->test(EditAppointment::class, ['record' => $appointment->id])
         ->call('save')
         ->assertRedirect(SchedulePage::getUrl());
+});
+
+it('calendar preserves appointment request context when choosing a time', function () {
+    $practice = Practice::factory()->create(['timezone' => 'America/Los_Angeles']);
+
+    $user = User::factory()->create(['practice_id' => $practice->id]);
+    $patient = Patient::factory()->create(['practice_id' => $practice->id]);
+    $practitioner = Practitioner::factory()->create(['practice_id' => $practice->id]);
+    $appointmentType = AppointmentType::factory()->create(['practice_id' => $practice->id]);
+    $request = AppointmentRequest::withoutPracticeScope()->create([
+        'practice_id' => $practice->id,
+        'patient_id' => $patient->id,
+        'token_hash' => hash('sha256', 'calendar-request-context'),
+        'status' => AppointmentRequest::STATUS_PENDING,
+        'appointment_type_id' => $appointmentType->id,
+        'practitioner_id' => $practitioner->id,
+        'preferred_times' => 'Tuesday morning',
+        'submitted_at' => now(),
+    ]);
+
+    $this->actingAs($user);
+
+    Livewire::withQueryParams([
+        'appointment_request_id' => $request->id,
+        'patient_id' => $patient->id,
+        'appointment_type_id' => $appointmentType->id,
+        'practitioner_id' => $practitioner->id,
+        'return_url' => SchedulePage::getUrl(),
+    ])
+        ->test(AppointmentCalendarWidget::class)
+        ->assertSee('appointment_request_id=' . $request->id, false)
+        ->assertSee('patient_id=' . $patient->id, false)
+        ->assertSee('appointment_type_id=' . $appointmentType->id, false)
+        ->assertSee('practitioner_id=' . $practitioner->id, false)
+        ->assertSee('return_url=', false)
+        ->assertSee('start_datetime=', false);
 });
