@@ -16,7 +16,7 @@ use App\Models\Patient;
 use App\Models\Practice;
 use App\Models\Practitioner;
 use App\Models\ServiceFee;
-use App\Models\SubscriptionPlan;
+use App\Services\Billing\SubscriptionPlanCatalog;
 use App\Models\User;
 use App\Support\PracticeAccessRoles;
 use Carbon\Carbon;
@@ -778,33 +778,7 @@ class DatabaseSeeder extends Seeder
 
     private function seedSubscriptionPlans(): void
     {
-        $plans = [
-            [
-                'key'               => 'solo',
-                'name'              => 'Solo Plan',
-                'price_monthly'     => 4900,
-                'max_practitioners' => 1,
-                'features'          => ['Core clinical tools', '1 Practitioner', 'Basic reporting']
-            ],
-            [
-                'key'               => 'clinic',
-                'name'              => 'Clinic Plan',
-                'price_monthly'     => 9900,
-                'max_practitioners' => 5,
-                'features'          => ['Up to 5 Practitioners', 'Advanced reporting', 'Inventory management']
-            ],
-            [
-                'key'               => 'enterprise',
-                'name'              => 'Enterprise Plan',
-                'price_monthly'     => 19900,
-                'max_practitioners' => -1,
-                'features'          => ['Unlimited Practitioners', 'Custom reporting', 'Priority support']
-            ],
-        ];
-
-        foreach ($plans as $plan) {
-            SubscriptionPlan::updateOrCreate(['key' => $plan['key']], $plan);
-        }
+        app(SubscriptionPlanCatalog::class)->syncConfiguredPlans();
     }
 
     // ════════════════════════════════════════════════════════════════════════

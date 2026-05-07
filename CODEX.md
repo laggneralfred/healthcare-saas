@@ -450,6 +450,18 @@ Trial signup records durable legal acceptances for Terms of Service and Privacy 
 - AI disclaimer acknowledgement is recorded separately in the ledger.
 - Privacy wording must match the actual architecture: Practiq uses single-database multi-tenancy with practice-level scoping and access controls, not physically isolated databases per practice.
 
+### Stripe Billing Configuration
+
+Subscription plans are database-backed in `subscription_plans`.
+
+- `Practice` is the Cashier billable model.
+- `subscription_plans.stripe_price_id` must be populated before Stripe Checkout can start for a plan.
+- `STRIPE_SOLO_PRICE`, `STRIPE_CLINIC_PRICE`, and `STRIPE_ENTERPRISE_PRICE` map to the Solo, Clinic, and Enterprise plans.
+- Run `php artisan billing:sync-stripe-prices` after setting or changing those env vars to sync configured Stripe price IDs into `subscription_plans`.
+- Super-admin users can inspect plan readiness from Settings -> Billing Readiness and edit plan price IDs from Settings -> Subscription Plans.
+- Live mode requires live Stripe price IDs, live `STRIPE_KEY` / `STRIPE_SECRET`, and the live `STRIPE_WEBHOOK_SECRET` in production `.env`.
+- Do not enter Stripe secret keys into `subscription_plans.stripe_price_id`; only Stripe Price IDs belong there.
+
 ### HIPAA / BAA Acknowledgement
 
 HIPAA/BAA setup acknowledgement is recorded in `legal_acceptances`.

@@ -3,6 +3,7 @@
 namespace App\Filament\Pages;
 
 use App\Models\SubscriptionPlan;
+use App\Services\PracticeContext;
 use BackedEnum;
 use Filament\Actions\Action;
 use Filament\Notifications\Notification;
@@ -190,9 +191,15 @@ class BillingPage extends Page
         }
 
         if (! $plan->stripe_price_id) {
+            $body = 'This plan is not connected to Stripe yet. Ask an administrator to configure the Stripe price ID for this plan.';
+
+            if (PracticeContext::isSuperAdmin()) {
+                $body .= ' Run php artisan billing:sync-stripe-prices or edit Subscription Plans.';
+            }
+
             Notification::make()
                 ->title('Plan not available')
-                ->body('This plan has not been configured in Stripe yet. Please add the stripe_price_id.')
+                ->body($body)
                 ->warning()
                 ->send();
 
@@ -219,7 +226,7 @@ class BillingPage extends Page
         }
     }
 
-    private function attemptSubscription(\App\Models\Practice $practice, SubscriptionPlan $plan): mixed
+    protected function attemptSubscription(\App\Models\Practice $practice, SubscriptionPlan $plan): mixed
     {
         $subscription = $practice->subscription('default');
 
