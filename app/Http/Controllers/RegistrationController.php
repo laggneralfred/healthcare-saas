@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Mail\TrialWelcomeMail;
+use App\Models\LegalAcceptance;
 use App\Models\Practice;
 use App\Models\User;
 use App\Services\AuditLogger;
@@ -84,6 +85,19 @@ class RegistrationController extends Controller
             'practice_id' => $practice->id,
         ]);
         PracticeAccessRoles::assignOwner($user);
+
+        foreach (['terms_of_service', 'privacy_policy'] as $documentKey) {
+            LegalAcceptance::withoutPracticeScope()->create([
+                'practice_id' => $practice->id,
+                'user_id' => $user->id,
+                'document_key' => $documentKey,
+                'document_version' => config("legal.documents.{$documentKey}.version"),
+                'accepted_at' => now(),
+                'ip_address' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+                'source' => 'register',
+            ]);
+        }
 
         // Audit logging
         AuditLogger::created($practice);

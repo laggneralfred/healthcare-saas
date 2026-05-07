@@ -439,6 +439,17 @@ The in-app Practitioner Review Questionnaire is feedback/research for the Foundi
 - Completing the review does not require subscription and does not change subscription status.
 - Legal terms and signup agreements are a separate future slice.
 
+### Legal Acceptance Ledger
+
+Trial signup records durable legal acceptances for Terms of Service and Privacy Policy.
+
+- `legal_acceptances` stores document key, document version, accepted timestamp, IP address, user agent, source, practice, and user.
+- Signup still uses the existing required `terms_accepted` checkbox and server-side validation.
+- If signup acceptance is missing or false, no practice, user, or legal acceptance records are created.
+- HIPAA/BAA acknowledgement is a separate future slice.
+- AI disclaimer acknowledgement is a separate future slice.
+- Privacy wording must match the actual architecture: Practiq uses single-database multi-tenancy with practice-level scoping and access controls, not physically isolated databases per practice.
+
 ### Visit Note Mobile / Dictation UX
 
 Simple Visit Note and SOAP/Insurance edit layouts stack more cleanly on phones.

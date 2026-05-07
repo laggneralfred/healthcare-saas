@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Mail\TrialWelcomeMail;
+use App\Models\LegalAcceptance;
 use App\Models\Practice;
 use App\Models\User;
 use App\Support\PracticeType;
@@ -76,6 +77,44 @@ class TrialRegistrationTest extends TestCase
         $daysDiff = now()->diffInDays($practice->trial_ends_at, false);
         $this->assertGreaterThanOrEqual(29, $daysDiff);
         $this->assertLessThanOrEqual(31, $daysDiff);
+    }
+
+    public function test_registration_creates_legal_acceptance_records()
+    {
+        $response = $this->withServerVariables([
+            'HTTP_USER_AGENT' => 'Practiq Feature Test Browser',
+            'REMOTE_ADDR' => '203.0.113.10',
+        ])->post('/register', [
+            'practice_name' => 'Legal Ledger Test',
+            'first_name' => 'Legal',
+            'last_name' => 'User',
+            'email' => 'legal-ledger@test.com',
+            'password' => 'password123',
+            'password_confirmation' => 'password123',
+            'practice_type' => PracticeType::GENERAL_WELLNESS,
+            'terms_accepted' => true,
+        ]);
+
+        $response->assertRedirect('/admin/dashboard');
+
+        $practice = Practice::where('name', 'Legal Ledger Test')->firstOrFail();
+        $user = User::where('email', 'legal-ledger@test.com')->firstOrFail();
+        $acceptances = LegalAcceptance::withoutPracticeScope()
+            ->where('practice_id', $practice->id)
+            ->orderBy('document_key')
+            ->get();
+
+        $this->assertCount(2, $acceptances);
+        $this->assertSame(['privacy_policy', 'terms_of_service'], $acceptances->pluck('document_key')->all());
+
+        foreach ($acceptances as $acceptance) {
+            $this->assertSame($practice->id, $acceptance->practice_id);
+            $this->assertSame($user->id, $acceptance->user_id);
+            $this->assertSame(config("legal.documents.{$acceptance->document_key}.version"), $acceptance->document_version);
+            $this->assertSame('register', $acceptance->source);
+            $this->assertSame('Practiq Feature Test Browser', $acceptance->user_agent);
+            $this->assertNotNull($acceptance->accepted_at);
+        }
     }
 
     public function test_registration_creates_user_linked_to_practice()
@@ -288,6 +327,7 @@ class TrialRegistrationTest extends TestCase
 
         $response->assertSessionHasErrors('terms_accepted');
         $this->assertDatabaseMissing('practices', ['name' => 'Terms Test']);
+        $this->assertSame(0, LegalAcceptance::withoutPracticeScope()->count());
     }
 
     public function test_terms_of_service_page_is_accessible()

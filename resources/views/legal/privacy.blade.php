@@ -230,7 +230,7 @@
             <p>We protect your data using:</p>
             <ul>
                 <li>Encryption at rest and in transit (HTTPS/TLS)</li>
-                <li>Isolated database per practice (your data is never mixed with other practices)</li>
+                <li>Practiq uses single-database multi-tenancy with practice-level scoping and access controls to keep practice data separated.</li>
                 <li>Regular automated backups</li>
                 <li>Access controls limiting who can access production data</li>
             </ul>
