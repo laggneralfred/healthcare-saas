@@ -47,3 +47,14 @@ function something()
 {
     // ..
 }
+
+function acknowledgeAiDisclaimerForPractice(\App\Models\Practice $practice, ?\App\Models\User $user = null): void
+{
+    \App\Models\LegalAcceptance::factory()->create([
+        'practice_id' => $practice->id,
+        'user_id' => $user?->id,
+        'document_key' => \App\Services\LegalAcceptanceService::AI_DISCLAIMER_ACKNOWLEDGEMENT,
+        'document_version' => config('legal.documents.ai_disclaimer_acknowledgement.version'),
+        'source' => 'ai_disclaimer_acknowledgement',
+    ]);
+}

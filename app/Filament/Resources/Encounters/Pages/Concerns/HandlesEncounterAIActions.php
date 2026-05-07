@@ -7,6 +7,7 @@ use App\Models\AIUsageLog;
 use App\Models\Encounter;
 use App\Models\Practice;
 use App\Models\Practitioner;
+use App\Services\AI\AIAcknowledgementGate;
 use App\Services\AI\AIService;
 use App\Services\EncounterNoteDocument;
 use App\Services\PracticeContext;
@@ -41,6 +42,10 @@ trait HandlesEncounterAIActions
                 ->danger()
                 ->send();
 
+            return;
+        }
+
+        if (! app(AIAcknowledgementGate::class)->ensureAcceptedForPractice($practiceId)) {
             return;
         }
 
@@ -254,6 +259,10 @@ trait HandlesEncounterAIActions
             return;
         }
 
+        if (! app(AIAcknowledgementGate::class)->ensureAcceptedForPractice($practiceId)) {
+            return;
+        }
+
         if (! $this->insuranceBillingEnabledForAI()) {
             Notification::make()
                 ->title('Documentation check requires insurance billing to be enabled.')
@@ -421,6 +430,10 @@ trait HandlesEncounterAIActions
                 ->danger()
                 ->send();
 
+            return;
+        }
+
+        if (! app(AIAcknowledgementGate::class)->ensureAcceptedForPractice($practiceId)) {
             return;
         }
 

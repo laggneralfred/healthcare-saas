@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Filament\Pages\HipaaBaaAcknowledgementPage;
+use App\Filament\Pages\AiDisclaimerAcknowledgementPage;
 use App\Filament\Resources\AppointmentTypes\AppointmentTypeResource;
 use App\Filament\Resources\Practices\PracticeResource;
 use App\Filament\Resources\Practitioners\PractitionerResource;
@@ -30,6 +31,10 @@ class PracticeSetupChecklistService
         $hasHipaaBaaAcknowledgement = app(LegalAcceptanceService::class)->hasCurrentAcceptance(
             $practice,
             LegalAcceptanceService::HIPAA_BAA_ACKNOWLEDGEMENT,
+        );
+        $hasAiDisclaimerAcknowledgement = app(LegalAcceptanceService::class)->hasCurrentAcceptance(
+            $practice,
+            LegalAcceptanceService::AI_DISCLAIMER_ACKNOWLEDGEMENT,
         );
 
         $items = [
@@ -105,6 +110,16 @@ class PracticeSetupChecklistService
                     : 'Review the HIPAA/BAA responsibilities before entering real patient or clinical data.',
                 'action_label' => 'Review acknowledgement',
                 'action_url' => HipaaBaaAcknowledgementPage::getUrl(),
+            ],
+            [
+                'key' => 'ai_disclaimer_acknowledgement',
+                'label' => 'AI disclaimer acknowledged',
+                'complete' => $hasAiDisclaimerAcknowledgement,
+                'explanation' => $hasAiDisclaimerAcknowledgement
+                    ? 'The current AI disclaimer version has been acknowledged.'
+                    : 'Review the AI disclaimer before using AI support tools.',
+                'action_label' => 'Review AI disclaimer',
+                'action_url' => AiDisclaimerAcknowledgementPage::getUrl(),
             ],
         ];
 

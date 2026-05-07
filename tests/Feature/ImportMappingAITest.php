@@ -48,6 +48,7 @@ it('AIService returns import mapping JSON from headers and supported fields only
 it('creates import mapping suggestion and usage log without creating patients or mutating mappings', function () {
     $practice = Practice::factory()->create();
     $user = User::factory()->create(['practice_id' => $practice->id]);
+    acknowledgeAiDisclaimerForPractice($practice, $user);
 
     app()->instance(AIService::class, new class extends AIService {
         public function suggestImportMapping(array $headers, array $supportedFields): array|string
@@ -101,6 +102,7 @@ it('uses selected practice context for import mapping suggestions by super admin
     $practice = Practice::factory()->create();
     $otherPractice = Practice::factory()->create();
     $superAdmin = User::factory()->create(['practice_id' => null]);
+    acknowledgeAiDisclaimerForPractice($practice, $superAdmin);
 
     app()->instance(AIService::class, new class extends AIService {
         public function suggestImportMapping(array $headers, array $supportedFields): array|string
@@ -133,6 +135,7 @@ it('uses selected practice context for import mapping suggestions by super admin
 it('logs failed import mapping suggestions cleanly', function () {
     $practice = Practice::factory()->create();
     $user = User::factory()->create(['practice_id' => $practice->id]);
+    acknowledgeAiDisclaimerForPractice($practice, $user);
 
     app()->instance(AIService::class, new class extends AIService {
         public function suggestImportMapping(array $headers, array $supportedFields): array|string

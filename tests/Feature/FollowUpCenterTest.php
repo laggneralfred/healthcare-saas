@@ -44,6 +44,7 @@ class FollowUpCenterTest extends TestCase
 
         $this->practice = Practice::factory()->create();
         $this->user = User::factory()->create(['practice_id' => $this->practice->id]);
+        \acknowledgeAiDisclaimerForPractice($this->practice, $this->user);
         $this->practitioner = Practitioner::factory()->create(['practice_id' => $this->practice->id]);
         $this->appointmentType = AppointmentType::factory()->create(['practice_id' => $this->practice->id]);
     }

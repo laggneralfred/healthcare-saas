@@ -22,6 +22,8 @@ use App\Support\PracticeAccessRoles;
 function roleAccessFixtures(?Practice $practice = null): array
 {
     $practice ??= Practice::factory()->create();
+    acknowledgeAiDisclaimerForPractice($practice);
+
     $patient = Patient::factory()->create(['practice_id' => $practice->id]);
     $practitionerUser = User::factory()->create(['practice_id' => $practice->id]);
     $practitioner = Practitioner::factory()->create([

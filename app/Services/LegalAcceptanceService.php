@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 class LegalAcceptanceService
 {
     public const HIPAA_BAA_ACKNOWLEDGEMENT = 'hipaa_baa_acknowledgement';
+    public const AI_DISCLAIMER_ACKNOWLEDGEMENT = 'ai_disclaimer_acknowledgement';
 
     public function currentVersion(string $documentKey): ?string
     {
@@ -30,6 +31,11 @@ class LegalAcceptanceService
             ->where('document_key', $documentKey)
             ->where('document_version', $version)
             ->exists();
+    }
+
+    public function hasAcceptedCurrentVersion(Practice|int $practice, string $documentKey): bool
+    {
+        return $this->hasCurrentAcceptance($practice, $documentKey);
     }
 
     public function latestCurrentAcceptance(Practice|int $practice, string $documentKey): ?LegalAcceptance
@@ -69,5 +75,10 @@ class LegalAcceptanceService
                 'source' => $source,
             ],
         );
+    }
+
+    public function recordAcceptance(Practice $practice, User $user, string $documentKey, Request $request, string $source): LegalAcceptance
+    {
+        return $this->acceptCurrent($practice, $user, $documentKey, $request, $source);
     }
 }

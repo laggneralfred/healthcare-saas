@@ -46,6 +46,7 @@ class PracticeSetupChecklistTest extends TestCase
         $this->assertChecklistItem($checklist, 'working_hours', false);
         $this->assertChecklistItem($checklist, 'public_links', false);
         $this->assertChecklistItem($checklist, 'hipaa_baa_acknowledgement', false);
+        $this->assertChecklistItem($checklist, 'ai_disclaimer_acknowledgement', false);
         $this->assertSame(
             'Patients will not see visit types until practitioners are attached to treatment types.',
             collect($checklist['items'])->firstWhere('key', 'practitioner_appointment_type')['warning'],
@@ -75,11 +76,17 @@ class PracticeSetupChecklistTest extends TestCase
             'document_version' => config('legal.documents.hipaa_baa_acknowledgement.version'),
             'source' => 'hipaa_baa_acknowledgement',
         ]);
+        LegalAcceptance::factory()->create([
+            'practice_id' => $practice->id,
+            'document_key' => 'ai_disclaimer_acknowledgement',
+            'document_version' => config('legal.documents.ai_disclaimer_acknowledgement.version'),
+            'source' => 'ai_disclaimer_acknowledgement',
+        ]);
 
         $checklist = app(PracticeSetupChecklistService::class)->forPractice($practice);
 
         $this->assertTrue($checklist['is_complete']);
-        $this->assertSame(7, $checklist['complete_count']);
+        $this->assertSame(8, $checklist['complete_count']);
         $this->assertChecklistItem($checklist, 'practice_profile', true);
         $this->assertChecklistItem($checklist, 'active_practitioner', true);
         $this->assertChecklistItem($checklist, 'active_appointment_type', true);
@@ -87,6 +94,7 @@ class PracticeSetupChecklistTest extends TestCase
         $this->assertChecklistItem($checklist, 'working_hours', true);
         $this->assertChecklistItem($checklist, 'public_links', true);
         $this->assertChecklistItem($checklist, 'hipaa_baa_acknowledgement', true);
+        $this->assertChecklistItem($checklist, 'ai_disclaimer_acknowledgement', true);
     }
 
     public function test_inactive_compatibility_does_not_count_as_ready(): void
@@ -119,7 +127,8 @@ class PracticeSetupChecklistTest extends TestCase
             ->assertSee('Setup Checklist')
             ->assertSee('Public website links')
             ->assertSee('View website links')
-            ->assertSee('HIPAA/BAA acknowledgement');
+            ->assertSee('HIPAA/BAA acknowledgement')
+            ->assertSee('AI disclaimer acknowledged');
     }
 
     private function readyPractice(): array

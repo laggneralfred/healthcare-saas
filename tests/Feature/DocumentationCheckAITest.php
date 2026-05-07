@@ -18,6 +18,8 @@ use Livewire\Livewire;
 
 function createEncounterForDocumentationCheck(Practice $practice, array $attributes = []): Encounter
 {
+    acknowledgeAiDisclaimerForPractice($practice);
+
     $patient = Patient::factory()->create(['practice_id' => $practice->id]);
     $practitioner = Practitioner::factory()->create(['practice_id' => $practice->id]);
     $appointmentType = AppointmentType::factory()->create(['practice_id' => $practice->id]);
@@ -140,6 +142,7 @@ it('creates documentation check suggestion and usage log without changing visit 
 it('can check missing documentation on the create encounter screen without creating an encounter', function () {
     $practice = Practice::factory()->create(['insurance_billing_enabled' => true]);
     $user = User::factory()->create(['practice_id' => $practice->id]);
+    acknowledgeAiDisclaimerForPractice($practice, $user);
 
     app()->instance(AIService::class, new class extends AIService
     {

@@ -59,6 +59,7 @@ class LegalAcceptanceResource extends Resource
                         'terms_of_service' => 'Terms of Service',
                         'privacy_policy' => 'Privacy Policy',
                         'hipaa_baa_acknowledgement' => 'HIPAA / BAA Acknowledgement',
+                        'ai_disclaimer_acknowledgement' => 'AI Disclaimer Acknowledgement',
                         default => str($state)->headline()->toString(),
                     })
                     ->searchable()

@@ -18,6 +18,8 @@ use Livewire\Livewire;
 
 function createReminderDraftAppointment(Practice $practice, array $patientOverrides = []): Appointment
 {
+    acknowledgeAiDisclaimerForPractice($practice);
+
     $user = User::factory()->create(['practice_id' => $practice->id]);
     $patient = Patient::factory()->create([
         'practice_id' => $practice->id,

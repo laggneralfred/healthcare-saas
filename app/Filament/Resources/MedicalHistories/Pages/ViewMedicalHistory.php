@@ -5,6 +5,7 @@ namespace App\Filament\Resources\MedicalHistories\Pages;
 use App\Filament\Resources\MedicalHistories\MedicalHistoryResource;
 use App\Models\AISuggestion;
 use App\Models\AIUsageLog;
+use App\Services\AI\AIAcknowledgementGate;
 use App\Services\AI\AIService;
 use App\Support\ClinicalStyle;
 use App\Support\PracticeType;
@@ -68,6 +69,13 @@ class ViewMedicalHistory extends ViewRecord
                 ->title('There is not enough intake information to summarize yet.')
                 ->warning()
                 ->send();
+
+            return;
+        }
+
+        if (! app(AIAcknowledgementGate::class)->ensureAcceptedForPractice($practiceId)) {
+            $this->aiIntakeSummary = null;
+            $this->aiIntakeSummarySuggestionId = null;
 
             return;
         }

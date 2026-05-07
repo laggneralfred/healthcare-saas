@@ -12,6 +12,7 @@ use App\Models\Patient;
 use App\Models\PatientCommunication;
 use App\Models\PatientCommunicationPreference;
 use App\Services\AI\AIService;
+use App\Services\AI\AIAcknowledgementGate;
 use App\Services\FollowUpPatientQueryService;
 use App\Services\PatientCareStatusService;
 use App\Services\PatientMessageDraftService;
@@ -104,6 +105,10 @@ class CommunicationsDashboard extends Page
             return;
         }
 
+        if (! app(AIAcknowledgementGate::class)->ensureAcceptedForPractice($practiceId)) {
+            return;
+        }
+
         $appointment = $this->selectedAppointmentId
             ? Appointment::withoutPracticeScope()
                 ->with(['patient', 'practice'])
@@ -180,6 +185,10 @@ class CommunicationsDashboard extends Page
                 ->danger()
                 ->send();
 
+            return;
+        }
+
+        if (! app(AIAcknowledgementGate::class)->ensureAcceptedForPractice($practiceId)) {
             return;
         }
 
@@ -419,6 +428,10 @@ class CommunicationsDashboard extends Page
                 ->danger()
                 ->send();
 
+            return;
+        }
+
+        if (! app(AIAcknowledgementGate::class)->ensureAcceptedForPractice($practiceId)) {
             return;
         }
 

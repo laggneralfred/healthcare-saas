@@ -15,6 +15,8 @@ use Livewire\Livewire;
 
 function createSubmittedIntakeForPractice(Practice $practice, array $attributes = []): MedicalHistory
 {
+    acknowledgeAiDisclaimerForPractice($practice);
+
     $patient = Patient::factory()->create(['practice_id' => $practice->id]);
 
     return MedicalHistory::factory()->create([
@@ -220,6 +222,7 @@ it('does not generate an Intake Summary for a metadata-only intake', function ()
         'discipline' => 'acupuncture',
     ]);
     $user = User::factory()->create(['practice_id' => $practice->id]);
+    acknowledgeAiDisclaimerForPractice($practice, $user);
     $intake = MedicalHistory::factory()->create([
         'practice_id' => $practice->id,
         'patient_id' => Patient::factory()->create(['practice_id' => $practice->id])->id,
@@ -260,6 +263,7 @@ it('generates an Intake Summary when at least one substantive intake field exist
         'discipline' => 'general',
     ]);
     $user = User::factory()->create(['practice_id' => $practice->id]);
+    acknowledgeAiDisclaimerForPractice($practice, $user);
     $intake = MedicalHistory::factory()->create([
         'practice_id' => $practice->id,
         'patient_id' => Patient::factory()->create(['practice_id' => $practice->id])->id,
@@ -388,6 +392,7 @@ it('uses assigned practitioner Clinical Style for Intake Summary', function () {
         'discipline' => 'acupuncture',
     ]);
     $user = User::factory()->create(['practice_id' => $practice->id]);
+    acknowledgeAiDisclaimerForPractice($practice, $user);
     $patient = Patient::factory()->create(['practice_id' => $practice->id]);
     $practitioner = Practitioner::factory()->create([
         'practice_id' => $practice->id,
@@ -425,6 +430,7 @@ it('uses assigned Five Element practitioner section label and does not send TCM 
         'discipline' => 'acupuncture',
     ]);
     $user = User::factory()->create(['practice_id' => $practice->id]);
+    acknowledgeAiDisclaimerForPractice($practice, $user);
     $patient = Patient::factory()->create(['practice_id' => $practice->id]);
     $practitioner = Practitioner::factory()->create([
         'practice_id' => $practice->id,
@@ -471,6 +477,7 @@ it('falls back to practice type for Intake Summary when assigned practitioner ha
         'discipline' => 'acupuncture',
     ]);
     $user = User::factory()->create(['practice_id' => $practice->id]);
+    acknowledgeAiDisclaimerForPractice($practice, $user);
     $patient = Patient::factory()->create(['practice_id' => $practice->id]);
     $practitioner = Practitioner::factory()->create([
         'practice_id' => $practice->id,

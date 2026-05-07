@@ -8,9 +8,10 @@ use App\Models\AISuggestion;
 use App\Models\AIUsageLog;
 use App\Models\ImportHistory;
 use App\Models\ImportSession;
+use App\Services\AI\AIAcknowledgementGate;
+use App\Services\AI\AIService;
 use App\Services\CSVImportService;
 use App\Services\CsvColumnMapper;
-use App\Services\AI\AIService;
 use App\Services\PracticeContext;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
@@ -176,6 +177,10 @@ class ImportPatients extends Page
                 ->danger()
                 ->send();
 
+            return;
+        }
+
+        if (! app(AIAcknowledgementGate::class)->ensureAcceptedForPractice($practiceId)) {
             return;
         }
 

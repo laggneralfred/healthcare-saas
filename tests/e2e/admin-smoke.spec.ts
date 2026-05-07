@@ -79,6 +79,16 @@ test('staff can log in, navigate core pages, and log out', async ({ page }) => {
     }
     await expect(page.getByRole('heading', { name: 'Acknowledgement recorded', exact: true })).toBeVisible();
 
+    await page.goto('/admin/ai-disclaimer-acknowledgement');
+    await expect(page).toHaveURL(/\/admin\/ai-disclaimer-acknowledgement/);
+    await expect(page.getByText('AI Disclaimer').first()).toBeVisible();
+    const aiCheckbox = page.getByLabel('I acknowledge that AI output must be reviewed and that I remain responsible for clinical decisions, documentation, and patient care.');
+    if (await aiCheckbox.count()) {
+        await aiCheckbox.check();
+        await page.getByRole('button', { name: 'Record acknowledgement' }).click();
+    }
+    await expect(page.getByRole('heading', { name: 'Acknowledgement recorded', exact: true })).toBeVisible();
+
     await page.getByRole('button', { name: /User menu/i }).click();
     await page.getByRole('button', { name: /sign out|log out|logout/i }).click();
 

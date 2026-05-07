@@ -446,8 +446,8 @@ Trial signup records durable legal acceptances for Terms of Service and Privacy 
 - `legal_acceptances` stores document key, document version, accepted timestamp, IP address, user agent, source, practice, and user.
 - Signup still uses the existing required `terms_accepted` checkbox and server-side validation.
 - If signup acceptance is missing or false, no practice, user, or legal acceptance records are created.
-- HIPAA/BAA acknowledgement is a separate future slice.
-- AI disclaimer acknowledgement is a separate future slice.
+- HIPAA/BAA acknowledgement is recorded separately in the ledger.
+- AI disclaimer acknowledgement is recorded separately in the ledger.
 - Privacy wording must match the actual architecture: Practiq uses single-database multi-tenancy with practice-level scoping and access controls, not physically isolated databases per practice.
 
 ### HIPAA / BAA Acknowledgement
@@ -460,7 +460,20 @@ HIPAA/BAA setup acknowledgement is recorded in `legal_acceptances`.
 - The setup checklist treats the current-version acknowledgement as part of setup readiness.
 - Patient and visit create/edit pages show a non-blocking warning when the current version has not been accepted.
 - This is not a full BAA signing, e-signature, or generated legal contract system.
-- AI disclaimer acknowledgement remains a separate future slice.
+- AI disclaimer acknowledgement remains separate from HIPAA/BAA acknowledgement.
+- Formal legal review is still required before broad advertising.
+
+### AI Disclaimer Acknowledgement
+
+AI disclaimer acknowledgement is recorded in `legal_acceptances`.
+
+- Document key: `ai_disclaimer_acknowledgement`.
+- The acknowledgement is versioned through `config/legal.php`.
+- Owner/admin users can record it from Settings -> AI Disclaimer.
+- AI feature entry points are gated until the current disclaimer version has been acknowledged for the practice.
+- AI output is draft/support only; practitioners must review it before use.
+- The practitioner remains responsible for clinical judgment, documentation, diagnosis, treatment, communication, and patient care.
+- HIPAA/BAA acknowledgement remains a separate setup-readiness acknowledgement.
 - Formal legal review is still required before broad advertising.
 
 ### Visit Note Mobile / Dictation UX

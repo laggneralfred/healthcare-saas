@@ -21,6 +21,8 @@ use Livewire\Livewire;
 
 function createEncounterForPractice(Practice $practice, array $attributes = []): Encounter
 {
+    acknowledgeAiDisclaimerForPractice($practice);
+
     $patient = Patient::factory()->create(['practice_id' => $practice->id]);
     $practitioner = Practitioner::factory()->create(['practice_id' => $practice->id]);
     $appointmentType = AppointmentType::factory()->create(['practice_id' => $practice->id]);
@@ -455,6 +457,7 @@ it('creates a practice-scoped AI suggestion and preserves the original note unti
 it('can improve and accept an unsaved note on the create encounter screen', function () {
     $practice = Practice::factory()->create(['insurance_billing_enabled' => true]);
     $user = User::factory()->create(['practice_id' => $practice->id]);
+    acknowledgeAiDisclaimerForPractice($practice, $user);
 
     app()->instance(AIService::class, new class extends AIService
     {

@@ -14,5 +14,9 @@ return [
             'version' => '2026-05-07',
             'url' => '/legal/hipaa-baa',
         ],
+        'ai_disclaimer_acknowledgement' => [
+            'version' => '2026-05-07',
+            'url' => '/legal/ai-disclaimer',
+        ],
     ],
 ];
