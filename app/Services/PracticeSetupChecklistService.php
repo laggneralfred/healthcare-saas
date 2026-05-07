@@ -5,8 +5,10 @@ namespace App\Services;
 use App\Filament\Resources\AppointmentTypes\AppointmentTypeResource;
 use App\Filament\Resources\Practices\PracticeResource;
 use App\Filament\Resources\Practitioners\PractitionerResource;
+use App\Filament\Pages\PractitionerReviewPage;
 use App\Models\AppointmentType;
 use App\Models\Practice;
+use App\Models\PractitionerReviewSubmission;
 use App\Models\Practitioner;
 use App\Models\PractitionerWorkingHour;
 use Illuminate\Support\Facades\DB;
@@ -23,6 +25,7 @@ class PracticeSetupChecklistService
         $hasCompatibility = $this->hasActiveCompatibility($practice);
         $hasWorkingHours = $this->hasActiveWorkingHours($practice);
         $hasPublicLinks = filled($practice->slug);
+        $hasReviewSubmission = $this->hasReviewSubmission($practice);
 
         $items = [
             [
@@ -97,6 +100,8 @@ class PracticeSetupChecklistService
             'complete_count' => $completeCount,
             'total_count' => count($items),
             'is_complete' => $completeCount === count($items),
+            'has_review_submission' => $hasReviewSubmission,
+            'review_url' => PractitionerReviewPage::getUrl(),
         ];
     }
 
@@ -138,6 +143,13 @@ class PracticeSetupChecklistService
             ->where('practitioner_working_hours.is_active', true)
             ->where('practitioners.practice_id', $practice->id)
             ->where('practitioners.is_active', true)
+            ->exists();
+    }
+
+    private function hasReviewSubmission(Practice $practice): bool
+    {
+        return PractitionerReviewSubmission::withoutPracticeScope()
+            ->where('practice_id', $practice->id)
             ->exists();
     }
 }

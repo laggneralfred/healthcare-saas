@@ -34,7 +34,7 @@ test('preferred-practitioner appointment request opens calendar first and can be
     await expect(page.getByRole('heading', { name: /Appointment Request/i })).toBeVisible();
     await expect(page.getByText('Schedule Context')).toBeVisible();
 
-    await page.getByRole('button', { name: /Save & add another/i }).click();
+    await page.getByRole('button', { name: /^Create$/i }).click();
 
     await expect
         .poll(() => setupData('appointment-count', ['preferred-request']).appointmentCount)

@@ -38,5 +38,19 @@
                 </div>
             @endforeach
         </div>
+
+        @if(! ($setupChecklist['has_review_submission'] ?? true) && ($setupChecklist['review_url'] ?? null))
+            <div style="margin-top:14px;border:1px solid #bfdbfe;border-radius:8px;padding:12px;background:#eff6ff;display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+                <div style="min-width:0;">
+                    <div style="font-size:13px;font-weight:800;color:#1e3a8a;">Help shape Practiq</div>
+                    <div style="font-size:12px;color:#1e40af;line-height:1.45;margin-top:2px;">
+                        Complete the Practitioner Review Questionnaire when you have tried the setup flow.
+                    </div>
+                </div>
+                <a href="{{ $setupChecklist['review_url'] }}" style="font-size:12px;font-weight:800;color:#1d4ed8;text-decoration:none;white-space:nowrap;">
+                    Practitioner Review Questionnaire
+                </a>
+            </div>
+        @endif
     </section>
 @endif

@@ -427,6 +427,18 @@ The appointment/calendar event feed includes patient care context where a patien
 
 Calendar rendering shows subtle Care Status and Preferred Language badges without changing drag/drop, resize, timezone, or appointment lifecycle behavior.
 
+### Practitioner Review Questionnaire
+
+The in-app Practitioner Review Questionnaire is feedback/research for the Founding Practitioner Review Program, not legal signup paperwork.
+
+- Trial practitioners/staff can submit structured usability feedback from Settings -> Practitioner Review.
+- Responses are stored in `practitioner_review_submissions` and are practice-scoped.
+- Practice users can only see their own practice's review submissions; super-admin users can see all submissions through the Practitioner Review Submissions resource.
+- Eligible practitioners who complete the review and subscribe may receive 50% off their first 3 paid months.
+- The discount acknowledgement is stored on the submission, but no Stripe discount is applied automatically.
+- Completing the review does not require subscription and does not change subscription status.
+- Legal terms and signup agreements are a separate future slice.
+
 ### Visit Note Mobile / Dictation UX
 
 Simple Visit Note and SOAP/Insurance edit layouts stack more cleanly on phones.
