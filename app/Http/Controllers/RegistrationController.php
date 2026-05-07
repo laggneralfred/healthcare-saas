@@ -3,10 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Mail\TrialWelcomeMail;
-use App\Models\LegalAcceptance;
 use App\Models\Practice;
 use App\Models\User;
 use App\Services\AuditLogger;
+use App\Services\LegalAcceptanceService;
 use App\Support\PracticeAccessRoles;
 use App\Support\PracticeType;
 use Illuminate\Auth\Events\Registered;
@@ -86,17 +86,10 @@ class RegistrationController extends Controller
         ]);
         PracticeAccessRoles::assignOwner($user);
 
+        $legalAcceptanceService = app(LegalAcceptanceService::class);
+
         foreach (['terms_of_service', 'privacy_policy'] as $documentKey) {
-            LegalAcceptance::withoutPracticeScope()->create([
-                'practice_id' => $practice->id,
-                'user_id' => $user->id,
-                'document_key' => $documentKey,
-                'document_version' => config("legal.documents.{$documentKey}.version"),
-                'accepted_at' => now(),
-                'ip_address' => $request->ip(),
-                'user_agent' => $request->userAgent(),
-                'source' => 'register',
-            ]);
+            $legalAcceptanceService->acceptCurrent($practice, $user, $documentKey, $request, 'register');
         }
 
         // Audit logging
