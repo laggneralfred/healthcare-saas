@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Filament\Pages\HipaaBaaAcknowledgementPage;
 use App\Filament\Resources\AppointmentTypes\AppointmentTypeResource;
 use App\Filament\Resources\Practices\PracticeResource;
 use App\Filament\Resources\Practitioners\PractitionerResource;
@@ -26,6 +27,10 @@ class PracticeSetupChecklistService
         $hasWorkingHours = $this->hasActiveWorkingHours($practice);
         $hasPublicLinks = filled($practice->slug);
         $hasReviewSubmission = $this->hasReviewSubmission($practice);
+        $hasHipaaBaaAcknowledgement = app(LegalAcceptanceService::class)->hasCurrentAcceptance(
+            $practice,
+            LegalAcceptanceService::HIPAA_BAA_ACKNOWLEDGEMENT,
+        );
 
         $items = [
             [
@@ -90,6 +95,16 @@ class PracticeSetupChecklistService
                     : 'Add a practice slug before sharing website links.',
                 'action_label' => 'View website links',
                 'action_url' => PracticeResource::getUrl('edit', ['record' => $practice]),
+            ],
+            [
+                'key' => 'hipaa_baa_acknowledgement',
+                'label' => 'HIPAA/BAA acknowledgement',
+                'complete' => $hasHipaaBaaAcknowledgement,
+                'explanation' => $hasHipaaBaaAcknowledgement
+                    ? 'The current HIPAA/BAA acknowledgement version has been accepted.'
+                    : 'Review the HIPAA/BAA responsibilities before entering real patient or clinical data.',
+                'action_label' => 'Review acknowledgement',
+                'action_url' => HipaaBaaAcknowledgementPage::getUrl(),
             ],
         ];
 

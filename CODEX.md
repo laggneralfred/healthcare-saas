@@ -450,6 +450,19 @@ Trial signup records durable legal acceptances for Terms of Service and Privacy 
 - AI disclaimer acknowledgement is a separate future slice.
 - Privacy wording must match the actual architecture: Practiq uses single-database multi-tenancy with practice-level scoping and access controls, not physically isolated databases per practice.
 
+### HIPAA / BAA Acknowledgement
+
+HIPAA/BAA setup acknowledgement is recorded in `legal_acceptances`.
+
+- Document key: `hipaa_baa_acknowledgement`.
+- The acknowledgement is versioned through `config/legal.php`.
+- Owner/admin users can record it from Settings -> HIPAA / BAA Acknowledgement.
+- The setup checklist treats the current-version acknowledgement as part of setup readiness.
+- Patient and visit create/edit pages show a non-blocking warning when the current version has not been accepted.
+- This is not a full BAA signing, e-signature, or generated legal contract system.
+- AI disclaimer acknowledgement remains a separate future slice.
+- Formal legal review is still required before broad advertising.
+
 ### Visit Note Mobile / Dictation UX
 
 Simple Visit Note and SOAP/Insurance edit layouts stack more cleanly on phones.

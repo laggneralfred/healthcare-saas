@@ -69,6 +69,16 @@ test('staff can log in, navigate core pages, and log out', async ({ page }) => {
     await page.getByRole('button', { name: 'Submit review' }).click();
     await expect(page.getByText('Latest submitted response')).toBeVisible();
 
+    await page.goto('/admin/hipaa-baa-acknowledgement');
+    await expect(page).toHaveURL(/\/admin\/hipaa-baa-acknowledgement/);
+    await expect(page.getByText('HIPAA / BAA Acknowledgement').first()).toBeVisible();
+    const hipaaCheckbox = page.getByLabel('I acknowledge the HIPAA/BAA responsibilities described above.');
+    if (await hipaaCheckbox.count()) {
+        await hipaaCheckbox.check();
+        await page.getByRole('button', { name: 'Record acknowledgement' }).click();
+    }
+    await expect(page.getByRole('heading', { name: 'Acknowledgement recorded', exact: true })).toBeVisible();
+
     await page.getByRole('button', { name: /User menu/i }).click();
     await page.getByRole('button', { name: /sign out|log out|logout/i }).click();
 

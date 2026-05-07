@@ -10,5 +10,9 @@ return [
             'version' => '2026-05-06',
             'url' => '/privacy',
         ],
+        'hipaa_baa_acknowledgement' => [
+            'version' => '2026-05-07',
+            'url' => '/legal/hipaa-baa',
+        ],
     ],
 ];

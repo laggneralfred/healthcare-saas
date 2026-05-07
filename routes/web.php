@@ -99,6 +99,7 @@ Route::get('/subscribe', fn() => view('subscribe'))->name('subscribe');
 // Legal documents — no authentication required
 Route::view('/terms', 'legal.terms')->name('terms');
 Route::view('/privacy', 'legal.privacy')->name('privacy');
+Route::view('/legal/hipaa-baa', 'legal.hipaa-baa')->name('legal.hipaa-baa');
 
 // Data export — authenticated, but accessible to expired trial users within grace period
 use App\Http\Controllers\ExportController;

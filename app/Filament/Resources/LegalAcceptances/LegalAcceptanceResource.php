@@ -58,6 +58,7 @@ class LegalAcceptanceResource extends Resource
                     ->formatStateUsing(fn (string $state): string => match ($state) {
                         'terms_of_service' => 'Terms of Service',
                         'privacy_policy' => 'Privacy Policy',
+                        'hipaa_baa_acknowledgement' => 'HIPAA / BAA Acknowledgement',
                         default => str($state)->headline()->toString(),
                     })
                     ->searchable()

@@ -2,8 +2,10 @@
 
 namespace App\Filament\Resources\Encounters\Pages;
 
+use App\Filament\Concerns\ShowsHipaaBaaAcknowledgementWarning;
 use App\Filament\Resources\Encounters\EncounterResource;
 use App\Filament\Resources\Encounters\Pages\Concerns\HandlesEncounterAIActions;
+use App\Filament\Widgets\HipaaBaaAcknowledgementWarningWidget;
 use App\Models\Appointment;
 use App\Models\Practice;
 use App\Models\Practitioner;
@@ -19,6 +21,7 @@ use Illuminate\Contracts\Support\Htmlable;
 
 class CreateEncounter extends CreateRecord
 {
+    use ShowsHipaaBaaAcknowledgementWarning;
     use HandlesEncounterAIActions;
 
     protected static string $resource = EncounterResource::class;
@@ -77,6 +80,13 @@ class CreateEncounter extends CreateRecord
     {
         return parent::getCreateFormAction()
             ->label('Save Note');
+    }
+
+    protected function getHeaderWidgets(): array
+    {
+        return [
+            HipaaBaaAcknowledgementWarningWidget::class,
+        ];
     }
 
     protected function mutateFormDataBeforeCreate(array $data): array

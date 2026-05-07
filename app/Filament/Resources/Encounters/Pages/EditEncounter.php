@@ -2,10 +2,12 @@
 
 namespace App\Filament\Resources\Encounters\Pages;
 
+use App\Filament\Concerns\ShowsHipaaBaaAcknowledgementWarning;
 use App\Filament\Resources\CheckoutSessions\CheckoutSessionResource;
 use App\Filament\Resources\Encounters\EncounterResource;
 use App\Filament\Resources\Encounters\Pages\Concerns\HandlesEncounterAIActions;
 use App\Filament\Resources\Encounters\Widgets\EncounterHeader;
+use App\Filament\Widgets\HipaaBaaAcknowledgementWarningWidget;
 use App\Services\EncounterDataValidator;
 use App\Services\EncounterNoteDocument;
 use App\Support\CheckoutWorkflow;
@@ -20,6 +22,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class EditEncounter extends EditRecord
 {
+    use ShowsHipaaBaaAcknowledgementWarning;
     use HandlesEncounterAIActions;
 
     protected static string $resource = EncounterResource::class;
@@ -168,6 +171,7 @@ class EditEncounter extends EditRecord
     protected function getHeaderWidgets(): array
     {
         return [
+            HipaaBaaAcknowledgementWarningWidget::class,
             EncounterHeader::class,
         ];
     }
