@@ -34,6 +34,8 @@
     <p style="margin:0.25rem 0 0;font-size:0.875rem;color:#64748b;">Reports &mdash; {{ now()->format('F Y') }}</p>
 </div>
 
+@include('filament.partials.practice-setup-checklist', ['setupChecklist' => $setupChecklist])
+
 {{-- Today's Schedule Widget --}}
 <div style="margin-bottom:1.5rem;">
     @livewire(\App\Filament\Widgets\TodaysScheduleWidget::class)

@@ -9,6 +9,7 @@ use App\Models\Practice;
 use App\Models\States\CheckoutSession\Paid;
 use App\Models\States\CheckoutSession\PaymentDue;
 use App\Services\PracticeContext;
+use App\Services\PracticeSetupChecklistService;
 use BackedEnum;
 use Filament\Pages\Page;
 use Filament\Support\Icons\Heroicon;
@@ -148,6 +149,7 @@ class DashboardPage extends Page
             'checkoutSessionsCompleted' => $checkoutSessionsCompleted,
             'appointmentsByStatus' => $appointmentsByStatus,
             'revenueByPractitioner' => $revenueByPractitioner,
+            'setupChecklist' => app(PracticeSetupChecklistService::class)->forPractice($practice),
             'formattedRevenueThisWeek' => Number::currency($revenueThisWeek, 'USD'),
             'formattedRevenue' => Number::currency($totalRevenue, 'USD'),
             'formattedPendingRevenue' => Number::currency($pendingRevenue, 'USD'),

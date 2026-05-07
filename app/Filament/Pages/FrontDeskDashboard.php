@@ -21,6 +21,7 @@ use App\Models\States\Appointment\Scheduled;
 use App\Models\States\CheckoutSession\Open;
 use App\Services\PatientCareStatusService;
 use App\Services\PracticeContext;
+use App\Services\PracticeSetupChecklistService;
 use BackedEnum;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
@@ -73,6 +74,7 @@ class FrontDeskDashboard extends Page
             'appointmentRequestItems' => $appointmentRequestItems,
             'patientResults' => $practice ? $this->patientResults($practice) : new Collection,
             'alerts' => $this->alerts($appointments, $intakeItems, $checkoutItems, $appointmentRequestItems),
+            'setupChecklist' => $practice ? app(PracticeSetupChecklistService::class)->forPractice($practice) : null,
             'appointmentsUrl' => AppointmentResource::getUrl('index'),
             'patientsUrl' => PatientResource::getUrl('index'),
             'createPatientUrl' => PatientResource::getUrl('create'),

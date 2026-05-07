@@ -14,6 +14,8 @@
             </div>
         @endif
 
+        @include('filament.partials.practice-setup-checklist', ['setupChecklist' => $setupChecklist])
+
         <div style="background:#ffffff;border:1px solid #e5e7eb;border-radius:8px;padding:16px;margin-bottom:16px;">
             <h2 style="margin:0 0 12px;font-size:16px;font-weight:700;color:#111827;">Alerts</h2>
             <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;">

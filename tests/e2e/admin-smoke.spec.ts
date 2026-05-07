@@ -19,6 +19,8 @@ test('staff can log in, navigate core pages, and log out', async ({ page }) => {
     await expect(page).toHaveURL(/\/admin\/front-desk/);
     await expect(page.getByRole('heading', { name: /Today/i }).first()).toBeVisible();
     await expect(page.getByText('Here is what needs your attention today.')).toBeVisible();
+    await expect(page.getByText('Setup Checklist').first()).toBeVisible();
+    await expect(page.getByText(/Practice profile|Public website links/i).first()).toBeVisible();
 
     for (const label of ['Today', 'Calendar', 'Patients', 'Visits', 'Follow-Up']) {
         await expect(page.getByRole('link', { name: new RegExp(label, 'i') }).first()).toBeVisible();
