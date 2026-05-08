@@ -458,6 +458,8 @@ Subscription plans are database-backed in `subscription_plans`.
 - `subscription_plans.stripe_price_id` must be populated before Stripe Checkout can start for a plan.
 - `STRIPE_SOLO_PRICE`, `STRIPE_CLINIC_PRICE`, and `STRIPE_ENTERPRISE_PRICE` map to the Solo, Clinic, and Enterprise plans.
 - Run `php artisan billing:sync-stripe-prices` after setting or changing those env vars to sync configured Stripe price IDs into `subscription_plans`.
+- New subscriptions carry a future `practices.trial_ends_at` into Cashier Checkout with `trialUntil()`, so early trial subscribers are billed after the app trial ends. Practices with no active app trial bill immediately.
+- Existing subscribers use the Stripe Billing Portal for plan changes instead of starting a new Checkout subscription.
 - Super-admin users can inspect plan readiness from Settings -> Billing Readiness and edit plan price IDs from Settings -> Subscription Plans.
 - Live mode requires live Stripe price IDs, live `STRIPE_KEY` / `STRIPE_SECRET`, and the live `STRIPE_WEBHOOK_SECRET` in production `.env`.
 - Do not enter Stripe secret keys into `subscription_plans.stripe_price_id`; only Stripe Price IDs belong there.

@@ -66,6 +66,9 @@
                             <p style="font-size: 0.875rem; color: #4b5563; margin-top: 0.25rem;">
                                 Your free trial ends on {{ $trialEndsAt }}. Choose a plan below to continue after the trial.
                             </p>
+                            <p style="font-size: 0.875rem; color: #92400e; margin-top: 0.5rem; font-weight: 600;">
+                                If you subscribe now, billing starts after your trial ends on {{ $billingStartsAt }}.
+                            </p>
                         </div>
                         <span style="display: inline-flex; align-items: center; border-radius: 9999px; background-color: #fef3c7; padding: 0.25rem 0.75rem; font-size: 0.875rem; font-weight: 500; color: #92400e;">
                             Trial
@@ -77,6 +80,7 @@
                 <div style="display: flex; flex-direction: column; gap: 0.75rem;">
                     <p style="font-size: 1.125rem; font-weight: 500; color: #4b5563;">No active plan</p>
                     <p style="font-size: 0.875rem; color: #4b5563;">Select a plan below to get started with your practice management.</p>
+                    <p style="font-size: 0.875rem; color: #4b5563;">Billing starts today when you subscribe.</p>
                 </div>
             @endif
         </div>
@@ -141,6 +145,13 @@
                                 </div>
                             @else
                                 <div style="padding-top: 1rem;">
+                                    <p style="font-size: 0.8rem; color: #6b7280; margin: 0 0 0.65rem;">
+                                        @if ($isOnTrial && $billingStartsAt)
+                                            Billing starts after your trial ends on {{ $billingStartsAt }}.
+                                        @else
+                                            Billing starts today.
+                                        @endif
+                                    </p>
                                     <button
                                         wire:click="subscribeToPlan('{{ $plan->key }}')"
                                         wire:loading.attr="disabled"

@@ -9,6 +9,8 @@ use Filament\Actions\Action;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Filament\Support\Icons\Heroicon;
+use Laravel\Cashier\Checkout;
+use Laravel\Cashier\SubscriptionBuilder;
 
 class BillingPage extends Page
 {
@@ -48,6 +50,8 @@ class BillingPage extends Page
     public ?string $currentPlanName = null;
 
     public ?string $subscriptionEndsAt = null;
+
+    public ?string $billingStartsAt = null;
 
     // ── Lifecycle ──────────────────────────────────────────────────────────────
 
@@ -109,6 +113,7 @@ class BillingPage extends Page
         $this->trialRemainingLabel = $this->isOnTrial
             ? 'Trial — ' . $practice->trial_ends_at->diffForHumans(null, true) . ' remaining'
             : null;
+        $this->billingStartsAt     = $this->isOnTrial ? $practice->trial_ends_at->format('M d, Y') : null;
     }
 
     // ── Helpers ────────────────────────────────────────────────────────────────
@@ -233,16 +238,49 @@ class BillingPage extends Page
         if ($subscription && in_array($subscription->stripe_status, ['active', 'trialing'])) {
             // Existing subscriber — send to Stripe Customer Portal to change plan
             // without re-entering payment details
-            return $this->redirect($practice->billingPortalUrl(route('filament.admin.pages.billing')));
+            return $this->redirectToBillingPortal($practice);
         }
 
-        $checkout = $practice->newSubscription('default', $plan->stripe_price_id)
-            ->checkout([
-                'success_url' => route('filament.admin.pages.billing') . '?success=true',
-                'cancel_url'  => route('filament.admin.pages.billing'),
-            ]);
+        $builder = $this->applyAppTrialToSubscriptionBuilder(
+            $practice->newSubscription('default', $plan->stripe_price_id),
+            $practice,
+        );
+
+        $checkout = $this->createCheckoutSession($builder, $this->checkoutSessionOptions());
 
         return $this->redirect($checkout->url);
+    }
+
+    protected function shouldCarryAppTrialToStripe(\App\Models\Practice $practice): bool
+    {
+        return $practice->trial_ends_at !== null && $practice->trial_ends_at->isFuture();
+    }
+
+    protected function applyAppTrialToSubscriptionBuilder(SubscriptionBuilder $builder, \App\Models\Practice $practice): SubscriptionBuilder
+    {
+        if ($this->shouldCarryAppTrialToStripe($practice)) {
+            $builder->trialUntil($practice->trial_ends_at);
+        }
+
+        return $builder;
+    }
+
+    protected function checkoutSessionOptions(): array
+    {
+        return [
+            'success_url' => route('filament.admin.pages.billing') . '?success=true',
+            'cancel_url'  => route('filament.admin.pages.billing'),
+        ];
+    }
+
+    protected function createCheckoutSession(SubscriptionBuilder $builder, array $options): Checkout
+    {
+        return $builder->checkout($options);
+    }
+
+    protected function redirectToBillingPortal(\App\Models\Practice $practice): mixed
+    {
+        return $this->redirect($practice->billingPortalUrl(route('filament.admin.pages.billing')));
     }
 
     // ── Header actions ─────────────────────────────────────────────────────────
