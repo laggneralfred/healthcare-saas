@@ -48,6 +48,17 @@ class TrialRegistrationTest extends TestCase
         $response->assertDontSee('name="discipline"', false);
     }
 
+    public function test_registration_form_uses_accurate_feature_copy()
+    {
+        $response = $this->get('/register');
+
+        $response->assertStatus(200);
+        $response->assertSee('Patient appointment request tools');
+        $response->assertSee('Basic checkout and payment tracking');
+        $response->assertDontSee('Online booking for your patients');
+        $response->assertDontSee('Payment processing with Stripe');
+    }
+
     public function test_registration_creates_practice_with_trial()
     {
         $response = $this->post('/register', [

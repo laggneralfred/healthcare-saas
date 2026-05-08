@@ -49,7 +49,7 @@
                     <ul class="space-y-2 text-slate-700">
                         <li class="flex items-center gap-2">
                             <span class="text-[#0D7377] text-xl">→</span>
-                            <span>Online booking for your patients</span>
+                            <span>Online appointment requests</span>
                         </li>
                         <li class="flex items-center gap-2">
                             <span class="text-[#0D7377] text-xl">→</span>
@@ -61,7 +61,11 @@
                         </li>
                         <li class="flex items-center gap-2">
                             <span class="text-[#0D7377] text-xl">→</span>
-                            <span>Payment processing with Stripe</span>
+                            <span>Follow-up and patient communication tools</span>
+                        </li>
+                        <li class="flex items-center gap-2">
+                            <span class="text-[#0D7377] text-xl">→</span>
+                            <span>Practice statistics and financial exports</span>
                         </li>
                     </ul>
                 </div>
