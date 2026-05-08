@@ -18,7 +18,7 @@
         $demoUrl = 'https://demo.practiqapp.com/demo-login';
         $overviewVideoUrl = '/videos/practiq-product-demo.mp4';
         $navLinks = [
-            ['Problems', '#problems'],
+            ['How Practiq Helps', '#problems'],
             ['Workflow', '#workflow'],
             ['Pricing', '#pricing'],
             ['FAQ', '#faq'],
@@ -121,7 +121,7 @@
 
         <section id="problems" class="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
             <div class="max-w-3xl">
-                <p class="text-sm font-bold uppercase tracking-wide text-teal-800">Problems Practiq Solves</p>
+                <p class="text-sm font-bold uppercase tracking-wide text-teal-800">How Practiq Helps</p>
                 <h2 class="mt-3 text-3xl font-bold tracking-tight text-slate-950 sm:text-4xl">The real work of a small practice should not live in five different places.</h2>
             </div>
             <div class="mt-10 grid gap-5 md:grid-cols-2 lg:grid-cols-3">

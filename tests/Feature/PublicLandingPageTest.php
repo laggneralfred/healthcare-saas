@@ -15,7 +15,7 @@ class PublicLandingPageTest extends TestCase
         $this->get('http://localhost/')
             ->assertSuccessful()
             ->assertSee('Documentation-first software for practices that put care before billing')
-            ->assertSee('Problems Practiq Solves')
+            ->assertSee('How Practiq Helps')
             ->assertSee('Clinical notes are too slow')
             ->assertSee('Care-First Workflow')
             ->assertSee('See Practiq in two minutes')
@@ -40,7 +40,7 @@ class PublicLandingPageTest extends TestCase
         $this->get('https://practiqapp.com/')
             ->assertSuccessful()
             ->assertSee('Documentation-first software for practices that put care before billing')
-            ->assertSee('Problems Practiq Solves');
+            ->assertSee('How Practiq Helps');
     }
 
     public function test_app_host_root_redirects_guests_to_login(): void
