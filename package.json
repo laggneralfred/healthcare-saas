@@ -7,14 +7,21 @@
         "dev": "vite",
         "test:e2e": "playwright test",
         "test:e2e:headed": "playwright test --headed",
-        "test:e2e:ui": "playwright test --ui"
+        "test:e2e:ui": "playwright test --ui",
+        "video:demo": "remotion studio video/remotion/index.mjs",
+        "video:demo:check": "remotion compositions video/remotion/index.mjs",
+        "video:demo:render": "remotion render video/remotion/index.mjs PractiqProductDemo video/remotion/out/practiq-product-demo.mp4"
     },
     "devDependencies": {
         "@playwright/test": "^1.59.1",
+        "@remotion/cli": "^4.0.459",
         "@tailwindcss/vite": "^4.0.0",
         "axios": "^1.11.0",
         "concurrently": "^9.0.1",
         "laravel-vite-plugin": "^3.0.0",
+        "react": "^19.2.6",
+        "react-dom": "^19.2.6",
+        "remotion": "^4.0.459",
         "tailwindcss": "^4.0.0",
         "vite": "^8.0.0"
     }
