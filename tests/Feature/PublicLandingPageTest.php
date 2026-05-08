@@ -10,12 +10,15 @@ class PublicLandingPageTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_homepage_presents_practiq_follow_up_positioning_and_links(): void
+    public function test_homepage_presents_professional_practiq_positioning_and_links(): void
     {
         $this->get('http://localhost/')
             ->assertSuccessful()
-            ->assertSee('Keep your practice organized')
-            ->assertSee('patients from slipping through the cracks')
+            ->assertSee('Documentation-first software for practices that put care before billing')
+            ->assertSee('Problems Practiq Solves')
+            ->assertSee('Clinical notes are too slow')
+            ->assertSee('Care-First Workflow')
+            ->assertSee('Controlled AI assistance')
             ->assertSee('/register', false)
             ->assertSee('https://demo.practiqapp.com/demo-login', false)
             ->assertSee('/user-instructions', false)
@@ -26,8 +29,8 @@ class PublicLandingPageTest extends TestCase
     {
         $this->get('https://practiqapp.com/')
             ->assertSuccessful()
-            ->assertSee('Keep your practice organized')
-            ->assertSee('patients from slipping through the cracks');
+            ->assertSee('Documentation-first software for practices that put care before billing')
+            ->assertSee('Problems Practiq Solves');
     }
 
     public function test_app_host_root_redirects_guests_to_login(): void
