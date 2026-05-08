@@ -16,6 +16,7 @@
     @php
         $trialUrl = '/register';
         $demoUrl = 'https://demo.practiqapp.com/demo-login';
+        $overviewVideoUrl = '/videos/practiq-product-demo.mp4';
         $navLinks = [
             ['Problems', '#problems'],
             ['Workflow', '#workflow'],
@@ -38,7 +39,7 @@
                 <a href="/admin/login" class="transition hover:text-teal-800">Login</a>
             </div>
             <div class="flex items-center gap-2">
-                <a href="{{ $demoUrl }}" class="hidden rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-teal-700/30 hover:text-teal-800 sm:inline-flex">View Demo</a>
+                <a href="#overview-video" class="hidden rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-teal-700/30 hover:text-teal-800 sm:inline-flex">Watch Overview</a>
                 <a href="{{ $trialUrl }}" class="rounded-full bg-teal-700 px-5 py-2.5 text-sm font-bold text-white shadow-sm shadow-teal-900/10 transition hover:bg-teal-800">Start Free Trial</a>
             </div>
         </nav>
@@ -61,8 +62,8 @@
                         <a href="{{ $trialUrl }}" class="inline-flex items-center justify-center rounded-xl bg-teal-700 px-7 py-4 text-base font-bold text-white shadow-lg shadow-teal-900/10 transition hover:bg-teal-800">
                             Start Free Trial
                         </a>
-                        <a href="{{ $demoUrl }}" class="inline-flex items-center justify-center rounded-xl border border-slate-300 bg-white px-7 py-4 text-base font-bold text-slate-800 shadow-sm transition hover:border-teal-700/40 hover:text-teal-800">
-                            View Demo
+                        <a href="#overview-video" class="inline-flex items-center justify-center rounded-xl border border-slate-300 bg-white px-7 py-4 text-base font-bold text-slate-800 shadow-sm transition hover:border-teal-700/40 hover:text-teal-800">
+                            Watch Overview
                         </a>
                     </div>
                 </div>
@@ -90,6 +91,30 @@
                             @endforeach
                         </div>
                     </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="overview-video" class="border-b border-slate-200 bg-[#fbfaf6]">
+            <div class="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
+                <div class="mx-auto max-w-4xl text-center">
+                    <p class="text-sm font-bold uppercase tracking-wide text-teal-800">Product Overview</p>
+                    <h2 class="mt-3 text-3xl font-bold tracking-tight text-slate-950 sm:text-4xl">See Practiq in two minutes</h2>
+                    <p class="mt-5 text-lg leading-8 text-slate-600">Watch a quick overview of how Practiq supports setup, appointment requests, documentation, follow-up, and financial exports.</p>
+                </div>
+                <div class="mx-auto mt-10 max-w-5xl overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-2xl shadow-teal-950/10">
+                    <video
+                        class="block w-full"
+                        controls
+                        preload="metadata"
+                    >
+                        <source src="{{ $overviewVideoUrl }}" type="video/mp4">
+                        Your browser does not support the overview video.
+                    </video>
+                </div>
+                <div class="mt-5 text-center text-sm text-slate-500">
+                    Prefer to click through the product yourself? The live demo is still available at
+                    <a href="{{ $demoUrl }}" class="font-semibold text-teal-800 transition hover:text-teal-900"> demo.practiqapp.com</a>.
                 </div>
             </div>
         </section>
@@ -250,11 +275,11 @@
             <div class="mx-auto max-w-6xl rounded-2xl bg-teal-800 px-6 py-16 text-white shadow-2xl shadow-teal-950/15 sm:px-12">
                 <div class="mx-auto max-w-3xl text-center">
                     <h2 class="text-3xl font-bold tracking-tight sm:text-5xl">Ready to see Practiq in a real workflow?</h2>
-                    <p class="mt-5 text-lg leading-8 text-teal-50/90">Start a free trial or open the demo. Practiq is built to make the day clearer before it asks you to do more.</p>
+                    <p class="mt-5 text-lg leading-8 text-teal-50/90">Start a free trial or watch the overview again. Practiq is built to make the day clearer before it asks you to do more.</p>
                 </div>
                 <div class="mt-9 flex flex-col justify-center gap-3 sm:flex-row">
                     <a href="{{ $trialUrl }}" class="inline-flex items-center justify-center rounded-xl bg-white px-7 py-4 font-bold text-teal-900 transition hover:bg-teal-50">Start Free Trial</a>
-                    <a href="{{ $demoUrl }}" class="inline-flex items-center justify-center rounded-xl border border-white/40 px-7 py-4 font-bold text-white transition hover:bg-white/10">View Demo</a>
+                    <a href="#overview-video" class="inline-flex items-center justify-center rounded-xl border border-white/40 px-7 py-4 font-bold text-white transition hover:bg-white/10">Watch Overview</a>
                 </div>
             </div>
         </section>
