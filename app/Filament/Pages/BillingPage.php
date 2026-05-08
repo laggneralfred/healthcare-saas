@@ -3,6 +3,7 @@
 namespace App\Filament\Pages;
 
 use App\Models\SubscriptionPlan;
+use App\Services\Billing\StripeSubscriptionSyncService;
 use App\Services\PracticeContext;
 use BackedEnum;
 use Filament\Actions\Action;
@@ -60,11 +61,8 @@ class BillingPage extends Page
         if (request()->query('success')) {
             $practice = $this->getPractice();
 
-            // Force sync from Stripe so the local subscriptions table is up to date
-            // before we load reactive state below. Uses the same logic as
-            // `php artisan stripe:sync` so there is a single source of truth.
             if ($practice && $practice->stripe_id) {
-                app(\App\Console\Commands\StripeSyncCommand::class)->syncPractice($practice);
+                app(StripeSubscriptionSyncService::class)->syncPractice($practice);
             }
 
             Notification::make()
@@ -133,9 +131,8 @@ class BillingPage extends Page
     /**
      * Returns the active Stripe price ID.
      * Checks the local subscription record first (fast path). If nothing is found
-     * but the practice has a stripe_id, calls syncPractice() once to pull the latest
-     * data from Stripe (handles cases where the webhook missed or local dev has no
-     * webhook listener), then re-reads the local DB.
+     * but the practice has a stripe_id, performs a web-safe sync once to pull the
+     * latest data from Stripe, then re-reads the local DB.
      */
     protected function resolveActivePriceId(\App\Models\Practice $practice): ?string
     {
@@ -147,7 +144,7 @@ class BillingPage extends Page
 
         // No local record — sync from Stripe and try once more
         if ($practice->stripe_id) {
-            app(\App\Console\Commands\StripeSyncCommand::class)->syncPractice($practice);
+            app(StripeSubscriptionSyncService::class)->syncPractice($practice);
 
             $sub = $practice->subscriptions()
                 ->whereIn('stripe_status', ['active', 'trialing'])

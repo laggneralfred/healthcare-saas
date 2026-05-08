@@ -6,6 +6,7 @@ use App\Filament\Pages\BillingPage;
 use App\Models\Practice;
 use App\Models\SubscriptionPlan;
 use App\Models\User;
+use App\Services\Billing\StripeSubscriptionSyncService;
 use App\Support\PracticeAccessRoles;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Cashier\SubscriptionBuilder;
@@ -108,6 +109,34 @@ class BillingPageTest extends TestCase
             ->assertSee('Your free trial ends on')
             ->assertSee('If you subscribe now, billing starts after your trial ends on')
             ->assertSee('Billing starts after your trial ends on');
+    }
+
+    public function test_billing_page_loads_with_stripe_customer_without_console_output(): void
+    {
+        $practice = Practice::factory()->create([
+            'stripe_id' => 'cus_fake_existing',
+            'trial_ends_at' => now()->addDays(12),
+        ]);
+        $user = User::factory()->create(['practice_id' => $practice->id]);
+        $user->assignRole(User::ROLE_OWNER);
+        $this->plan();
+
+        $this->app->instance(StripeSubscriptionSyncService::class, new class extends StripeSubscriptionSyncService {
+            public function syncPractice(Practice $practice): array
+            {
+                return ['created' => 0, 'updated' => 0, 'skipped' => 0];
+            }
+        });
+
+        $this->actingAs($user);
+
+        $this->get('/admin/billing')
+            ->assertOk()
+            ->assertSee('Billing &amp; Subscription', false);
+
+        Livewire::test(BillingPage::class)
+            ->assertSee('Billing & Subscription')
+            ->assertSee('Choose Your Plan');
     }
 
     private function plan(): SubscriptionPlan
