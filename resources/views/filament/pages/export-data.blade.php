@@ -6,6 +6,9 @@
             <p style="color: #4b5563; margin-bottom: 0.75rem;">
                 Export a complete copy of all your practice data including patients, appointments, clinical notes, and billing records. Your data is yours to keep.
             </p>
+            <p style="color: #4b5563; margin-bottom: 0.75rem;">
+                Use the Financial CSV export for accountant-safe payment and line-item files. It excludes clinical notes and uses checkout payment dates for collected revenue.
+            </p>
             <p style="color: #dc2626; font-size: 0.875rem;">
                 <strong>⚠ Important:</strong> Export files are available for 24 hours after generation. Please download your file soon as links expire and are automatically deleted.
             </p>
@@ -32,7 +35,7 @@
                                 <tr style="border-bottom: 1px solid #e5e7eb;">
                                     <td style="padding: 0.75rem; text-align: left;">
                                         <span style="display: inline-block; background-color: #dbeafe; color: #1e40af; padding: 0.25rem 0.75rem; border-radius: 0.375rem; font-weight: 500;">
-                                            {{ strtoupper($export->format) }}
+                                            {{ $export->format === 'financial_csv' ? 'FINANCIAL CSV' : strtoupper($export->format) }}
                                         </span>
                                     </td>
                                     <td style="padding: 0.75rem; text-align: left;">

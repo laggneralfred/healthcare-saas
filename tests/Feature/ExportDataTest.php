@@ -3,6 +3,8 @@
 namespace Tests\Feature;
 
 use App\Jobs\ExportPracticeDataJob;
+use App\Models\CheckoutPayment;
+use App\Models\CheckoutSession;
 use App\Models\ExportToken;
 use App\Models\MedicalHistory;
 use App\Models\Practice;
@@ -146,6 +148,7 @@ class ExportDataTest extends TestCase
             'acupuncture_encounters.csv',
             'checkout_sessions.csv',
             'checkout_lines.csv',
+            'checkout_payments.csv',
             'service_fees.csv',
             'appointment_types.csv',
             'inventory_products.csv',
@@ -155,6 +158,58 @@ class ExportDataTest extends TestCase
         foreach ($expectedFiles as $file) {
             $this->assertTrue($zip->locateName($file) !== false, "Missing file: {$file}");
         }
+
+        $zip->close();
+        unlink($tempZipPath);
+    }
+
+    public function test_csv_zip_includes_checkout_payments_file_with_headers()
+    {
+        $practice = Practice::factory()->create(['trial_ends_at' => now()->addDays(30)]);
+        $user = User::factory()->create(['practice_id' => $practice->id]);
+
+        $session = CheckoutSession::factory()->create([
+            'practice_id' => $practice->id,
+            'appointment_id' => null,
+            'patient_id' => $practice->patients()->create([
+                'first_name' => 'Pay',
+                'last_name' => 'Patient',
+                'email' => 'pay@example.com',
+                'is_patient' => true,
+            ])->id,
+            'amount_total' => 25,
+        ]);
+
+        CheckoutPayment::create([
+            'practice_id' => $practice->id,
+            'checkout_session_id' => $session->id,
+            'amount' => 25,
+            'payment_method' => CheckoutPayment::METHOD_CASH,
+            'paid_at' => now(),
+        ]);
+
+        $token = ExportToken::create([
+            'practice_id' => $practice->id,
+            'format' => 'csv',
+            'status' => 'processing',
+            'expires_at' => now()->addHours(24),
+        ]);
+
+        (new ExportPracticeDataJob($practice->id, $token->id, 'csv'))->handle();
+
+        $zipContent = Storage::get($token->refresh()->file_path);
+        $tempZipPath = tempnam(sys_get_temp_dir(), 'test_zip_') . '.zip';
+        file_put_contents($tempZipPath, $zipContent);
+
+        $zip = new ZipArchive();
+        $this->assertTrue($zip->open($tempZipPath) === true);
+
+        $csv = $zip->getFromName('checkout_payments.csv');
+
+        $this->assertIsString($csv);
+        $this->assertStringContainsString('practice_id', $csv);
+        $this->assertStringContainsString('payment_method', $csv);
+        $this->assertStringContainsString('paid_at', $csv);
 
         $zip->close();
         unlink($tempZipPath);
@@ -429,6 +484,32 @@ class ExportDataTest extends TestCase
 
         Queue::assertPushed(ExportPracticeDataJob::class, function (ExportPracticeDataJob $job) use ($selectedPractice) {
             return $job->practiceId === $selectedPractice->id;
+        });
+    }
+
+    public function test_export_page_livewire_action_can_request_financial_csv()
+    {
+        Queue::fake();
+
+        $practice = Practice::factory()->create(['trial_ends_at' => now()->addDays(30)]);
+        $user = User::factory()->create(['practice_id' => $practice->id]);
+
+        $this->actingAs($user);
+
+        Livewire::test(\App\Filament\Pages\ExportDataPage::class)
+            ->call('requestFinancialExport', [
+                'start_date' => '2026-05-01',
+                'end_date' => '2026-05-31',
+            ]);
+
+        $token = ExportToken::where('practice_id', $practice->id)->first();
+        $this->assertNotNull($token);
+        $this->assertEquals('financial_csv', $token->format);
+
+        Queue::assertPushed(ExportPracticeDataJob::class, function (ExportPracticeDataJob $job) {
+            return $job->format === 'financial_csv'
+                && $job->startDate === '2026-05-01'
+                && $job->endDate === '2026-05-31';
         });
     }
 

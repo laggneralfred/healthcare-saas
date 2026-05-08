@@ -5,6 +5,7 @@ namespace App\Jobs;
 use App\Models\AppointmentType;
 use App\Models\AcupunctureEncounter;
 use App\Models\CheckoutLine;
+use App\Models\CheckoutPayment;
 use App\Models\CheckoutSession;
 use App\Models\ConsentRecord;
 use App\Models\Encounter;
@@ -19,6 +20,8 @@ use App\Models\Practitioner;
 use App\Models\ServiceFee;
 use App\Models\User;
 use App\Notifications\ExportReadyNotification;
+use App\Services\Reports\PracticeFinancialSummaryService;
+use Carbon\Carbon;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -36,6 +39,8 @@ class ExportPracticeDataJob implements ShouldQueue
         public readonly int $practiceId,
         public readonly string $exportTokenId,
         public readonly string $format,
+        public readonly ?string $startDate = null,
+        public readonly ?string $endDate = null,
     ) {}
 
     public function handle(): void
@@ -48,9 +53,11 @@ class ExportPracticeDataJob implements ShouldQueue
         }
 
         try {
-            $filePath = $this->format === 'csv'
-                ? $this->generateCsvZip()
-                : $this->generateJson();
+            $filePath = match ($this->format) {
+                'csv' => $this->generateCsvZip(),
+                'financial_csv' => $this->generateFinancialCsvZip(),
+                default => $this->generateJson(),
+            };
 
             $token->update([
                 'status' => 'ready',
@@ -152,6 +159,12 @@ class ExportPracticeDataJob implements ShouldQueue
                 ->get();
             $this->addCsvToZip($zip, 'checkout_lines.csv', $checkoutLines);
 
+            // Checkout payments
+            $checkoutPayments = CheckoutPayment::withoutPracticeScope()
+                ->where('practice_id', $this->practiceId)
+                ->get();
+            $this->addCsvToZip($zip, 'checkout_payments.csv', $checkoutPayments);
+
             // Service fees
             $serviceFees = ServiceFee::withoutPracticeScope()
                 ->where('practice_id', $this->practiceId)
@@ -193,6 +206,158 @@ class ExportPracticeDataJob implements ShouldQueue
         }
     }
 
+    private function generateFinancialCsvZip(): string
+    {
+        $practice = Practice::findOrFail($this->practiceId);
+        $timezone = $practice->timezone ?: config('app.timezone', 'UTC');
+        $start = $this->startDate
+            ? Carbon::parse($this->startDate, $timezone)
+            : now($timezone)->startOfMonth();
+        $end = $this->endDate
+            ? Carbon::parse($this->endDate, $timezone)
+            : now($timezone)->endOfMonth();
+
+        $service = app(PracticeFinancialSummaryService::class);
+        $summary = $service->summarize($practice, $start, $end, $timezone);
+
+        $tempZipPath = tempnam(sys_get_temp_dir(), 'financial_export_') . '.zip';
+
+        $zip = new ZipArchive();
+        if ($zip->open($tempZipPath, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== true) {
+            throw new \Exception("Failed to create ZIP archive at {$tempZipPath}");
+        }
+
+        try {
+            $this->addArrayCsvToZip($zip, 'financial_summary.csv', $this->financialSummaryRows($summary));
+            $this->addArrayCsvToZip($zip, 'checkout_payments.csv', $this->checkoutPaymentRows($service->paymentsForExport($practice, $start, $end, $timezone), $timezone));
+            $this->addArrayCsvToZip($zip, 'checkout_line_items.csv', $this->checkoutLineItemRows($service->lineItemsForExport($practice, $start, $end, $timezone), $timezone));
+
+            $zip->close();
+
+            $storagePath = "exports/{$this->practiceId}/financial_export_{$this->exportTokenId}.zip";
+            Storage::put($storagePath, file_get_contents($tempZipPath));
+
+            return $storagePath;
+        } catch (\Exception $e) {
+            $zip->close();
+            throw $e;
+        } finally {
+            if (file_exists($tempZipPath)) {
+                unlink($tempZipPath);
+            }
+        }
+    }
+
+    private function financialSummaryRows(array $summary): array
+    {
+        $rows = [[
+            'section' => 'total_collected',
+            'label' => 'Total collected',
+            'count' => '',
+            'amount' => $summary['total_collected'],
+            'start_date' => $summary['period']['start'],
+            'end_date' => $summary['period']['end'],
+        ]];
+
+        foreach ($summary['payment_method_totals'] as $row) {
+            $rows[] = [
+                'section' => 'payment_method',
+                'label' => $row['label'],
+                'count' => $row['count'],
+                'amount' => $row['total'],
+                'start_date' => $summary['period']['start'],
+                'end_date' => $summary['period']['end'],
+            ];
+        }
+
+        foreach ($summary['practitioner_totals'] as $row) {
+            $rows[] = [
+                'section' => 'practitioner',
+                'label' => $row['practitioner_name'],
+                'count' => $row['payment_count'],
+                'amount' => $row['total'],
+                'start_date' => $summary['period']['start'],
+                'end_date' => $summary['period']['end'],
+            ];
+        }
+
+        foreach ($summary['line_type_totals'] as $row) {
+            $rows[] = [
+                'section' => 'line_type',
+                'label' => $row['label'],
+                'count' => $row['line_count'],
+                'amount' => $row['total'],
+                'start_date' => $summary['period']['start'],
+                'end_date' => $summary['period']['end'],
+            ];
+        }
+
+        $rows[] = [
+            'section' => 'sessions',
+            'label' => 'Paid checkout sessions',
+            'count' => $summary['paid_sessions_count'],
+            'amount' => '',
+            'start_date' => $summary['period']['start'],
+            'end_date' => $summary['period']['end'],
+        ];
+
+        $rows[] = [
+            'section' => 'sessions',
+            'label' => 'Open/payment due checkout sessions',
+            'count' => $summary['unpaid_open_sessions_count'],
+            'amount' => $summary['unpaid_open_sessions_total'],
+            'start_date' => $summary['period']['start'],
+            'end_date' => $summary['period']['end'],
+        ];
+
+        return $rows;
+    }
+
+    private function checkoutPaymentRows($payments, string $timezone): array
+    {
+        return $payments->map(function (CheckoutPayment $payment) use ($timezone) {
+            $session = $payment->checkoutSession;
+            $patient = $session?->patient;
+            $practitioner = $session?->practitioner;
+
+            return [
+                'paid_at' => $payment->paid_at?->copy()->timezone($timezone)->format('Y-m-d H:i:s'),
+                'amount' => (float) $payment->amount,
+                'payment_method' => CheckoutPayment::METHODS[$payment->payment_method] ?? $payment->payment_method,
+                'reference' => $payment->reference,
+                'checkout_session_id' => $payment->checkout_session_id,
+                'patient_id' => $patient?->id,
+                'patient_name' => $patient?->name,
+                'practitioner_name' => $practitioner?->user?->name,
+                'created_by' => $payment->createdBy?->name,
+            ];
+        })->all();
+    }
+
+    private function checkoutLineItemRows($lines, string $timezone): array
+    {
+        return $lines->map(function (CheckoutLine $line) use ($timezone) {
+            $session = $line->checkoutSession;
+            $paymentDate = $session?->checkoutPayments
+                ->sortBy('paid_at')
+                ->first()?->paid_at;
+
+            return [
+                'checkout_session_id' => $line->checkout_session_id,
+                'date_basis' => $paymentDate?->copy()->timezone($timezone)->format('Y-m-d H:i:s'),
+                'line_type' => CheckoutLine::TYPES[$line->line_type] ?? $line->line_type,
+                'description' => $line->description,
+                'quantity' => $line->quantity,
+                'unit_price' => $line->unit_price,
+                'amount' => $line->amount,
+                'practitioner' => $session?->practitioner?->user?->name,
+                'appointment_type' => $session?->appointment?->appointmentType?->name,
+                'service_fee' => $line->serviceFee?->name,
+                'product' => $line->inventoryProduct?->name,
+            ];
+        })->all();
+    }
+
     private function addCsvToZip(ZipArchive $zip, string $filename, $collection): void
     {
         // Use php://temp so we stay in-memory and avoid addFile()+unlink() race condition.
@@ -218,6 +383,78 @@ class ExportPracticeDataJob implements ShouldQueue
         fclose($handle);
 
         $zip->addFromString($filename, $csvContent);
+    }
+
+    private function addArrayCsvToZip(ZipArchive $zip, string $filename, array $rows): void
+    {
+        $handle = fopen('php://temp', 'w+');
+
+        $headers = array_keys($rows[0] ?? match ($filename) {
+            'financial_summary.csv' => [
+                'section' => null,
+                'label' => null,
+                'count' => null,
+                'amount' => null,
+                'start_date' => null,
+                'end_date' => null,
+            ],
+            'checkout_payments.csv' => [
+                'paid_at' => null,
+                'amount' => null,
+                'payment_method' => null,
+                'reference' => null,
+                'checkout_session_id' => null,
+                'patient_id' => null,
+                'patient_name' => null,
+                'practitioner_name' => null,
+                'created_by' => null,
+            ],
+            default => [
+                'checkout_session_id' => null,
+                'date_basis' => null,
+                'line_type' => null,
+                'description' => null,
+                'quantity' => null,
+                'unit_price' => null,
+                'amount' => null,
+                'practitioner' => null,
+                'appointment_type' => null,
+                'service_fee' => null,
+                'product' => null,
+            ],
+        });
+
+        fputcsv($handle, $headers);
+
+        foreach ($rows as $row) {
+            fputcsv($handle, array_map(
+                fn (string $header) => $this->formatCsvValue($row[$header] ?? ''),
+                $headers,
+            ));
+        }
+
+        rewind($handle);
+        $csvContent = stream_get_contents($handle);
+        fclose($handle);
+
+        $zip->addFromString($filename, $csvContent);
+    }
+
+    private function formatCsvValue(mixed $value): string
+    {
+        if ($value instanceof \DateTime) {
+            return $value->format('Y-m-d H:i:s');
+        }
+
+        if (is_bool($value)) {
+            return $value ? '1' : '0';
+        }
+
+        if (is_array($value) || is_object($value)) {
+            return json_encode($value, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?: '';
+        }
+
+        return (string) $value;
     }
 
     private function getColumnValue($row, string $header): string

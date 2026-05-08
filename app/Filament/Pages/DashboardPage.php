@@ -10,7 +10,9 @@ use App\Models\States\CheckoutSession\Paid;
 use App\Models\States\CheckoutSession\PaymentDue;
 use App\Services\PracticeContext;
 use App\Services\PracticeSetupChecklistService;
+use App\Services\Reports\PracticeFinancialSummaryService;
 use BackedEnum;
+use Carbon\Carbon;
 use Filament\Pages\Page;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Support\Number;
@@ -54,6 +56,14 @@ class DashboardPage extends Page
         $endOfWeek = $now->copy()->endOfWeek();
         $startOfMonth = $now->copy()->startOfMonth();
         $endOfMonth = $now->copy()->endOfMonth();
+        $financialStartDate = request('financial_start', $startOfMonth->toDateString());
+        $financialEndDate = request('financial_end', $endOfMonth->toDateString());
+        $financialSummary = app(PracticeFinancialSummaryService::class)->summarize(
+            $practice,
+            Carbon::parse($financialStartDate, $practice->timezone ?? 'UTC'),
+            Carbon::parse($financialEndDate, $practice->timezone ?? 'UTC'),
+            $practice->timezone ?? 'UTC',
+        );
 
         // Today's appointments
         $appointmentsToday = Appointment::where('practice_id', $practice->id)
@@ -150,6 +160,11 @@ class DashboardPage extends Page
             'appointmentsByStatus' => $appointmentsByStatus,
             'revenueByPractitioner' => $revenueByPractitioner,
             'setupChecklist' => app(PracticeSetupChecklistService::class)->forPractice($practice),
+            'financialStartDate' => $financialSummary['period']['start'],
+            'financialEndDate' => $financialSummary['period']['end'],
+            'financialSummary' => $financialSummary,
+            'formattedFinancialTotalCollected' => Number::currency($financialSummary['total_collected'], 'USD'),
+            'formattedFinancialUnpaidOpenTotal' => Number::currency($financialSummary['unpaid_open_sessions_total'], 'USD'),
             'formattedRevenueThisWeek' => Number::currency($revenueThisWeek, 'USD'),
             'formattedRevenue' => Number::currency($totalRevenue, 'USD'),
             'formattedPendingRevenue' => Number::currency($pendingRevenue, 'USD'),

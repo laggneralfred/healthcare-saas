@@ -53,8 +53,11 @@ class TrialRegistrationTest extends TestCase
         $response = $this->get('/register');
 
         $response->assertStatus(200);
-        $response->assertSee('Patient appointment request tools');
-        $response->assertSee('Basic checkout and payment tracking');
+        $response->assertSee('Online appointment requests');
+        $response->assertSee('Intake & consent forms', false);
+        $response->assertSee('Clinical visit documentation');
+        $response->assertSee('Follow-up and patient communication tools');
+        $response->assertSee('Practice statistics and financial exports');
         $response->assertDontSee('Online booking for your patients');
         $response->assertDontSee('Payment processing with Stripe');
     }

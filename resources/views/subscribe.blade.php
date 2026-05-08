@@ -230,10 +230,10 @@
                 <div class="pricing-price">$49<small>/month</small></div>
                 <p class="pricing-description">1 practitioner</p>
                 <ul class="pricing-features">
-                    <li>Online booking wizard</li>
+                    <li>Appointment request workflow</li>
                     <li>Patient intake forms</li>
                     <li>Clinical visit notes</li>
-                    <li>Checkout & payments</li>
+                    <li>Basic checkout and payment tracking</li>
                     <li>Email support</li>
                 </ul>
                 <a href="{{ route('filament.admin.pages.billing') }}" class="btn">Choose Plan</a>

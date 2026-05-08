@@ -8,6 +8,7 @@ use App\Models\Practice;
 use App\Services\PracticeContext;
 use BackedEnum;
 use Filament\Actions\Action;
+use Filament\Forms\Components\DatePicker;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Filament\Support\Icons\Heroicon;
@@ -63,6 +64,26 @@ class ExportDataPage extends Page
                 ->modalDescription('Generate a single JSON file with all your data? This may take a few minutes.')
                 ->modalSubmitActionLabel('Export')
                 ->action(fn () => $this->requestExport('json')),
+
+            Action::make('exportFinancialCsv')
+                ->label('Financial CSV')
+                ->icon('heroicon-o-banknotes')
+                ->color('success')
+                ->form([
+                    DatePicker::make('start_date')
+                        ->label('Start date')
+                        ->default(now()->startOfMonth())
+                        ->required(),
+                    DatePicker::make('end_date')
+                        ->label('End date')
+                        ->default(now()->endOfMonth())
+                        ->required()
+                        ->afterOrEqual('start_date'),
+                ])
+                ->modalHeading('Export financial CSVs')
+                ->modalDescription('Generate accountant-safe CSV files for collected payments, line items, and a summary. Clinical notes are not included.')
+                ->modalSubmitActionLabel('Export')
+                ->action(fn (array $data) => $this->requestFinancialExport($data)),
         ];
     }
 
@@ -93,6 +114,41 @@ class ExportDataPage extends Page
         Notification::make()
             ->title('Export started')
             ->body('Your export is being prepared. You will receive an email when it is ready.')
+            ->success()
+            ->send();
+    }
+
+    public function requestFinancialExport(array $data): void
+    {
+        $practice = $this->resolvePractice();
+
+        if (!$practice) {
+            Notification::make()
+                ->title('Error')
+                ->body('No practice associated with your account.')
+                ->danger()
+                ->send();
+            return;
+        }
+
+        $token = ExportToken::create([
+            'practice_id' => $practice->id,
+            'format' => 'financial_csv',
+            'status' => 'processing',
+            'expires_at' => now()->addHours(24),
+        ]);
+
+        ExportPracticeDataJob::dispatch(
+            $practice->id,
+            $token->id,
+            'financial_csv',
+            $data['start_date'] ?? null,
+            $data['end_date'] ?? null,
+        );
+
+        Notification::make()
+            ->title('Financial export started')
+            ->body('Your financial CSV export is being prepared. You will receive an email when it is ready.')
             ->success()
             ->send();
     }

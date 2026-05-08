@@ -40,7 +40,7 @@
                         <ul style="margin: 0 0 30px 0; padding-left: 0; list-style: none;">
                             <li style="margin: 0 0 12px 0; color: #555; display: flex; align-items: flex-start;">
                                 <span style="color: #0D7377; font-weight: bold; margin-right: 10px; flex-shrink: 0;">✓</span>
-                                <span>Set up your online booking page for patients</span>
+                                <span>Set up online appointment request links for patients</span>
                             </li>
                             <li style="margin: 0 0 12px 0; color: #555; display: flex; align-items: flex-start;">
                                 <span style="color: #0D7377; font-weight: bold; margin-right: 10px; flex-shrink: 0;">✓</span>
@@ -52,7 +52,7 @@
                             </li>
                             <li style="margin: 0 0 20px 0; color: #555; display: flex; align-items: flex-start;">
                                 <span style="color: #0D7377; font-weight: bold; margin-right: 10px; flex-shrink: 0;">✓</span>
-                                <span>Process payments with built-in Stripe integration</span>
+                                <span>Track basic checkout and practice payment activity</span>
                             </li>
                         </ul>
 

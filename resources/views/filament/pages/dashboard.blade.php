@@ -93,6 +93,83 @@
 
 </div>
 
+{{-- Financial Summary --}}
+<div style="background:#ffffff;border:1px solid #e2e8f0;border-radius:0.75rem;padding:1.5rem;margin-bottom:1.5rem;">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;margin-bottom:1.25rem;">
+        <div>
+            <p style="margin:0;font-size:1rem;font-weight:600;color:#0f172a;">Financial Summary</p>
+            <p style="margin:0.25rem 0 0;font-size:0.8125rem;color:#64748b;">Collected revenue uses payment date from checkout payments. This is a bookkeeping summary, not full accounting.</p>
+        </div>
+        <form method="GET" style="display:flex;align-items:end;gap:0.5rem;flex-wrap:wrap;">
+            <label style="display:flex;flex-direction:column;gap:0.25rem;font-size:0.75rem;font-weight:500;color:#475569;">
+                Start
+                <input type="date" name="financial_start" value="{{ $financialStartDate }}" style="border:1px solid #cbd5e1;border-radius:0.5rem;padding:0.375rem 0.5rem;font-size:0.8125rem;color:#0f172a;">
+            </label>
+            <label style="display:flex;flex-direction:column;gap:0.25rem;font-size:0.75rem;font-weight:500;color:#475569;">
+                End
+                <input type="date" name="financial_end" value="{{ $financialEndDate }}" style="border:1px solid #cbd5e1;border-radius:0.5rem;padding:0.375rem 0.5rem;font-size:0.8125rem;color:#0f172a;">
+            </label>
+            <button type="submit" style="border:0;border-radius:0.5rem;background:#0f766e;color:#ffffff;padding:0.5rem 0.875rem;font-size:0.8125rem;font-weight:600;cursor:pointer;">Apply</button>
+        </form>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:0.75rem;margin-bottom:1rem;">
+        <div style="border:1px solid #e2e8f0;border-radius:0.5rem;padding:1rem;">
+            <p style="margin:0;font-size:0.75rem;font-weight:500;color:#64748b;">Total Collected</p>
+            <p style="margin:0.375rem 0 0;font-size:1.5rem;font-weight:700;color:#0f172a;">{{ $formattedFinancialTotalCollected }}</p>
+        </div>
+        <div style="border:1px solid #e2e8f0;border-radius:0.5rem;padding:1rem;">
+            <p style="margin:0;font-size:0.75rem;font-weight:500;color:#64748b;">Paid Sessions</p>
+            <p style="margin:0.375rem 0 0;font-size:1.5rem;font-weight:700;color:#0f172a;">{{ $financialSummary['paid_sessions_count'] }}</p>
+        </div>
+        <div style="border:1px solid #e2e8f0;border-radius:0.5rem;padding:1rem;">
+            <p style="margin:0;font-size:0.75rem;font-weight:500;color:#64748b;">Sessions With Payments</p>
+            <p style="margin:0.375rem 0 0;font-size:1.5rem;font-weight:700;color:#0f172a;">{{ $financialSummary['collected_sessions_count'] }}</p>
+        </div>
+        <div style="border:1px solid #e2e8f0;border-radius:0.5rem;padding:1rem;">
+            <p style="margin:0;font-size:0.75rem;font-weight:500;color:#64748b;">Open / Payment Due</p>
+            <p style="margin:0.375rem 0 0;font-size:1.5rem;font-weight:700;color:#0f172a;">{{ $financialSummary['unpaid_open_sessions_count'] }}</p>
+            <p style="margin:0.25rem 0 0;font-size:0.75rem;color:#64748b;">{{ $formattedFinancialUnpaidOpenTotal }} outstanding</p>
+        </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;">
+        <div>
+            <p style="margin:0 0 0.5rem;font-size:0.875rem;font-weight:600;color:#0f172a;">Payment Methods</p>
+            @forelse ($financialSummary['payment_method_totals'] as $row)
+                <div style="display:flex;justify-content:space-between;gap:1rem;padding:0.375rem 0;border-bottom:1px solid #f1f5f9;font-size:0.8125rem;">
+                    <span style="color:#475569;">{{ $row['label'] }} ({{ $row['count'] }})</span>
+                    <span style="font-weight:600;color:#0f172a;">{{ \Illuminate\Support\Number::currency($row['total'], 'USD') }}</span>
+                </div>
+            @empty
+                <p style="color:#94a3b8;font-size:0.8125rem;">No payments in this range.</p>
+            @endforelse
+        </div>
+        <div>
+            <p style="margin:0 0 0.5rem;font-size:0.875rem;font-weight:600;color:#0f172a;">Practitioners</p>
+            @forelse ($financialSummary['practitioner_totals'] as $row)
+                <div style="display:flex;justify-content:space-between;gap:1rem;padding:0.375rem 0;border-bottom:1px solid #f1f5f9;font-size:0.8125rem;">
+                    <span style="color:#475569;">{{ $row['practitioner_name'] }}</span>
+                    <span style="font-weight:600;color:#0f172a;">{{ \Illuminate\Support\Number::currency($row['total'], 'USD') }}</span>
+                </div>
+            @empty
+                <p style="color:#94a3b8;font-size:0.8125rem;">No practitioner revenue in this range.</p>
+            @endforelse
+        </div>
+        <div>
+            <p style="margin:0 0 0.5rem;font-size:0.875rem;font-weight:600;color:#0f172a;">Line Types</p>
+            @forelse ($financialSummary['line_type_totals'] as $row)
+                <div style="display:flex;justify-content:space-between;gap:1rem;padding:0.375rem 0;border-bottom:1px solid #f1f5f9;font-size:0.8125rem;">
+                    <span style="color:#475569;">{{ $row['label'] }} ({{ $row['line_count'] }})</span>
+                    <span style="font-weight:600;color:#0f172a;">{{ \Illuminate\Support\Number::currency($row['total'], 'USD') }}</span>
+                </div>
+            @empty
+                <p style="color:#94a3b8;font-size:0.8125rem;">No line items in this range.</p>
+            @endforelse
+        </div>
+    </div>
+</div>
+
 {{-- Bottom row: status breakdown + revenue by practitioner --}}
 <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
 

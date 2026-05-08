@@ -15,7 +15,7 @@ class ExportController extends Controller
 {
     public function request(Request $request): RedirectResponse
     {
-        $request->validate(['format' => 'required|in:csv,json']);
+        $request->validate(['format' => 'required|in:csv,json,financial_csv']);
 
         $practice = $this->resolvePractice();
         if (!$practice) {
@@ -63,7 +63,7 @@ class ExportController extends Controller
             'status' => 'downloaded',
         ]);
 
-        $ext = $token->format === 'csv' ? 'zip' : 'json';
+        $ext = in_array($token->format, ['csv', 'financial_csv'], true) ? 'zip' : 'json';
         $filename = "practiq-export.{$ext}";
         $response = Storage::download($token->file_path, $filename);
 
