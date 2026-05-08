@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Practiq - Documentation-first practice software for small clinics</title>
-    <meta name="description" content="Practiq helps independent practitioners manage notes, forms, appointment requests, follow-up, setup, and billing readiness from one care-first workflow.">
+    <meta name="description" content="Practiq helps independent practitioners manage notes, forms, appointment requests, follow-up, setup readiness, legal acknowledgements, and financial exports from one care-first workflow.">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600,700,800" rel="stylesheet" />
@@ -55,7 +55,7 @@
                         Documentation-first software for practices that put care before billing.
                     </h1>
                     <p class="mt-6 max-w-3xl text-lg leading-8 text-slate-600 sm:text-xl">
-                        Practiq brings visit notes, patient requests, forms, follow-up, setup, billing readiness, and legal acknowledgements into a workflow built for the day-to-day reality of small health practices.
+                        Practiq brings visit notes, patient requests, forms, follow-up, setup guidance, legal and AI readiness, billing readiness, and financial exports into a workflow built for the day-to-day reality of small health practices.
                     </p>
                     <div class="mt-9 flex flex-col gap-3 sm:flex-row">
                         <a href="{{ $trialUrl }}" class="inline-flex items-center justify-center rounded-xl bg-teal-700 px-7 py-4 text-base font-bold text-white shadow-lg shadow-teal-900/10 transition hover:bg-teal-800">
@@ -80,6 +80,8 @@
                                 ['Appointment requests', 'Patient preferences, staff control'],
                                 ['Online forms', 'Sent, submitted, reviewed'],
                                 ['Follow-up', 'Invite-back drafts and history'],
+                                ['Financial exports', 'Collected revenue summaries and CSVs'],
+                                ['Setup readiness', 'Checklist, links, and acknowledgements'],
                             ] as [$title, $body])
                                 <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
                                     <p class="font-bold text-slate-950">{{ $title }}</p>
@@ -103,8 +105,9 @@
                     ['Workflows are scattered', 'Scheduling context, forms, requests, notes, checkout, follow-up, and setup readiness stay connected around the patient and practice.'],
                     ['Follow-up is inconsistent', 'The Follow-Up Center surfaces patients who may need attention, with staff-reviewed invite-back drafts and communication history.'],
                     ['Intake and requests get messy', 'Public website links, online forms, existing-patient access, and appointment requests give patients clearer entry points without exposing private records.'],
-                    ['Setup can stall a trial', 'A practice setup checklist shows what is ready and what still needs attention before using public links or patient workflows.'],
-                    ['Many systems start with billing', 'Practiq starts with care and documentation, while still supporting Stripe readiness, checkout, and plan management when the practice is ready.'],
+                    ['Setup can stall a trial', 'A practice setup checklist shows what is ready and what still needs attention before using public links or patient workflows, including practitioners, treatment types, working hours, website links, and acknowledgements.'],
+                    ['Reporting often needs another tool', 'Practiq includes collected revenue summaries, payment method totals, practitioner breakdowns, line-item exports, and CSVs that help with bookkeeping without pretending to be full accounting software.'],
+                    ['Many systems start with billing', 'Practiq starts with care and documentation, while still supporting Stripe subscription billing readiness, checkout, exports, and plan management when the practice is ready.'],
                 ] as [$title, $body])
                     <article class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
                         <h3 class="text-lg font-bold text-slate-950">{{ $title }}</h3>
@@ -122,12 +125,13 @@
                 </div>
                 <div class="mt-10 grid gap-6 lg:grid-cols-2">
                     @foreach([
-                        ['Documentation-first visits', 'Practiq supports Simple Visit Note Mode for natural clinical writing and SOAP / Insurance Mode for structured documentation. Controlled AI assistance can help draft, organize, summarize, translate, or check documentation, but practitioners review the result before use.'],
-                        ['Scheduling and appointment requests', 'Patients can submit appointment requests with treatment and practitioner preferences. Staff sees practitioner schedule context, working hours, time blocks, and deterministic suggested openings while still choosing and creating the final appointment.'],
+                        ['Documentation-first visits', 'Practiq supports Simple Visit Note Mode for natural clinical writing and SOAP / Insurance Mode for structured documentation. AI assistance stays optional, reviewed, and practitioner-controlled for drafts, summaries, translations, and documentation checks.'],
+                        ['Scheduling and appointment requests', 'Patients can submit appointment requests with treatment and practitioner preferences. Staff sees practitioner schedule context, working hours, time blocks, and deterministic suggested openings while still choosing and creating the final appointment. This is request-based scheduling with staff confirmation, not direct self-booking.'],
                         ['Forms, intake, and patient access', 'Practices can place public website links for new patient requests, existing patient access, and appointment requests. Online forms are sent, submitted, reviewed, and converted by staff instead of automatically changing patient records.'],
                         ['Follow-up and communication', 'The Follow-Up Center helps staff identify patients who may need attention. Invite Back workflows support drafts, translations, explicit sending, opt-out checks, and communication history.'],
-                        ['Setup clarity for small practices', 'Trial practices see a checklist for practice profile, practitioners, treatment types, compatibility, working hours, public links, HIPAA/BAA acknowledgement, and AI disclaimer acknowledgement.'],
-                        ['Billing and readiness without taking over', 'Stripe billing readiness, subscription plan configuration, checkout, and legal acceptance tracking are present, but the product stays centered on clinical work and patient relationships.'],
+                        ['Practice statistics and financial exports', 'Collected revenue summaries use payment dates, with payment method totals, practitioner breakdowns, line-type summaries, and dedicated CSV exports for bookkeeping including financial summaries, checkout payments, and line items.'],
+                        ['Setup clarity for small practices', 'Trial practices see a checklist for practice profile, practitioners, treatment types, compatibility, working hours, public links, legal acknowledgements, HIPAA/BAA acknowledgement, and AI disclaimer acknowledgement.'],
+                        ['Legal, AI, and billing readiness without taking over', 'Terms and Privacy acceptance tracking, HIPAA/BAA acknowledgement, AI disclaimer acknowledgement, Stripe subscription billing readiness tools, and plan configuration are available without implying legal advice or replacing practitioner review.'],
                     ] as [$title, $body])
                         <article class="rounded-2xl border border-slate-200 bg-[#fbfaf6] p-7">
                             <h3 class="text-xl font-bold text-slate-950">{{ $title }}</h3>
@@ -153,12 +157,47 @@
             </div>
         </section>
 
+        <section class="border-y border-slate-200 bg-white">
+            <div class="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
+                <div class="grid gap-6 lg:grid-cols-3">
+                    @foreach([
+                        ['Practice statistics and financial exports', 'Collected revenue summaries and CSV exports for bookkeeping help practices review payment totals, practitioner activity, and line items without claiming full accounting.'],
+                        ['Setup checklist so your clinic knows what to configure first', 'Practitioners, treatment types, working hours, public website links, and readiness acknowledgements are easier to review before a clinic starts advertising workflows publicly.'],
+                        ['Legal and AI acknowledgements are tracked for practice readiness', 'Terms and Privacy acceptance, HIPAA/BAA acknowledgement, and AI disclaimer acknowledgement are recorded to support operational readiness. They do not replace legal advice or practitioner judgment.'],
+                    ] as [$title, $body])
+                        <article class="rounded-2xl border border-slate-200 bg-[#fbfaf6] p-7">
+                            <h2 class="text-xl font-bold text-slate-950">{{ $title }}</h2>
+                            <p class="mt-4 leading-7 text-slate-600">{{ $body }}</p>
+                        </article>
+                    @endforeach
+                </div>
+            </div>
+        </section>
+
+        <section class="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
+            <div class="grid gap-8 lg:grid-cols-[1fr_0.9fr]">
+                <div>
+                    <p class="text-sm font-bold uppercase tracking-wide text-teal-800">Feedback Loop</p>
+                    <h2 class="mt-3 text-3xl font-bold tracking-tight text-slate-950 sm:text-4xl">Practitioner feedback stays close to the product.</h2>
+                    <p class="mt-5 text-lg leading-8 text-slate-600">Practiq includes a Founding Practitioner Review Program and in-app questionnaire so trial practices can share what felt clear, what slowed setup down, and what would make the first week easier. The goal is simple: shape the product around small-practice reality.</p>
+                </div>
+                <div class="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
+                    <p class="text-sm font-bold uppercase tracking-wide text-teal-800">What feedback covers</p>
+                    <div class="mt-5 flex flex-wrap gap-2">
+                        @foreach(['Setup clarity', 'Website links', 'Appointment requests', 'Online forms', 'Visit documentation', 'Follow-up workflow', 'Pricing concerns'] as $item)
+                            <span class="rounded-full border border-slate-200 bg-[#fbfaf6] px-4 py-2 text-sm font-semibold text-slate-700">{{ $item }}</span>
+                        @endforeach
+                    </div>
+                </div>
+            </div>
+        </section>
+
         <section id="pricing" class="border-y border-slate-200 bg-white">
             <div class="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
                 <div class="max-w-3xl">
                     <p class="text-sm font-bold uppercase tracking-wide text-teal-800">Pricing</p>
                     <h2 class="mt-3 text-3xl font-bold tracking-tight text-slate-950 sm:text-4xl">Clear monthly pricing for small practices.</h2>
-                    <p class="mt-5 text-lg leading-8 text-slate-600">Start with the plan that matches your practice today. No credit card is required to start a trial.</p>
+                    <p class="mt-5 text-lg leading-8 text-slate-600">Start with the plan that matches your practice today. No credit card is required to start a trial. Stripe supports Practiq subscription billing readiness and plan management.</p>
                 </div>
                 <div class="mt-10 grid gap-6 lg:grid-cols-3">
                     @foreach([
@@ -191,9 +230,10 @@
                     ['Does Practiq support simple notes and SOAP notes?', 'Yes. Simple Visit Note Mode supports natural clinical writing. SOAP / Insurance Mode supports structured documentation when your practice needs it.'],
                     ['Can patients book themselves automatically?', 'No. Patients can request appointments. Staff reviews context and explicitly creates the appointment.'],
                     ['Does Practiq include online forms?', 'Yes. Staff can send forms, patients can submit them securely, and staff reviews submissions before records are changed.'],
-                    ['Does Practiq use AI?', 'AI features are optional support tools for drafts, summaries, translations, and documentation checks. Practitioners remain responsible for reviewing all output.'],
+                    ['Does Practiq use AI?', 'AI features are optional support tools for drafts, summaries, translations, and documentation checks. Practitioners remain responsible for reviewing all output, and AI acknowledgement is required before first use.'],
                     ['Can I put Practiq links on my website?', 'Yes. Practices can use stable public links for new patient requests, existing patient access, and appointment requests.'],
                     ['Is setup guided?', 'Yes. The setup checklist shows what is ready and what still needs attention before patient-facing workflows are advertised.'],
+                    ['Does Practiq include financial reporting?', 'Practiq includes basic collected revenue summaries and CSV exports for bookkeeping. It does not claim to be full accounting software.'],
                 ] as [$question, $answer])
                     <details class="group p-6">
                         <summary class="flex cursor-pointer list-none items-center justify-between gap-4 font-bold text-slate-950">
