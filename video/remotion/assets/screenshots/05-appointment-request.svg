@@ -1,0 +1,14 @@
+<svg width="1200" height="780" viewBox="0 0 1200 780" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="780" rx="36" fill="#F8FAF7"/>
+  <rect x="36" y="36" width="1128" height="708" rx="28" fill="white" stroke="#D8E1DD"/>
+  <rect x="90" y="90" width="520" height="600" rx="26" fill="#F8FAF7" stroke="#D8E1DD"/>
+  <rect x="650" y="90" width="460" height="600" rx="26" fill="#0F172A"/>
+  <text x="130" y="154" fill="#0F172A" font-size="38" font-family="Arial, sans-serif" font-weight="700">Appointment request form</text>
+  <rect x="130" y="200" width="440" height="66" rx="16" fill="white" stroke="#D8E1DD"/>
+  <rect x="130" y="286" width="440" height="66" rx="16" fill="white" stroke="#D8E1DD"/>
+  <rect x="130" y="372" width="440" height="66" rx="16" fill="white" stroke="#D8E1DD"/>
+  <rect x="130" y="458" width="440" height="66" rx="16" fill="white" stroke="#D8E1DD"/>
+  <rect x="130" y="560" width="220" height="66" rx="18" fill="#0F766E"/>
+  <text x="692" y="156" fill="white" font-size="34" font-family="Arial, sans-serif" font-weight="700">Staff confirmation</text>
+  <text x="692" y="216" fill="#CBD5E1" font-size="24" font-family="Arial, sans-serif">Replace with request form + confirmation state visuals.</text>
+</svg>

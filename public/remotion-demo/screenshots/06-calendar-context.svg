@@ -1,0 +1,17 @@
+<svg width="1200" height="780" viewBox="0 0 1200 780" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="780" rx="36" fill="#F8FAF7"/>
+  <rect x="36" y="36" width="1128" height="708" rx="28" fill="white" stroke="#D8E1DD"/>
+  <text x="90" y="118" fill="#0F172A" font-size="42" font-family="Arial, sans-serif" font-weight="700">Calendar context</text>
+  <rect x="90" y="160" width="760" height="520" rx="24" fill="#F8FAF7" stroke="#D8E1DD"/>
+  <rect x="880" y="160" width="230" height="520" rx="24" fill="#F8FAF7" stroke="#D8E1DD"/>
+  <g stroke="#CBD5E1">
+    <line x1="160" y1="200" x2="160" y2="640"/><line x1="260" y1="200" x2="260" y2="640"/><line x1="360" y1="200" x2="360" y2="640"/><line x1="460" y1="200" x2="460" y2="640"/><line x1="560" y1="200" x2="560" y2="640"/><line x1="660" y1="200" x2="660" y2="640"/><line x1="760" y1="200" x2="760" y2="640"/>
+    <line x1="110" y1="250" x2="830" y2="250"/><line x1="110" y1="330" x2="830" y2="330"/><line x1="110" y1="410" x2="830" y2="410"/><line x1="110" y1="490" x2="830" y2="490"/><line x1="110" y1="570" x2="830" y2="570"/>
+  </g>
+  <rect x="420" y="286" width="90" height="124" rx="18" fill="#0F766E" opacity="0.88"/>
+  <rect x="532" y="448" width="90" height="84" rx="18" fill="#C48C24" opacity="0.88"/>
+  <text x="910" y="220" fill="#0F172A" font-size="28" font-family="Arial, sans-serif" font-weight="700">Schedule context</text>
+  <text x="910" y="270" fill="#475569" font-size="22" font-family="Arial, sans-serif">Working hours</text>
+  <text x="910" y="320" fill="#475569" font-size="22" font-family="Arial, sans-serif">Time blocks</text>
+  <text x="910" y="370" fill="#475569" font-size="22" font-family="Arial, sans-serif">Existing appointments</text>
+</svg>

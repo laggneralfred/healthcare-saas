@@ -1,0 +1,9 @@
+<svg width="1200" height="780" viewBox="0 0 1200 780" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="780" rx="36" fill="#115E59"/>
+  <rect x="54" y="54" width="1092" height="672" rx="28" fill="#134E4A"/>
+  <text x="110" y="186" fill="white" font-size="58" font-family="Arial, sans-serif" font-weight="700">Practiq</text>
+  <text x="110" y="266" fill="#CCFBF1" font-size="34" font-family="Arial, sans-serif">Documentation-first software for practices that put care before billing.</text>
+  <rect x="110" y="360" width="320" height="76" rx="20" fill="white"/>
+  <rect x="454" y="360" width="320" height="76" rx="20" fill="#0F766E" stroke="white"/>
+  <text x="110" y="640" fill="#CCFBF1" font-size="28" font-family="Arial, sans-serif">Replace with final branded product visual or CTA frame.</text>
+</svg>

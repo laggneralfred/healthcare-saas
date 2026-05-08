@@ -1,0 +1,12 @@
+<svg width="1200" height="780" viewBox="0 0 1200 780" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="780" rx="36" fill="#F3F7F4"/>
+  <rect x="36" y="36" width="1128" height="708" rx="28" fill="white" stroke="#D8E1DD"/>
+  <rect x="90" y="120" width="420" height="520" rx="28" fill="#115E59"/>
+  <text x="132" y="198" fill="white" font-size="46" font-family="Arial, sans-serif" font-weight="700">Practiq</text>
+  <text x="132" y="252" fill="#CCFBF1" font-size="26" font-family="Arial, sans-serif">Documentation-first</text>
+  <text x="132" y="290" fill="#CCFBF1" font-size="26" font-family="Arial, sans-serif">Care before billing</text>
+  <rect x="564" y="148" width="510" height="116" rx="24" fill="#F8FAF7" stroke="#D8E1DD"/>
+  <rect x="564" y="298" width="510" height="116" rx="24" fill="#F8FAF7" stroke="#D8E1DD"/>
+  <rect x="564" y="448" width="510" height="116" rx="24" fill="#F8FAF7" stroke="#D8E1DD"/>
+  <text x="90" y="700" fill="#475569" font-size="28" font-family="Arial, sans-serif">Replace with a strong product overview screenshot or branded composition.</text>
+</svg>

@@ -1,0 +1,13 @@
+<svg width="1200" height="780" viewBox="0 0 1200 780" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="780" rx="36" fill="#F8FAF7"/>
+  <rect x="36" y="36" width="1128" height="708" rx="28" fill="white" stroke="#D8E1DD"/>
+  <rect x="90" y="108" width="300" height="140" rx="22" fill="#115E59"/>
+  <rect x="414" y="108" width="300" height="140" rx="22" fill="#F8FAF7" stroke="#D8E1DD"/>
+  <rect x="738" y="108" width="300" height="140" rx="22" fill="#F8FAF7" stroke="#D8E1DD"/>
+  <rect x="90" y="290" width="650" height="350" rx="24" fill="#F8FAF7" stroke="#D8E1DD"/>
+  <rect x="774" y="290" width="336" height="350" rx="24" fill="#F8FAF7" stroke="#D8E1DD"/>
+  <text x="126" y="176" fill="white" font-size="30" font-family="Arial, sans-serif" font-weight="700">Collected revenue</text>
+  <text x="450" y="176" fill="#0F172A" font-size="30" font-family="Arial, sans-serif" font-weight="700">Payment methods</text>
+  <text x="774" y="176" fill="#0F172A" font-size="30" font-family="Arial, sans-serif" font-weight="700">Practitioners</text>
+  <text x="126" y="700" fill="#475569" font-size="24" font-family="Arial, sans-serif">Replace with Reports and Export Data screenshots.</text>
+</svg>

@@ -1,0 +1,11 @@
+<svg width="1200" height="780" viewBox="0 0 1200 780" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="780" rx="36" fill="#F8FAF7"/>
+  <rect x="36" y="36" width="1128" height="708" rx="28" fill="white" stroke="#D8E1DD"/>
+  <rect x="90" y="120" width="1020" height="540" rx="26" fill="#0F172A"/>
+  <rect x="134" y="176" width="420" height="426" rx="22" fill="#111827"/>
+  <rect x="596" y="176" width="470" height="426" rx="22" fill="#F8FAF7"/>
+  <text x="134" y="150" fill="#0F766E" font-size="28" font-family="Arial, sans-serif" font-weight="700">AI assistance</text>
+  <text x="626" y="248" fill="#0F172A" font-size="34" font-family="Arial, sans-serif" font-weight="700">Review before use</text>
+  <text x="626" y="304" fill="#475569" font-size="24" font-family="Arial, sans-serif">Drafts, summaries, translations, checks.</text>
+  <text x="626" y="346" fill="#475569" font-size="24" font-family="Arial, sans-serif">No automatic clinical decisions.</text>
+</svg>

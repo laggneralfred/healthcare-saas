@@ -1,0 +1,13 @@
+<svg width="1200" height="780" viewBox="0 0 1200 780" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="780" rx="36" fill="#F8FAF7"/>
+  <rect x="36" y="36" width="1128" height="708" rx="28" fill="white" stroke="#D8E1DD"/>
+  <text x="90" y="118" fill="#0F172A" font-size="42" font-family="Arial, sans-serif" font-weight="700">Follow-Up Center</text>
+  <rect x="90" y="162" width="1020" height="110" rx="24" fill="#F8FAF7" stroke="#D8E1DD"/>
+  <rect x="90" y="294" width="1020" height="110" rx="24" fill="#F8FAF7" stroke="#D8E1DD"/>
+  <rect x="90" y="426" width="1020" height="110" rx="24" fill="#F8FAF7" stroke="#D8E1DD"/>
+  <rect x="90" y="558" width="1020" height="110" rx="24" fill="#F8FAF7" stroke="#D8E1DD"/>
+  <text x="126" y="232" fill="#0F172A" font-size="28" font-family="Arial, sans-serif">Patient attention list</text>
+  <text x="126" y="364" fill="#0F172A" font-size="28" font-family="Arial, sans-serif">Invite-back draft</text>
+  <text x="126" y="496" fill="#0F172A" font-size="28" font-family="Arial, sans-serif">Translation preview</text>
+  <text x="126" y="628" fill="#0F172A" font-size="28" font-family="Arial, sans-serif">Communication history</text>
+</svg>
