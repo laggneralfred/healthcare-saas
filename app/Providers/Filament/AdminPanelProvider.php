@@ -52,6 +52,11 @@ class AdminPanelProvider extends PanelProvider
     public function boot(): void
     {
         FilamentView::registerRenderHook(
+            PanelsRenderHook::HEAD_START,
+            fn (): string => view('partials.google-tag')->render(),
+        );
+
+        FilamentView::registerRenderHook(
             PanelsRenderHook::CONTENT_START,
             function (): string {
                 $user = auth()->user();
