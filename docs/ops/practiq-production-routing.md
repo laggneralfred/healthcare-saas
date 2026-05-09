@@ -40,6 +40,8 @@ If the active container file differs from `/root/Caddyfile`, update the active m
 
 Do not run `demo:reset` on production unless explicitly approved.
 
+For global owner/admin access, use `php artisan practiq:make-owner-admin owner@example.com`. See `docs/ops/owner-admin-access.md`.
+
 ## Safe Verification
 
 ```bash

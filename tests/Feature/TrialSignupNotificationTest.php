@@ -9,6 +9,7 @@ use App\Models\TrialSignup;
 use App\Models\User;
 use App\Support\PracticeType;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Tests\TestCase;
 
@@ -149,5 +150,65 @@ class TrialSignupNotificationTest extends TestCase
             ->assertForbidden();
 
         $this->assertFalse(TrialSignupResource::canAccess());
+    }
+
+    public function test_make_owner_admin_command_creates_global_admin_user(): void
+    {
+        $this->artisan('practiq:make-owner-admin', [
+            'email' => 'owner-admin@example.com',
+            '--name' => 'Owner Admin',
+            '--password' => 'temporary-password',
+        ])
+            ->expectsOutput('Owner/global admin user created.')
+            ->expectsOutput('Email: owner-admin@example.com')
+            ->expectsOutput('practice_id: null')
+            ->assertExitCode(0);
+
+        $user = User::where('email', 'owner-admin@example.com')->firstOrFail();
+
+        $this->assertSame('Owner Admin', $user->name);
+        $this->assertNull($user->practice_id);
+        $this->assertNotNull($user->email_verified_at);
+        $this->assertTrue(Hash::check('temporary-password', $user->password));
+        $this->assertTrue($user->isPracticeSuperAdmin());
+    }
+
+    public function test_make_owner_admin_command_promotes_existing_user_without_changing_password(): void
+    {
+        $practice = Practice::factory()->create(['name' => 'Previous Practice']);
+        $user = User::factory()->create([
+            'email' => 'promote-owner@example.com',
+            'practice_id' => $practice->id,
+            'password' => Hash::make('existing-password'),
+            'email_verified_at' => null,
+        ]);
+
+        TrialSignup::factory()->create([
+            'practice_id' => $practice->id,
+            'name' => 'Promoted Viewer',
+            'email' => 'promoted-viewer@example.com',
+            'practice_name' => 'Previous Practice',
+        ]);
+
+        $this->artisan('practiq:make-owner-admin', [
+            'email' => 'promote-owner@example.com',
+            '--password' => 'ignored-new-password',
+        ])
+            ->expectsOutput('Existing user found. Password was not changed.')
+            ->expectsOutput('Owner/global admin user promoted.')
+            ->assertExitCode(0);
+
+        $user->refresh();
+
+        $this->assertNull($user->practice_id);
+        $this->assertNotNull($user->email_verified_at);
+        $this->assertTrue(Hash::check('existing-password', $user->password));
+        $this->assertFalse(Hash::check('ignored-new-password', $user->password));
+
+        $this->actingAs($user)
+            ->get('/admin/signedup')
+            ->assertSuccessful()
+            ->assertSee('Promoted Viewer')
+            ->assertSee('promoted-viewer@example.com');
     }
 }
