@@ -123,4 +123,9 @@ return [
         'name' => env('MAIL_FROM_NAME', env('APP_NAME', 'Laravel')),
     ],
 
+    'trial_signup_notification_email' => env(
+        'TRIAL_SIGNUP_NOTIFICATION_EMAIL',
+        env('MAIL_FROM_ADDRESS', 'hello@example.com'),
+    ),
+
 ];

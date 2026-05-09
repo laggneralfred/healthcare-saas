@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Mail\TrialWelcomeMail;
+use App\Mail\TrialSignupNotificationMail;
 use App\Models\Practice;
+use App\Models\TrialSignup;
 use App\Models\User;
 use App\Services\AuditLogger;
 use App\Services\LegalAcceptanceService;
@@ -92,12 +94,30 @@ class RegistrationController extends Controller
             $legalAcceptanceService->acceptCurrent($practice, $user, $documentKey, $request, 'register');
         }
 
+        $trialSignup = TrialSignup::withoutPracticeScope()->create([
+            'practice_id' => $practice->id,
+            'user_id' => $user->id,
+            'name' => $user->name,
+            'email' => $user->email,
+            'phone' => $validated['phone'] ?? null,
+            'practice_name' => $practice->name,
+            'profession' => PracticeType::label($practiceType),
+            'practice_type' => $practiceType,
+            'heard_about_us' => $validated['referral_source'] ?? null,
+            'source' => 'register',
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+            'signed_up_at' => now(),
+        ]);
+
         // Audit logging
         AuditLogger::created($practice);
         AuditLogger::created($user);
 
         // Send welcome email
         Mail::to($user->email)->send(new TrialWelcomeMail($practice, $user));
+        Mail::to(config('mail.trial_signup_notification_email'))
+            ->send(new TrialSignupNotificationMail($trialSignup));
 
         // Log the user in
         Auth::login($user);
