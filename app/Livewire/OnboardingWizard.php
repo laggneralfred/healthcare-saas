@@ -2,10 +2,17 @@
 
 namespace App\Livewire;
 
+use App\Filament\Pages\AiDisclaimerAcknowledgementPage;
+use App\Filament\Pages\FrontDeskDashboard;
+use App\Filament\Pages\HipaaBaaAcknowledgementPage;
+use App\Filament\Resources\AppointmentTypes\AppointmentTypeResource;
+use App\Filament\Resources\Practices\PracticeResource;
+use App\Filament\Resources\Practitioners\PractitionerResource;
 use App\Models\CommunicationRule;
 use App\Models\MessageTemplate;
 use App\Models\Practice;
 use App\Models\Practitioner;
+use App\Services\Onboarding\PracticeStarterDefaultsService;
 use App\Support\PracticeAccessRoles;
 use App\Support\PracticeType;
 use Illuminate\Support\Str;
@@ -58,11 +65,15 @@ class OnboardingWizard extends Component
                 $this->redirect('/admin/dashboard');
                 return;
             }
+
+            app(PracticeStarterDefaultsService::class)->seed($practice, auth()->user());
+
             $this->practice    = $practice;
             $this->practiceName = $practice->name;
             $this->practiceType = PracticeType::fromPractice($practice);
             $this->discipline   = PracticeType::disciplineFallback($this->practiceType);
             $this->timezone     = $practice->timezone ?? 'America/Los_Angeles';
+            $this->practitionerName = auth()->user()->name;
         }
     }
 
@@ -92,6 +103,41 @@ class OnboardingWizard extends Component
     public function skipOnboarding(): void
     {
         $this->redirect('/admin/dashboard');
+    }
+
+    public function finishSetup(): void
+    {
+        if ($this->practice) {
+            $this->practice->update(['setup_completed_at' => now()]);
+        }
+
+        $this->redirect(FrontDeskDashboard::getUrl());
+    }
+
+    public function getStarterSummaryProperty(): ?array
+    {
+        if (! $this->practice) {
+            return null;
+        }
+
+        return app(PracticeStarterDefaultsService::class)->summary($this->practice->fresh());
+    }
+
+    public function getActionUrlsProperty(): array
+    {
+        $summary = $this->starterSummary;
+        $practice = $summary['practice'] ?? $this->practice;
+        $practitioner = $summary['practitioner'] ?? null;
+
+        return [
+            'practice' => $practice ? PracticeResource::getUrl('edit', ['record' => $practice]) : '/admin',
+            'practitioner' => $practitioner ? PractitionerResource::getUrl('edit', ['record' => $practitioner]) : PractitionerResource::getUrl('index'),
+            'working_hours' => $practitioner ? PractitionerResource::getUrl('edit', ['record' => $practitioner]) : PractitionerResource::getUrl('index'),
+            'appointment_types' => AppointmentTypeResource::getUrl('index'),
+            'hipaa' => HipaaBaaAcknowledgementPage::getUrl(),
+            'ai_disclaimer' => AiDisclaimerAcknowledgementPage::getUrl(),
+            'today' => FrontDeskDashboard::getUrl(),
+        ];
     }
 
     public function skipLegalSetup(): void
@@ -175,6 +221,8 @@ class OnboardingWizard extends Component
             'license_number' => $this->licenseNumber,
             'specialty'      => $this->practitionerName,
         ]);
+
+        app(PracticeStarterDefaultsService::class)->seed($this->practice, $user);
 
         $this->seedDefaultTemplates();
 

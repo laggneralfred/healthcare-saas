@@ -3,8 +3,10 @@
 namespace Tests\Feature;
 
 use App\Mail\TrialWelcomeMail;
+use App\Models\AppointmentType;
 use App\Models\LegalAcceptance;
 use App\Models\Practice;
+use App\Models\Practitioner;
 use App\Models\User;
 use App\Support\PracticeType;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -109,7 +111,7 @@ class TrialRegistrationTest extends TestCase
             'terms_accepted' => true,
         ]);
 
-        $response->assertRedirect('/admin/dashboard');
+        $response->assertRedirect('/onboarding');
 
         $practice = Practice::where('name', 'Legal Ledger Test')->firstOrFail();
         $user = User::where('email', 'legal-ledger@test.com')->firstOrFail();
@@ -202,7 +204,7 @@ class TrialRegistrationTest extends TestCase
         ]);
     }
 
-    public function test_registration_redirects_to_dashboard()
+    public function test_registration_redirects_to_guided_onboarding()
     {
         $response = $this->post('/register', [
             'practice_name' => 'Redirect Test',
@@ -215,8 +217,32 @@ class TrialRegistrationTest extends TestCase
             'terms_accepted' => true,
         ]);
 
-        $response->assertRedirect('/admin/dashboard');
+        $response->assertRedirect('/onboarding');
         $this->assertAuthenticatedAs(User::where('email', 'redirect@test.com')->first());
+    }
+
+    public function test_registration_creates_starter_practitioner_and_appointment_types()
+    {
+        $this->post('/register', [
+            'practice_name' => 'Starter Registration Test',
+            'first_name' => 'Starter',
+            'last_name' => 'Owner',
+            'email' => 'starter-registration@test.com',
+            'password' => 'password123',
+            'password_confirmation' => 'password123',
+            'practice_type' => PracticeType::MASSAGE_THERAPY,
+            'terms_accepted' => true,
+        ]);
+
+        $practice = Practice::where('name', 'Starter Registration Test')->firstOrFail();
+        $user = User::where('email', 'starter-registration@test.com')->firstOrFail();
+        $practitioner = Practitioner::withoutPracticeScope()
+            ->where('practice_id', $practice->id)
+            ->firstOrFail();
+
+        $this->assertSame($user->id, $practitioner->user_id);
+        $this->assertSame('Massage Therapy', $practitioner->specialty);
+        $this->assertSame(2, AppointmentType::withoutPracticeScope()->where('practice_id', $practice->id)->count());
     }
 
     public function test_duplicate_email_with_practice_is_rejected()

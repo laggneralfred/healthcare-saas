@@ -37,7 +37,7 @@ class TrialSignupNotificationTest extends TestCase
             'terms_accepted' => true,
         ]);
 
-        $response->assertRedirect('/admin/dashboard');
+        $response->assertRedirect('/onboarding');
 
         $practice = Practice::where('name', 'Trial Visibility Clinic')->firstOrFail();
         $user = User::where('email', 'taylor-owner@example.com')->firstOrFail();

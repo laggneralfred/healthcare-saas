@@ -9,6 +9,7 @@ use App\Models\TrialSignup;
 use App\Models\User;
 use App\Services\AuditLogger;
 use App\Services\LegalAcceptanceService;
+use App\Services\Onboarding\PracticeStarterDefaultsService;
 use App\Support\PracticeAccessRoles;
 use App\Support\PracticeType;
 use Illuminate\Auth\Events\Registered;
@@ -94,6 +95,8 @@ class RegistrationController extends Controller
             $legalAcceptanceService->acceptCurrent($practice, $user, $documentKey, $request, 'register');
         }
 
+        app(PracticeStarterDefaultsService::class)->seed($practice, $user);
+
         $trialSignup = TrialSignup::withoutPracticeScope()->create([
             'practice_id' => $practice->id,
             'user_id' => $user->id,
@@ -125,6 +128,6 @@ class RegistrationController extends Controller
         // Flash welcome message
         session()->flash('welcome_message', 'Welcome to Practiq! Your 30-day free trial has started.');
 
-        return redirect('/admin/dashboard');
+        return redirect('/onboarding');
     }
 }
