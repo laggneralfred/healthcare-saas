@@ -37,21 +37,43 @@ Route::get('/sitemap.xml', function () {
     $lastmod = now()->toDateString();
 
     $urls = [
-        '/',
-        '/register',
-        '/subscribe',
-        '/legal/terms',
-        '/legal/privacy',
-        '/legal/hipaa-baa',
-        '/legal/ai-disclaimer',
+        '/' => ['changefreq' => 'weekly', 'priority' => '1.0'],
+        '/register' => ['changefreq' => 'weekly', 'priority' => '0.8'],
+        '/subscribe' => ['changefreq' => 'monthly', 'priority' => '0.7'],
+        '/legal/terms' => ['changefreq' => 'monthly', 'priority' => '0.4'],
+        '/legal/privacy' => ['changefreq' => 'monthly', 'priority' => '0.4'],
+        '/legal/hipaa-baa' => ['changefreq' => 'monthly', 'priority' => '0.4'],
+        '/legal/ai-disclaimer' => ['changefreq' => 'monthly', 'priority' => '0.4'],
     ];
 
-    $xml = view('sitemap', [
-        'urls' => collect($urls)->map(fn (string $path) => rtrim($baseUrl, '/') . $path)->all(),
-        'lastmod' => $lastmod,
-    ])->render();
+    $xml = '<?xml version="1.0" encoding="UTF-8"?>' . "
+";
+    $xml .= '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . "
+";
 
-    return response($xml, 200, ['Content-Type' => 'application/xml; charset=UTF-8']);
+    foreach ($urls as $path => $meta) {
+        $loc = htmlspecialchars(rtrim($baseUrl, '/') . $path, ENT_XML1, 'UTF-8');
+
+        $xml .= "    <url>
+";
+        $xml .= "        <loc>{$loc}</loc>
+";
+        $xml .= "        <lastmod>{$lastmod}</lastmod>
+";
+        $xml .= "        <changefreq>{$meta['changefreq']}</changefreq>
+";
+        $xml .= "        <priority>{$meta['priority']}</priority>
+";
+        $xml .= "    </url>
+";
+    }
+
+    $xml .= '</urlset>' . "
+";
+
+    return response($xml, 200, [
+        'Content-Type' => 'application/xml; charset=UTF-8',
+    ]);
 })->name('sitemap');
 
 Route::get('/login', function (Request $request) use ($isAppHost) {
