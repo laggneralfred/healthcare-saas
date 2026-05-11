@@ -83,6 +83,11 @@ class PublicLandingPageTest extends TestCase
             ->assertSee('https://practiqapp.com/', false)
             ->assertSee('https://practiqapp.com/register', false)
             ->assertSee('https://practiqapp.com/legal/privacy', false)
+            ->assertSee('https://practiqapp.com/practice-software-for-acupuncturists', false)
+            ->assertSee('https://practiqapp.com/massage-therapy-practice-software', false)
+            ->assertSee('https://practiqapp.com/chiropractic-practice-software', false)
+            ->assertSee('https://practiqapp.com/physiotherapy-practice-software', false)
+            ->assertSee('https://practiqapp.com/wellness-practice-software', false)
             ->assertDontSee('/admin', false)
             ->assertDontSee('/onboarding', false);
     }
@@ -94,5 +99,42 @@ class PublicLandingPageTest extends TestCase
         $this->assertIsString($robots);
         $this->assertStringContainsString('Sitemap: https://practiqapp.com/sitemap.xml', $robots);
         $this->assertStringContainsString('Allow: /', $robots);
+    }
+
+    public function test_practitioner_seo_landing_pages_load_with_unique_positioning(): void
+    {
+        $pages = [
+            '/practice-software-for-acupuncturists' => [
+                'Practice software for busy acupuncturists.',
+                'acupuncture practice software',
+            ],
+            '/massage-therapy-practice-software' => [
+                'Practice software for busy massage therapists.',
+                'massage therapy practice software',
+            ],
+            '/chiropractic-practice-software' => [
+                'Practice software for busy chiropractors.',
+                'chiropractic practice software',
+            ],
+            '/physiotherapy-practice-software' => [
+                'Practice software for busy physiotherapists.',
+                'physiotherapy practice software',
+            ],
+            '/wellness-practice-software' => [
+                'Practice software for busy wellness practitioners.',
+                'wellness practice software',
+            ],
+        ];
+
+        foreach ($pages as $url => [$h1, $seoPhrase]) {
+            $this->get($url)
+                ->assertSuccessful()
+                ->assertSee($h1)
+                ->assertSee($seoPhrase)
+                ->assertSee('What Practiq Helps With')
+                ->assertSee('Try Practiq with starter settings already in place.')
+                ->assertSee('/register', false)
+                ->assertSee('/#overview-video', false);
+        }
     }
 }

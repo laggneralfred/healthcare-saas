@@ -32,6 +32,155 @@ Route::get('/', function (Request $request) use ($isAppHost) {
     return view('welcome');
 });
 
+$seoLandingPages = [
+    'practice-software-for-acupuncturists' => [
+        'title' => 'Acupuncture Practice Software for Notes, Intake Forms, Follow-Up, and Checkout Tracking | Practiq',
+        'description' => 'Practiq helps acupuncture practices manage visit notes, intake forms, appointment requests, patient follow-up, checkout tracking, and simple reports without a complicated system.',
+        'eyebrow' => 'Acupuncture practice software',
+        'h1' => 'Practice software for busy acupuncturists.',
+        'subheadline' => 'Practiq helps acupuncture practices keep up with treatment notes, intake forms, appointment requests, follow-up, checkout tracking, and simple reports — without adding more admin work to your day.',
+        'dailyHeading' => 'Built for the daily rhythm of an acupuncture practice',
+        'dailyCopy' => [
+            'Acupuncture care depends on attention, continuity, and time with the patient. But the work around the visit can pile up quickly: notes to finish, forms to review, patients to follow up with, and payments to track.',
+            'Practiq is designed to help small acupuncture practices keep the everyday work organized in one practical workflow.',
+            'It is not built for hospitals. It is not trying to be a giant insurance system. It is for small practices that need a clearer way to manage the day.',
+        ],
+        'helps' => [
+            ['Visit notes', 'Write clear visit notes without fighting a complicated screen. Practiq supports natural note-taking, with optional tools to help organize or improve a draft while keeping you in control.'],
+            ['Intake and consent forms', 'Collect intake and consent information before the visit, so patient information is easier to review when care begins.'],
+            ['Appointment requests', 'Patients can request appointments, while you or your staff still confirm the actual time. Practiq does not force automatic booking.'],
+            ['Follow-up', 'See which patients may need a reminder, invitation back, or continued care follow-up.'],
+            ['Checkout tracking', 'Record charges and payments in a simple way, so you can keep track of what happened at the visit.'],
+            ['Simple reports and exports', 'View useful practice totals and export records for bookkeeping. Practiq is not a full accounting system, but it helps you stay organized.'],
+        ],
+        'starterHeading' => 'A calmer first day',
+        'starterCopy' => [
+            'When you start a trial, Practiq creates editable starter settings for your practice, including a practitioner, weekday working hours, an Initial Visit, a Follow-up Visit, and starter fees.',
+            'You can change all of this later. The point is simple: you should be able to try the software without staring at an empty system.',
+        ],
+        'fit' => ['Solo acupuncturists', 'Small acupuncture clinics', 'TCM practices', 'Five Element acupuncture practices', 'Wellness clinics that include acupuncture', 'Practitioners who want simpler notes and follow-up tracking'],
+        'not' => 'Practiq is not a hospital EHR, insurance billing clearinghouse, automatic booking engine, full accounting system, or replacement for practitioner judgment.',
+        'seoPhrase' => 'acupuncture practice software',
+    ],
+    'massage-therapy-practice-software' => [
+        'title' => 'Massage Therapy Practice Software for Client Notes, Intake Forms, Follow-Up, and Checkout Tracking | Practiq',
+        'description' => 'Practiq helps massage therapists manage client notes, intake and consent forms, appointment requests, follow-up, checkout tracking, and simple practice reports.',
+        'eyebrow' => 'Massage therapy practice software',
+        'h1' => 'Practice software for busy massage therapists.',
+        'subheadline' => 'Practiq helps massage practices manage client notes, intake forms, appointment requests, follow-up, checkout tracking, and simple reports — without making your day more complicated.',
+        'dailyHeading' => 'Keep the hands-on work at the center',
+        'dailyCopy' => [
+            'Massage therapy is personal, practical, and time-based. Between sessions, it can be hard to keep up with notes, intake forms, follow-up, scheduling requests, and payment records.',
+            'Practiq helps massage therapists keep the daily business of care organized without turning the practice into a software project.',
+        ],
+        'helps' => [
+            ['Client notes', 'Keep clear notes about the session, areas addressed, tissue response, client goals, and follow-up needs.'],
+            ['Intake and consent forms', 'Collect client information and consent forms before the appointment, so you are not chasing paperwork at the last minute.'],
+            ['Appointment requests', 'Let clients request appointments while you remain in control of the schedule. Practiq supports appointment requests, not forced automatic booking.'],
+            ['Follow-up', 'See who may need a follow-up message, reminder, or invitation to return.'],
+            ['Checkout tracking', 'Track visit charges and payments in a straightforward way.'],
+            ['Simple reports and exports', 'See useful totals and export information for bookkeeping or practice review.'],
+        ],
+        'starterHeading' => 'Start with useful defaults',
+        'starterCopy' => [
+            'A new trial should not feel empty. Practiq sets up editable starter defaults such as a practitioner, weekday hours, an Initial Visit, a Follow-up Visit, and starter fees.',
+            'You can change them any time.',
+        ],
+        'fit' => ['Solo massage therapists', 'Small massage studios', 'Therapeutic massage practices', 'Bodywork practitioners', 'Wellness clinics that include massage therapy', 'Practitioners who want less paperwork after sessions'],
+        'not' => 'Practiq is not a spa booking marketplace, full accounting system, automatic booking engine, or replacement for professional judgment.',
+        'seoPhrase' => 'massage therapy practice software',
+    ],
+    'chiropractic-practice-software' => [
+        'title' => 'Chiropractic Practice Software for Visit Notes, Intake Forms, Follow-Up, and Checkout Tracking | Practiq',
+        'description' => 'Practiq helps chiropractic practices manage visit notes, intake forms, appointment requests, patient follow-up, checkout tracking, and simple reports.',
+        'eyebrow' => 'Chiropractic practice software',
+        'h1' => 'Practice software for busy chiropractors.',
+        'subheadline' => 'Practiq helps chiropractic practices manage visit notes, intake forms, appointment requests, follow-up, checkout tracking, and simple reports — without adding more admin work to your day.',
+        'dailyHeading' => 'Support patient flow without burying the clinic in admin',
+        'dailyCopy' => [
+            'A chiropractic practice depends on steady patient flow, clear documentation, and consistent follow-up. But small clinics often have limited time and limited staff to keep everything moving.',
+            'Practiq helps organize the daily work around care: notes, forms, appointment requests, follow-up, checkout tracking, and basic reports.',
+            'It is built for small practices that want a practical workflow, not a giant system.',
+        ],
+        'helps' => [
+            ['Visit notes', 'Keep clear visit notes for each patient encounter. Practiq supports straightforward documentation without forcing you through unnecessary complexity.'],
+            ['Intake and consent forms', 'Collect patient information and consent forms before the first visit.'],
+            ['Appointment requests', 'Patients can request appointments online, while your clinic confirms the actual time.'],
+            ['Follow-up', 'See which patients may need a reminder, continued care follow-up, or invitation back.'],
+            ['Checkout tracking', 'Record charges and payments in a simple, practical way.'],
+            ['Practice statistics and exports', 'Review useful totals and export information for bookkeeping or practice review.'],
+        ],
+        'starterHeading' => 'A simpler start',
+        'starterCopy' => [
+            'Practiq creates editable starter settings for new trial practices, including a practitioner, weekday working hours, an Initial Visit, a Follow-up Visit, and starter fees.',
+            'You can adjust everything later. The goal is to help you evaluate the software quickly.',
+        ],
+        'fit' => ['Solo chiropractors', 'Small chiropractic offices', 'Cash-based or mixed small practices', 'Clinics that want simpler patient follow-up', 'Practices that need basic checkout and reporting visibility'],
+        'not' => 'Practiq is not a full insurance billing clearinghouse, hospital EHR, automatic booking engine, or full accounting system.',
+        'seoPhrase' => 'chiropractic practice software',
+    ],
+    'physiotherapy-practice-software' => [
+        'title' => 'Physiotherapy Practice Software for Progress Notes, Intake Forms, Follow-Up, and Checkout Tracking | Practiq',
+        'description' => 'Practiq helps physiotherapy practices manage progress notes, intake forms, appointment requests, patient follow-up, checkout tracking, and simple reports.',
+        'eyebrow' => 'Physiotherapy practice software',
+        'h1' => 'Practice software for busy physiotherapists.',
+        'subheadline' => 'Practiq helps physiotherapy practices manage progress notes, intake forms, appointment requests, follow-up, checkout tracking, and simple reports — without adding more admin work to your day.',
+        'dailyHeading' => 'Keep patient progress and daily clinic work organized',
+        'dailyCopy' => [
+            'Physiotherapy care often involves repeated visits, progress tracking, follow-up, and clear communication. In a small practice, the administrative work can easily crowd the time meant for patient care.',
+            'Practiq helps small physiotherapy practices keep the daily workflow organized: notes, forms, appointment requests, follow-up, checkout tracking, and simple reporting.',
+        ],
+        'helps' => [
+            ['Progress and visit notes', 'Keep clear notes for each session, including patient concerns, care provided, response, and follow-up plans.'],
+            ['Intake and consent forms', 'Collect patient information before the first visit so the appointment can start with better context.'],
+            ['Appointment requests', 'Let patients request appointments while staff or the practitioner confirms the schedule.'],
+            ['Follow-up', 'See which patients may need follow-up, reminders, or continued care outreach.'],
+            ['Checkout tracking', 'Record charges and payments without turning checkout into a complicated process.'],
+            ['Simple reports and exports', 'View useful practice totals and export records for bookkeeping or review.'],
+        ],
+        'starterHeading' => 'Start with editable defaults',
+        'starterCopy' => [
+            'When a new trial begins, Practiq creates starter settings so the practice is not empty: practitioner, weekday hours, Initial Visit, Follow-up Visit, and starter fees.',
+            'Everything can be edited later.',
+        ],
+        'fit' => ['Solo physiotherapists', 'Small rehab clinics', 'Private physiotherapy practices', 'Practices with repeated patient visits', 'Clinics that need clearer follow-up and visit tracking'],
+        'not' => 'Practiq is not a hospital EHR, insurance billing clearinghouse, automatic booking engine, or full accounting system.',
+        'seoPhrase' => 'physiotherapy practice software',
+    ],
+    'wellness-practice-software' => [
+        'title' => 'Wellness Practice Software for Client Notes, Forms, Follow-Up, and Checkout Tracking | Practiq',
+        'description' => 'Practiq helps wellness practices manage client notes, intake forms, appointment requests, follow-up, checkout tracking, and simple reports.',
+        'eyebrow' => 'Wellness practice software',
+        'h1' => 'Practice software for busy wellness practitioners.',
+        'subheadline' => 'Practiq helps wellness practices manage notes, intake forms, appointment requests, follow-up, checkout tracking, and simple reports — without making your day more complicated.',
+        'dailyHeading' => 'Practical support for the work around client care',
+        'dailyCopy' => [
+            'Wellness practices often run on trust, consistency, and personal attention. But the daily admin can still pile up: notes, forms, appointment requests, follow-up messages, payment tracking, and basic reporting.',
+            'Practiq helps wellness practitioners keep that work organized in a simple, practical workflow.',
+        ],
+        'helps' => [
+            ['Client notes', 'Keep clear notes about sessions, client goals, care provided, response, and follow-up needs.'],
+            ['Intake and consent forms', 'Collect important information before the first visit, so you are better prepared.'],
+            ['Appointment requests', 'Let clients request appointments without giving up control of your schedule.'],
+            ['Follow-up', 'See who may need a reminder, check-in, or invitation to return.'],
+            ['Checkout tracking', 'Record charges and payments in a straightforward way.'],
+            ['Simple reports and exports', 'See useful totals and export information for bookkeeping or practice review.'],
+        ],
+        'starterHeading' => 'Start without an empty system',
+        'starterCopy' => [
+            'Practiq creates starter settings for a new trial, including a practitioner, weekday working hours, Initial Visit and Follow-up Visit appointment types, and starter fees.',
+            'You can change all of it later. It is just there to help you get started.',
+        ],
+        'fit' => ['Solo wellness practitioners', 'Small wellness clinics', 'Integrative health practices', 'Bodywork and holistic care providers', 'Practices that want a simpler daily workflow'],
+        'not' => 'Practiq is not a hospital EHR, automatic booking marketplace, full accounting system, or replacement for professional judgment.',
+        'seoPhrase' => 'wellness practice software',
+    ],
+];
+
+foreach ($seoLandingPages as $slug => $page) {
+    Route::get("/{$slug}", fn () => view('seo.practitioner-page', ['page' => $page]))->name("seo.{$slug}");
+}
+
 Route::get('/sitemap.xml', function () {
     $baseUrl = 'https://practiqapp.com';
     $lastmod = now()->toDateString();
@@ -44,6 +193,11 @@ Route::get('/sitemap.xml', function () {
         '/legal/privacy' => ['changefreq' => 'monthly', 'priority' => '0.4'],
         '/legal/hipaa-baa' => ['changefreq' => 'monthly', 'priority' => '0.4'],
         '/legal/ai-disclaimer' => ['changefreq' => 'monthly', 'priority' => '0.4'],
+        '/practice-software-for-acupuncturists' => ['changefreq' => 'monthly', 'priority' => '0.7'],
+        '/massage-therapy-practice-software' => ['changefreq' => 'monthly', 'priority' => '0.7'],
+        '/chiropractic-practice-software' => ['changefreq' => 'monthly', 'priority' => '0.7'],
+        '/physiotherapy-practice-software' => ['changefreq' => 'monthly', 'priority' => '0.7'],
+        '/wellness-practice-software' => ['changefreq' => 'monthly', 'priority' => '0.7'],
     ];
 
     $xml = '<?xml version="1.0" encoding="UTF-8"?>' . "
