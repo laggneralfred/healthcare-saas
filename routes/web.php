@@ -32,6 +32,28 @@ Route::get('/', function (Request $request) use ($isAppHost) {
     return view('welcome');
 });
 
+Route::get('/sitemap.xml', function () {
+    $baseUrl = 'https://practiqapp.com';
+    $lastmod = now()->toDateString();
+
+    $urls = [
+        '/',
+        '/register',
+        '/subscribe',
+        '/legal/terms',
+        '/legal/privacy',
+        '/legal/hipaa-baa',
+        '/legal/ai-disclaimer',
+    ];
+
+    $xml = view('sitemap', [
+        'urls' => collect($urls)->map(fn (string $path) => rtrim($baseUrl, '/') . $path)->all(),
+        'lastmod' => $lastmod,
+    ])->render();
+
+    return response($xml, 200, ['Content-Type' => 'application/xml; charset=UTF-8']);
+})->name('sitemap');
+
 Route::get('/login', function (Request $request) use ($isAppHost) {
     abort_unless($isAppHost($request), 404);
 

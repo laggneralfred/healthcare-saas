@@ -72,4 +72,27 @@ class PublicLandingPageTest extends TestCase
             ->assertSee('Saving a draft does not contact the patient')
             ->assertSee('AI suggestions are drafts only');
     }
+
+    public function test_public_sitemap_contains_only_indexable_core_pages(): void
+    {
+        $response = $this->get('/sitemap.xml');
+
+        $response
+            ->assertSuccessful()
+            ->assertHeader('Content-Type', 'application/xml; charset=UTF-8')
+            ->assertSee('https://practiqapp.com/', false)
+            ->assertSee('https://practiqapp.com/register', false)
+            ->assertSee('https://practiqapp.com/legal/privacy', false)
+            ->assertDontSee('/admin', false)
+            ->assertDontSee('/onboarding', false);
+    }
+
+    public function test_robots_txt_includes_sitemap_directive(): void
+    {
+        $robots = file_get_contents(public_path('robots.txt'));
+
+        $this->assertIsString($robots);
+        $this->assertStringContainsString('Sitemap: https://practiqapp.com/sitemap.xml', $robots);
+        $this->assertStringContainsString('Allow: /', $robots);
+    }
 }
