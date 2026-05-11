@@ -14,19 +14,18 @@ class PublicLandingPageTest extends TestCase
     {
         $this->get('http://localhost/')
             ->assertSuccessful()
-            ->assertSee('Documentation-first software for practices that put care before billing')
+            ->assertSee('Keep up with notes, forms, follow-up, and clinic flow without a complicated EHR')
             ->assertSee('How Practiq Helps')
-            ->assertSee('Clinical notes are too slow')
-            ->assertSee('Care-First Workflow')
-            ->assertSee('See Practiq in two minutes')
-            ->assertSee('Watch a quick overview of how Practiq supports setup, appointment requests, documentation, follow-up, and financial exports.')
+            ->assertSee('Built for the reality of a busy small practice')
+            ->assertSee('Keep notes, forms, follow-up, and checkout in one practical workflow')
+            ->assertSee('See the daily workflow in two minutes')
+            ->assertSee('Watch a quick overview of how Practiq supports setup, appointment requests, documentation, follow-up, and financial exports for small practices.')
             ->assertSee('Practice statistics and financial exports')
-            ->assertSee('Collected revenue summaries and CSV exports for bookkeeping')
-            ->assertSee('Setup checklist so your clinic knows what to configure first')
-            ->assertSee('Legal and AI acknowledgements are tracked for practice readiness')
-            ->assertSee('AI assistance stays optional, reviewed, and practitioner-controlled')
-            ->assertSee('Founding Practitioner Review Program')
-            ->assertSee('Stripe supports Practiq subscription billing readiness and plan management')
+            ->assertSee('What Practiq Is Not')
+            ->assertSee('Focused on daily workflow, not everything in healthcare.')
+            ->assertSee('Start with editable defaults, not an empty system.')
+            ->assertSee('Stripe is used for Practiq subscription billing.')
+            ->assertSee('Growing Practice')
             ->assertSee('/videos/practiq-product-demo.mp4', false)
             ->assertSee('Watch Overview')
             ->assertSee('/register', false)
@@ -39,7 +38,7 @@ class PublicLandingPageTest extends TestCase
     {
         $this->get('https://practiqapp.com/')
             ->assertSuccessful()
-            ->assertSee('Documentation-first software for practices that put care before billing')
+            ->assertSee('Keep up with notes, forms, follow-up, and clinic flow without a complicated EHR')
             ->assertSee('How Practiq Helps');
     }
 
