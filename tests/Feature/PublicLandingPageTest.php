@@ -14,7 +14,8 @@ class PublicLandingPageTest extends TestCase
     {
         $this->get('http://localhost/')
             ->assertSuccessful()
-            ->assertSee('Keep up with notes, forms, follow-up, and clinic flow without a complicated EHR')
+            ->assertSee('Simple practice software for busy healthcare providers.')
+            ->assertSee('Practiq helps small practices manage visit notes, intake forms, appointment requests, follow-up, checkout tracking, and simple reports — without adding more admin work to your day.')
             ->assertSee('How Practiq Helps')
             ->assertSee('Built for the reality of a busy small practice')
             ->assertSee('Keep notes, forms, follow-up, and checkout in one practical workflow')
@@ -38,7 +39,7 @@ class PublicLandingPageTest extends TestCase
     {
         $this->get('https://practiqapp.com/')
             ->assertSuccessful()
-            ->assertSee('Keep up with notes, forms, follow-up, and clinic flow without a complicated EHR')
+            ->assertSee('Simple practice software for busy healthcare providers.')
             ->assertSee('How Practiq Helps');
     }
 

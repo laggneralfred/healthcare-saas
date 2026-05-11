@@ -54,10 +54,10 @@
                         Small practice healthcare software for independent providers and small clinics
                     </p>
                     <h1 class="text-4xl font-extrabold leading-[1.05] tracking-tight text-slate-950 sm:text-6xl">
-                        Keep up with notes, forms, follow-up, and clinic flow without a complicated EHR.
+                        Simple practice software for busy healthcare providers.
                     </h1>
                     <p class="mt-6 max-w-3xl text-lg leading-8 text-slate-600 sm:text-xl">
-                        Practiq helps small healthcare practices handle the everyday work around patient care: visit notes, intake and consent forms, appointment requests with staff confirmation, follow-up, checkout and payment tracking, and simple practice statistics with financial exports.
+                        Practiq helps small practices manage visit notes, intake forms, appointment requests, follow-up, checkout tracking, and simple reports — without adding more admin work to your day.
                     </p>
                     <p class="mt-4 max-w-3xl text-base leading-7 text-slate-500">
                         Built for solo providers and small clinics that need practical tools, not another oversized system.
