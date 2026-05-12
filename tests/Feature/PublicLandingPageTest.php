@@ -43,7 +43,9 @@ class PublicLandingPageTest extends TestCase
             ->assertSee('Watch Overview')
             ->assertSee('/register', false)
             ->assertSee('https://demo.practiqapp.com/demo-login', false)
+            ->assertSee('/blog', false)
             ->assertSee('/blog/small-clinic-visit-notes', false)
+            ->assertSee('/blog/acupuncture-visit-note-examples', false)
             ->assertSee('/user-instructions', false)
             ->assertSee('/admin/login', false);
     }
@@ -101,7 +103,9 @@ class PublicLandingPageTest extends TestCase
             ->assertSee('https://practiqapp.com/chiropractic-practice-software', false)
             ->assertSee('https://practiqapp.com/physiotherapy-practice-software', false)
             ->assertSee('https://practiqapp.com/wellness-practice-software', false)
+            ->assertSee('https://practiqapp.com/blog', false)
             ->assertSee('https://practiqapp.com/blog/small-clinic-visit-notes', false)
+            ->assertSee('https://practiqapp.com/blog/acupuncture-visit-note-examples', false)
             ->assertDontSee('/admin', false)
             ->assertDontSee('/onboarding', false);
     }
@@ -159,8 +163,31 @@ class PublicLandingPageTest extends TestCase
             ->assertSuccessful()
             ->assertDontSee('noindex', false)
             ->assertSee('How Small Clinics Can Keep Up With Visit Notes Without Staying Late')
+            ->assertSee('/blog', false)
             ->assertSee('/practice-software-for-acupuncturists', false)
             ->assertSee('/massage-therapy-practice-software', false)
-            ->assertSee('/chiropractic-practice-software', false);
+            ->assertSee('/chiropractic-practice-software', false)
+            ->assertSee('/physiotherapy-practice-software', false)
+            ->assertSee('/wellness-practice-software', false);
+    }
+
+    public function test_acupuncture_blog_article_is_public_and_indexable(): void
+    {
+        $this->get('/blog/acupuncture-visit-note-examples')
+            ->assertSuccessful()
+            ->assertDontSee('noindex', false)
+            ->assertSee('Acupuncture Visit Note Examples for Small Practices')
+            ->assertSee('/practice-software-for-acupuncturists', false)
+            ->assertSee('/blog/small-clinic-visit-notes', false)
+            ->assertSee('/register', false);
+    }
+
+    public function test_blog_index_is_public_and_lists_articles(): void
+    {
+        $this->get('/blog')
+            ->assertSuccessful()
+            ->assertDontSee('noindex', false)
+            ->assertSee('/blog/small-clinic-visit-notes', false)
+            ->assertSee('/blog/acupuncture-visit-note-examples', false);
     }
 }

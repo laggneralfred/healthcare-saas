@@ -57,6 +57,7 @@
             ['How Practiq Helps', '#problems'],
             ['Workflow', '#workflow'],
             ['Pricing', '#pricing'],
+            ['Blog', '/blog'],
             ['FAQ', '#faq'],
             ['User Instructions', '/user-instructions'],
         ];
@@ -372,6 +373,9 @@
         <p>&copy; 2026 Practiq. Built for independent practitioners and small clinics.</p>
         <p class="mt-2">
             <a href="/blog/small-clinic-visit-notes" class="font-semibold text-teal-800 transition hover:text-teal-900">How Small Clinics Can Keep Up With Visit Notes Without Staying Late</a>
+        </p>
+        <p class="mt-2">
+            <a href="/blog/acupuncture-visit-note-examples" class="font-semibold text-teal-800 transition hover:text-teal-900">Acupuncture Visit Note Examples for Small Practices</a>
         </p>
     </footer>
 </body>
