@@ -6,6 +6,41 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Practiq | Small Practice Healthcare Software for Notes, Forms, Follow-Up, and Checkout Tracking</title>
     <meta name="description" content="Practiq helps small healthcare practices manage visit notes, intake forms, appointment requests, follow-up, checkout tracking, and simple reports without a complicated EHR.">
+    @php
+        $structuredData = [
+            '@context' => 'https://schema.org',
+            '@graph' => [
+                [
+                    '@type' => 'Organization',
+                    '@id' => 'https://practiqapp.com/#organization',
+                    'name' => 'Practiq',
+                    'url' => 'https://practiqapp.com/',
+                ],
+                [
+                    '@type' => 'WebSite',
+                    '@id' => 'https://practiqapp.com/#website',
+                    'name' => 'Practiq',
+                    'url' => 'https://practiqapp.com/',
+                    'publisher' => ['@id' => 'https://practiqapp.com/#organization'],
+                ],
+                [
+                    '@type' => 'SoftwareApplication',
+                    '@id' => 'https://practiqapp.com/#softwareapplication',
+                    'name' => 'Practiq',
+                    'url' => 'https://practiqapp.com/',
+                    'description' => 'Small practice healthcare software for visit notes, intake forms, appointment requests, follow-up, checkout tracking, and simple reports.',
+                    'applicationCategory' => 'BusinessApplication',
+                    'operatingSystem' => 'Web',
+                    'audience' => [
+                        '@type' => 'Audience',
+                        'audienceType' => 'small healthcare practices, solo providers, small clinics',
+                    ],
+                    'publisher' => ['@id' => 'https://practiqapp.com/#organization'],
+                ],
+            ],
+        ];
+    @endphp
+    <script type="application/ld+json">{!! json_encode($structuredData, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}</script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600,700,800" rel="stylesheet" />
