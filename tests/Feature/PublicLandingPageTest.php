@@ -43,6 +43,7 @@ class PublicLandingPageTest extends TestCase
             ->assertSee('Watch Overview')
             ->assertSee('/register', false)
             ->assertSee('https://demo.practiqapp.com/demo-login', false)
+            ->assertSee('/blog/small-clinic-visit-notes', false)
             ->assertSee('/user-instructions', false)
             ->assertSee('/admin/login', false);
     }
@@ -100,6 +101,7 @@ class PublicLandingPageTest extends TestCase
             ->assertSee('https://practiqapp.com/chiropractic-practice-software', false)
             ->assertSee('https://practiqapp.com/physiotherapy-practice-software', false)
             ->assertSee('https://practiqapp.com/wellness-practice-software', false)
+            ->assertSee('https://practiqapp.com/blog/small-clinic-visit-notes', false)
             ->assertDontSee('/admin', false)
             ->assertDontSee('/onboarding', false);
     }
@@ -149,5 +151,16 @@ class PublicLandingPageTest extends TestCase
                 ->assertSee('/register', false)
                 ->assertSee('/#overview-video', false);
         }
+    }
+
+    public function test_blog_article_is_public_and_indexable(): void
+    {
+        $this->get('/blog/small-clinic-visit-notes')
+            ->assertSuccessful()
+            ->assertDontSee('noindex', false)
+            ->assertSee('How Small Clinics Can Keep Up With Visit Notes Without Staying Late')
+            ->assertSee('/practice-software-for-acupuncturists', false)
+            ->assertSee('/massage-therapy-practice-software', false)
+            ->assertSee('/chiropractic-practice-software', false);
     }
 }

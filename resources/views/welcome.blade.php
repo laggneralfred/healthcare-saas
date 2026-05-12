@@ -370,6 +370,9 @@
 
     <footer class="border-t border-slate-200 bg-white px-4 py-10 text-center text-sm text-slate-500">
         <p>&copy; 2026 Practiq. Built for independent practitioners and small clinics.</p>
+        <p class="mt-2">
+            <a href="/blog/small-clinic-visit-notes" class="font-semibold text-teal-800 transition hover:text-teal-900">How Small Clinics Can Keep Up With Visit Notes Without Staying Late</a>
+        </p>
     </footer>
 </body>
 </html>

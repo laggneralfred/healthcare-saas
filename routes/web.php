@@ -181,6 +181,9 @@ foreach ($seoLandingPages as $slug => $page) {
     Route::get("/{$slug}", fn () => view('seo.practitioner-page', ['page' => $page]))->name("seo.{$slug}");
 }
 
+Route::view('/blog/small-clinic-visit-notes', 'blog.small-clinic-visit-notes')
+    ->name('blog.small-clinic-visit-notes');
+
 Route::get('/sitemap.xml', function () {
     $baseUrl = 'https://practiqapp.com';
     $lastmod = now()->toDateString();
@@ -198,6 +201,7 @@ Route::get('/sitemap.xml', function () {
         '/chiropractic-practice-software' => ['changefreq' => 'monthly', 'priority' => '0.7'],
         '/physiotherapy-practice-software' => ['changefreq' => 'monthly', 'priority' => '0.7'],
         '/wellness-practice-software' => ['changefreq' => 'monthly', 'priority' => '0.7'],
+        '/blog/small-clinic-visit-notes' => ['changefreq' => 'monthly', 'priority' => '0.6'],
     ];
 
     $xml = '<?xml version="1.0" encoding="UTF-8"?>' . "
