@@ -17,6 +17,7 @@ class PublicLandingPageTest extends TestCase
             ->assertSee('Simple practice software for busy healthcare providers.')
             ->assertSee('Practiq helps small practices manage visit notes, intake forms, appointment requests, follow-up, checkout tracking, and simple reports — without adding more admin work to your day.')
             ->assertSee('application/ld+json', false)
+            ->assertSee('Organization', false)
             ->assertSee('SoftwareApplication', false)
             ->assertSee('Practiq', false)
             ->assertSee('https://practiqapp.com/', false)
