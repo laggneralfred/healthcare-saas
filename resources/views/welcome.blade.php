@@ -187,6 +187,29 @@
 
         <section class="border-y border-slate-200 bg-white">
             <div class="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
+                <div class="max-w-3xl">
+                    <p class="text-sm font-bold uppercase tracking-wide text-teal-800">Built for small healthcare practices</p>
+                    <h2 class="mt-3 text-3xl font-bold tracking-tight text-slate-950 sm:text-4xl">Practiq is designed for busy providers who need to keep notes, forms, follow-up, checkout tracking, and patient flow organized without adding more admin work.</h2>
+                </div>
+                <div class="mt-10 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+                    @foreach([
+                        ['/practice-software-for-acupuncturists', 'Acupuncture practices', 'Treatment notes, intake forms, appointment requests, follow-up, and checkout tracking for small acupuncture clinics.'],
+                        ['/massage-therapy-practice-software', 'Massage therapy practices', 'Client notes, intake and consent forms, appointment requests, follow-up, and simple practice reports.'],
+                        ['/chiropractic-practice-software', 'Chiropractic practices', 'Visit notes, intake forms, patient follow-up, checkout tracking, and basic practice visibility.'],
+                        ['/physiotherapy-practice-software', 'Physiotherapy practices', 'Progress notes, intake forms, appointment requests, follow-up, checkout tracking, and simple reports.'],
+                        ['/wellness-practice-software', 'Wellness practices', 'Client notes, forms, appointment requests, follow-up, checkout tracking, and simple admin support.'],
+                    ] as [$href, $title, $body])
+                        <a href="{{ $href }}" class="group rounded-2xl border border-slate-200 bg-[#fbfaf6] p-6 shadow-sm transition hover:border-teal-700/25 hover:shadow-md">
+                            <h3 class="text-lg font-bold text-slate-950 transition group-hover:text-teal-800">{{ $title }}</h3>
+                            <p class="mt-3 leading-7 text-slate-600">{{ $body }}</p>
+                        </a>
+                    @endforeach
+                </div>
+            </div>
+        </section>
+
+        <section class="border-y border-slate-200 bg-white">
+            <div class="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
                 <div class="grid gap-6 lg:grid-cols-3">
                     @foreach([
                         ['A calmer first day', 'When you start a trial, Practiq creates editable starter defaults so you are not staring at an empty system. You can change everything any time.'],
