@@ -53,7 +53,8 @@ class AdminPanelProvider extends PanelProvider
     {
         FilamentView::registerRenderHook(
             PanelsRenderHook::HEAD_START,
-            fn (): string => view('partials.google-tag')->render(),
+            fn (): string => view('partials.google-tag')->render()
+                . view('partials.robots-noindex')->render(),
         );
 
         FilamentView::registerRenderHook(

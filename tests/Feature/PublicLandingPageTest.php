@@ -14,6 +14,7 @@ class PublicLandingPageTest extends TestCase
     {
         $this->get('http://localhost/')
             ->assertSuccessful()
+            ->assertDontSee('noindex', false)
             ->assertSee('Simple practice software for busy healthcare providers.')
             ->assertSee('Practiq helps small practices manage visit notes, intake forms, appointment requests, follow-up, checkout tracking, and simple reports — without adding more admin work to your day.')
             ->assertSee('application/ld+json', false)
@@ -140,6 +141,7 @@ class PublicLandingPageTest extends TestCase
         foreach ($pages as $url => [$h1, $seoPhrase]) {
             $this->get($url)
                 ->assertSuccessful()
+                ->assertDontSee('noindex', false)
                 ->assertSee($h1)
                 ->assertSee($seoPhrase)
                 ->assertSee('What Practiq Helps With')
