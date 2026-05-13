@@ -37,6 +37,13 @@
         {{-- Article list --}}
         <div class="space-y-4">
 
+            <a href="/blog/what-to-include-in-a-visit-note" class="group flex flex-col rounded-xl border border-slate-200 bg-white px-6 py-5 transition hover:border-teal-700/30 hover:shadow-sm">
+                <p class="text-[11px] font-semibold uppercase tracking-[0.07em] text-teal-700">Visit Notes · Documentation Basics</p>
+                <h2 class="mt-2 text-[18px] font-medium leading-snug text-slate-950 group-hover:text-teal-800">What to Include in a Visit Note</h2>
+                <p class="mt-2 text-[13px] leading-relaxed text-slate-500">A practical guide to the details that make notes useful without making them longer than they need to be.</p>
+                <span class="mt-3 text-[12px] font-medium text-teal-700 group-hover:text-teal-800">Read article →</span>
+            </a>
+
             <a href="/blog/acupuncture-visit-note-examples" class="group flex flex-col rounded-xl border border-slate-200 bg-white px-6 py-5 transition hover:border-teal-700/30 hover:shadow-sm">
                 <p class="text-[11px] font-semibold uppercase tracking-[0.07em] text-teal-700">Documentation Guide · Acupuncture</p>
                 <h2 class="mt-2 text-[18px] font-medium leading-snug text-slate-950 group-hover:text-teal-800">Acupuncture Visit Note Examples for Small Practices</h2>

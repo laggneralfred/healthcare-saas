@@ -185,6 +185,8 @@ Route::view('/blog/acupuncture-visit-note-examples', 'blog.acupuncture-visit-not
     ->name('blog.acupuncture-visit-note-examples');
 Route::view('/blog/soap-notes-vs-simple-visit-notes', 'blog.soap-notes-vs-simple-visit-notes')
     ->name('blog.soap-notes-vs-simple-visit-notes');
+Route::view('/blog/what-to-include-in-a-visit-note', 'blog.what-to-include-in-a-visit-note')
+    ->name('blog.what-to-include-in-a-visit-note');
 Route::view('/blog', 'blog.index')->name('blog.index');
 
 Route::get('/sitemap.xml', function () {
@@ -208,6 +210,7 @@ Route::get('/sitemap.xml', function () {
         '/blog/small-clinic-visit-notes' => ['changefreq' => 'monthly', 'priority' => '0.6'],
         '/blog/acupuncture-visit-note-examples' => ['changefreq' => 'monthly', 'priority' => '0.6'],
         '/blog/soap-notes-vs-simple-visit-notes' => ['changefreq' => 'monthly', 'priority' => '0.6'],
+        '/blog/what-to-include-in-a-visit-note' => ['changefreq' => 'monthly', 'priority' => '0.6'],
     ];
 
     $xml = '<?xml version="1.0" encoding="UTF-8"?>' . "

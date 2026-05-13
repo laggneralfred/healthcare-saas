@@ -107,6 +107,7 @@ class PublicLandingPageTest extends TestCase
             ->assertSee('https://practiqapp.com/blog/small-clinic-visit-notes', false)
             ->assertSee('https://practiqapp.com/blog/acupuncture-visit-note-examples', false)
             ->assertSee('https://practiqapp.com/blog/soap-notes-vs-simple-visit-notes', false)
+            ->assertSee('https://practiqapp.com/blog/what-to-include-in-a-visit-note', false)
             ->assertDontSee('/admin', false)
             ->assertDontSee('/onboarding', false);
     }
@@ -188,9 +189,21 @@ class PublicLandingPageTest extends TestCase
         $this->get('/blog')
             ->assertSuccessful()
             ->assertDontSee('noindex', false)
+            ->assertSee('/blog/what-to-include-in-a-visit-note', false)
             ->assertSee('/blog/small-clinic-visit-notes', false)
             ->assertSee('/blog/acupuncture-visit-note-examples', false)
             ->assertSee('/blog/soap-notes-vs-simple-visit-notes', false);
+    }
+
+    public function test_visit_note_basics_blog_article_is_public_and_indexable(): void
+    {
+        $this->get('/blog/what-to-include-in-a-visit-note')
+            ->assertSuccessful()
+            ->assertDontSee('noindex', false)
+            ->assertSee('What to Include in a Visit Note')
+            ->assertSee('/blog/small-clinic-visit-notes', false)
+            ->assertSee('/blog/soap-notes-vs-simple-visit-notes', false)
+            ->assertSee('/register', false);
     }
 
     public function test_soap_vs_simple_blog_article_is_public_and_indexable(): void
