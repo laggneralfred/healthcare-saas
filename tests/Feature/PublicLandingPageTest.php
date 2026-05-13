@@ -106,6 +106,7 @@ class PublicLandingPageTest extends TestCase
             ->assertSee('https://practiqapp.com/blog', false)
             ->assertSee('https://practiqapp.com/blog/small-clinic-visit-notes', false)
             ->assertSee('https://practiqapp.com/blog/acupuncture-visit-note-examples', false)
+            ->assertSee('https://practiqapp.com/blog/soap-notes-vs-simple-visit-notes', false)
             ->assertDontSee('/admin', false)
             ->assertDontSee('/onboarding', false);
     }
@@ -162,7 +163,7 @@ class PublicLandingPageTest extends TestCase
         $this->get('/blog/small-clinic-visit-notes')
             ->assertSuccessful()
             ->assertDontSee('noindex', false)
-            ->assertSee('How Small Clinics Can Keep Up With Visit Notes Without Staying Late')
+            ->assertSee('Keeping Up With Visit Notes')
             ->assertSee('/blog', false)
             ->assertSee('/practice-software-for-acupuncturists', false)
             ->assertSee('/massage-therapy-practice-software', false)
@@ -176,7 +177,7 @@ class PublicLandingPageTest extends TestCase
         $this->get('/blog/acupuncture-visit-note-examples')
             ->assertSuccessful()
             ->assertDontSee('noindex', false)
-            ->assertSee('Acupuncture Visit Note Examples for Small Practices')
+            ->assertSee('Acupuncture Notes That Stay Useful')
             ->assertSee('/practice-software-for-acupuncturists', false)
             ->assertSee('/blog/small-clinic-visit-notes', false)
             ->assertSee('/register', false);
@@ -188,6 +189,19 @@ class PublicLandingPageTest extends TestCase
             ->assertSuccessful()
             ->assertDontSee('noindex', false)
             ->assertSee('/blog/small-clinic-visit-notes', false)
-            ->assertSee('/blog/acupuncture-visit-note-examples', false);
+            ->assertSee('/blog/acupuncture-visit-note-examples', false)
+            ->assertSee('/blog/soap-notes-vs-simple-visit-notes', false);
+    }
+
+    public function test_soap_vs_simple_blog_article_is_public_and_indexable(): void
+    {
+        $this->get('/blog/soap-notes-vs-simple-visit-notes')
+            ->assertSuccessful()
+            ->assertDontSee('noindex', false)
+            ->assertSee('SOAP Notes or Simple Notes?')
+            ->assertSee('/blog/small-clinic-visit-notes', false)
+            ->assertSee('/blog/acupuncture-visit-note-examples', false)
+            ->assertSee('/practice-software-for-acupuncturists', false)
+            ->assertSee('/register', false);
     }
 }

@@ -1,91 +1,121 @@
 @extends('layouts.blog-article', [
-    'title' => 'How Small Clinics Can Keep Up With Visit Notes Without Staying Late | Practiq',
-    'description' => 'A practical, human workflow for small clinics to keep up with visit notes: reason for visit, natural notes, care provided, patient response, and follow-up plan.',
+    'title'       => 'How Small Clinics Can Keep Up With Visit Notes | Practiq',
+    'description' => 'A realistic five-step note rhythm for small clinics with full schedules. Practical documentation guidance for solo providers who need to finish their notes without staying late.',
 ])
 
+@push('head')
+<link rel="canonical" href="https://practiqapp.com/blog/small-clinic-visit-notes">
+<style>
+    .art-serif { font-family: 'Lora', Georgia, serif; }
+    .art-sans  { font-family: 'DM Sans', sans-serif; }
+</style>
+@endpush
+
 @section('content')
-    <article class="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm sm:p-10">
-        <p class="text-sm font-bold uppercase tracking-wide text-teal-800">Daily Documentation</p>
-        <h1 class="mt-3 text-3xl font-extrabold tracking-tight text-slate-950 sm:text-5xl">How Small Clinics Can Keep Up With Visit Notes Without Staying Late</h1>
-        <p class="mt-6 text-lg leading-8 text-slate-600">
-            Small clinics do not usually fall behind on notes because they are careless. They fall behind because the day is full. Appointments run back-to-back, staff is limited, and the same person is often clinician, front desk, and follow-up coordinator all at once.
-        </p>
-        <p class="mt-4 text-lg leading-8 text-slate-600">
-            Another common problem is waiting until the end of the day to write a perfect note from memory. By then, details blur and the task feels heavy. Notes can also end up scattered across paper, text messages, and multiple systems.
-        </p>
-        <p class="mt-4 text-lg leading-8 text-slate-600">
-            A better path is not longer notes. It is a consistent note structure you can finish while the visit is still fresh.
-        </p>
+<article class="art-sans mx-auto max-w-[720px]">
 
-        <section class="mt-10 rounded-xl border border-slate-200 bg-[#f8faf7] p-6">
-            <h2 class="text-2xl font-bold text-slate-950">A realistic five-step workflow</h2>
-            <ol class="mt-4 space-y-2 text-slate-700">
-                <li>1. Capture the reason for visit.</li>
-                <li>2. Write the visit in natural language first.</li>
-                <li>3. Add what care was provided.</li>
-                <li>4. Record how the patient or client responded.</li>
-                <li>5. Write the plan or follow-up while it is still fresh.</li>
-            </ol>
-        </section>
+    {{-- Category label --}}
+    <p class="text-[11px] font-semibold uppercase tracking-[0.07em] text-teal-700">Visit Notes · Daily Documentation</p>
 
-        <div class="mt-10 space-y-9">
-            <section>
-                <h2 class="text-2xl font-bold text-slate-950">1. Capture the reason for visit</h2>
-                <p class="mt-3 leading-7 text-slate-600">
-                    Open with the patient goal in plain language. Why are they here today? This anchors the note and keeps everything else focused.
-                </p>
-            </section>
+    {{-- H1 --}}
+    <h1 class="art-serif mt-3 text-[30px] font-medium leading-[1.3] text-slate-950 sm:text-[32px]">
+        How Small Clinics Can Keep Up With Visit Notes Without Staying Late
+    </h1>
 
-            <section>
-                <h2 class="text-2xl font-bold text-slate-950">2. Write the visit in natural language first</h2>
-                <p class="mt-3 leading-7 text-slate-600">
-                    Before structured fields and checkboxes, write the clinical story in your own words. This is usually faster and clearer. Structure can be added after the core note exists.
-                </p>
-            </section>
+    {{-- Deck --}}
+    <p class="mt-4 text-base leading-[1.75] text-slate-500">
+        A realistic note-writing rhythm for practices where one person is doing most of the work.
+    </p>
 
-            <section>
-                <h2 class="text-2xl font-bold text-slate-950">3. Add what care was provided</h2>
-                <p class="mt-3 leading-7 text-slate-600">
-                    Record the care delivered during the session so the next visit has proper context and continuity.
-                </p>
-            </section>
+    {{-- Intro --}}
+    <div class="mt-6 space-y-4 text-[15px] leading-[1.75] text-slate-700">
+        <p>Small clinics don't fall behind on notes because they are careless. They fall behind because the day is full. Appointments run back-to-back. Staff is limited. And the same person is often clinician, front desk, and follow-up coordinator all at once.</p>
+        <p>The usual failure mode: waiting until the end of the day to write a perfect note from memory. By then, the details have blurred and the task feels heavy. The answer isn't longer notes. It's a rhythm you can actually repeat.</p>
+    </div>
 
-            <section>
-                <h2 class="text-2xl font-bold text-slate-950">4. Record response in the room</h2>
-                <p class="mt-3 leading-7 text-slate-600">
-                    Include immediate response and any meaningful change observed or reported. This helps guide follow-up and future sessions.
-                </p>
-            </section>
+    <hr class="art-hr">
 
-            <section>
-                <h2 class="text-2xl font-bold text-slate-950">5. Write the follow-up plan before moving on</h2>
-                <p class="mt-3 leading-7 text-slate-600">
-                    Add return timing, reminders, or home guidance while it is still clear in your mind. This step prevents care plans from disappearing after checkout.
-                </p>
-            </section>
+    {{-- Five-step workflow --}}
+    <section class="mt-10">
+        <h2 class="art-serif text-[19px] font-medium text-slate-950">A five-step note rhythm you can sustain</h2>
+        <p class="mt-2 text-[13px] text-slate-400">The same sequence works across visit types. Practice it until it's automatic.</p>
+
+        @php
+        $steps = [
+            'Capture the reason for visit',
+            'Describe what happened in your own words',
+            'Record what care was provided',
+            'Note the patient response',
+            'Write the follow-up plan',
+        ];
+        @endphp
+
+        <div class="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3">
+            @foreach($steps as $i => $step)
+            <div class="flex items-start gap-3 rounded-lg border border-slate-200 bg-white px-4 py-3">
+                <span class="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-teal-700 text-[10px] font-bold leading-none text-white">{{ $i + 1 }}</span>
+                <span class="text-[13px] font-medium leading-snug text-slate-700">{{ $step }}</span>
+            </div>
+            @endforeach
         </div>
 
-        <section class="mt-12 rounded-xl border border-slate-200 bg-[#f8faf7] p-6">
-            <h2 class="text-2xl font-bold text-slate-950">A small operational shift that helps</h2>
-            <p class="mt-3 leading-7 text-slate-600">
-                Many clinics see better consistency when they aim to complete most notes the same day, even if the first pass is brief. Later edits can improve detail, but the core documentation and follow-up plan are already captured.
-            </p>
-            <p class="mt-3 leading-7 text-slate-600">
-                Practiq supports this style of workflow with notes, forms, appointment requests with confirmation, follow-up tracking, and checkout visibility in one system. It is one option for teams that want fewer disconnected tools and less end-of-day catch-up.
-            </p>
-        </section>
+        <p class="mt-4 text-[13px] leading-relaxed text-slate-400">Write while the visit is still fresh. A clear note finished today beats a detailed note that never quite gets done.</p>
+    </section>
 
-        <section class="mt-12">
-            <h2 class="text-2xl font-bold text-slate-950">Related pages</h2>
-            <div class="mt-5 grid gap-4 sm:grid-cols-2">
-                <a href="/blog" class="rounded-xl border border-slate-200 bg-white px-5 py-4 text-slate-700 transition hover:border-teal-700/30 hover:text-teal-800">Browse blog articles</a>
-                <a href="/" class="rounded-xl border border-slate-200 bg-white px-5 py-4 text-slate-700 transition hover:border-teal-700/30 hover:text-teal-800">Return to Practiq homepage</a>
-                <a href="/practice-software-for-acupuncturists" class="rounded-xl border border-slate-200 bg-white px-5 py-4 text-slate-700 transition hover:border-teal-700/30 hover:text-teal-800">Practice software for acupuncturists</a>
-                <a href="/massage-therapy-practice-software" class="rounded-xl border border-slate-200 bg-white px-5 py-4 text-slate-700 transition hover:border-teal-700/30 hover:text-teal-800">Practice software for massage therapists</a>
-                <a href="/chiropractic-practice-software" class="rounded-xl border border-slate-200 bg-white px-5 py-4 text-slate-700 transition hover:border-teal-700/30 hover:text-teal-800">Practice software for chiropractors</a>
-                <a href="/physiotherapy-practice-software" class="rounded-xl border border-slate-200 bg-white px-5 py-4 text-slate-700 transition hover:border-teal-700/30 hover:text-teal-800">Practice software for physiotherapists</a>
-                <a href="/wellness-practice-software" class="rounded-xl border border-slate-200 bg-white px-5 py-4 text-slate-700 transition hover:border-teal-700/30 hover:text-teal-800">Practice software for wellness practitioners</a>
+    <hr class="art-hr">
+
+    {{-- Section: Why rhythm beats format --}}
+    <section class="mt-10">
+        <h2 class="art-serif text-[19px] font-medium text-slate-950">Rhythm matters more than format</h2>
+        <div class="mt-4 space-y-4 text-[15px] leading-[1.75] text-slate-700">
+            <p>The best note is the one you actually write. A clear, concise note completed close to the visit is more useful than a perfectly structured one written from memory three days later.</p>
+            <p>This is especially true when you're carrying clinical work and admin at the same time. A documentation system that looks ideal on paper but breaks under real schedule pressure isn't helping. Aim for a note that takes three to five minutes, captures what matters, and keeps the next appointment starting with good context.</p>
+        </div>
+    </section>
+
+    <hr class="art-hr">
+
+    {{-- Section: Match format to visit --}}
+    <section class="mt-10">
+        <h2 class="art-serif text-[19px] font-medium text-slate-950">Match the note style to the visit</h2>
+        <div class="mt-4 space-y-4 text-[15px] leading-[1.75] text-slate-700">
+            <p>Routine follow-ups often only need a concise narrative. More complex cases, insurance-related visits, or new patient encounters may warrant structured SOAP documentation. Both have a place in the same clinic, sometimes on the same day.</p>
+            <p>A practical default for many small practices: simple notes for routine visits, SOAP mode when the record needs to be more explicit. Easy to remember. Easy to maintain.</p>
+        </div>
+    </section>
+
+    <hr class="art-hr">
+
+    {{-- CTA block --}}
+    <section class="mt-10">
+        <div class="flex flex-col gap-5 rounded-xl border border-slate-200 bg-slate-50 px-6 py-7 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+                <h2 class="art-serif text-[18px] font-medium text-slate-950">Practiq keeps the note workflow simple</h2>
+                <p class="mt-1.5 text-[13px] leading-relaxed text-slate-600">Simple notes and SOAP mode, intake forms, follow-up, and checkout — in one place.</p>
             </div>
-        </section>
-    </article>
+            <a href="/register" class="shrink-0 rounded-lg bg-slate-900 px-5 py-3 text-[13px] font-semibold text-white transition hover:bg-teal-800">
+                Start free trial
+            </a>
+        </div>
+    </section>
+
+    <hr class="art-hr">
+
+    {{-- Related links --}}
+    <section class="mt-10">
+        <h2 class="art-serif text-[17px] font-medium text-slate-950">Related pages</h2>
+        <div class="mt-4 grid gap-3 sm:grid-cols-2">
+            <a href="/blog" class="rounded-xl border border-slate-200 bg-white px-5 py-4 text-[13px] text-slate-700 transition hover:border-teal-700/30 hover:text-teal-800">Browse all blog articles</a>
+            <a href="/" class="rounded-xl border border-slate-200 bg-white px-5 py-4 text-[13px] text-slate-700 transition hover:border-teal-700/30 hover:text-teal-800">Return to Practiq homepage</a>
+            <a href="/blog/acupuncture-visit-note-examples" class="rounded-xl border border-slate-200 bg-white px-5 py-4 text-[13px] text-slate-700 transition hover:border-teal-700/30 hover:text-teal-800">Acupuncture visit note examples</a>
+            <a href="/register" class="rounded-xl border border-slate-200 bg-white px-5 py-4 text-[13px] text-slate-700 transition hover:border-teal-700/30 hover:text-teal-800">Start a free trial</a>
+        </div>
+    </section>
+
+    {{-- Disclaimer --}}
+    <p class="mt-10 pb-4 text-[12px] leading-relaxed text-slate-400">
+        These articles are for general informational purposes only and do not constitute clinical, billing, or legal guidance. Practitioners remain responsible for their own documentation standards.
+    </p>
+
+</article>
 @endsection
