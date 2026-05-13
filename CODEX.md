@@ -51,6 +51,48 @@ Workflow documentation:
   - `php artisan test tests/Feature/PublicLandingPageTest.php`
   - `git diff --check`
 
+### SEO Article Strategy / Keyword Concept
+
+- Overall SEO concept:
+  - Practiq SEO uses topic clusters plus natural intent language, not keyword stuffing.
+  - One article should focus on one reader problem.
+  - One reader problem maps to one main search intent.
+  - Each article should have one primary phrase plus natural related phrases and topic vocabulary.
+  - Articles should read like useful advice for small-clinic practitioners, not SEO pages.
+- Keyword use:
+  - Primary phrase should appear naturally in SEO title, H1 (or close variation), URL slug, meta description, and early body copy when it fits.
+  - Secondary phrases should be used only where they fit naturally.
+  - Do not target keyword density.
+  - If the article sounds strange when read aloud, it is over-optimized.
+- Practiq topic clusters:
+  - Visit notes and documentation basics
+  - Insurance billing and documentation
+  - Practitioner-specific workflows
+  - Follow-up and clinic workflow
+  - Founder/trust content
+  - Buying-decision content
+- Practiq voice:
+  - Human, essay-like, practical, friendly.
+  - Useful even if the reader never signs up.
+  - Avoid generic SEO phrases like: "in today's fast-paced healthcare environment", "optimize your workflow", "robust solution", "streamline operations", "empower providers".
+  - Favor plain clinic language.
+  - Keep a light Practiq mention near the end only when natural.
+- Core positioning ideas (recurring themes, not mandatory exact phrasing):
+  - Write naturally first. Structure later.
+  - The goal is not longer notes. The goal is notes that fit the visit and can actually be finished.
+  - Small clinics usually fall behind because the day is full, not because they do not care.
+- Publishing interval:
+  - Target one useful article per week.
+  - Weekly rhythm is intentional for quality control, review, internal linking, Search Console submission, and avoiding thin/generic content.
+  - Do not create large batches of weak articles just to publish more.
+  - It is fine to pause if an article needs more work.
+- SEO safety reminders:
+  - Do not add routes, blog index links, or sitemap entries for articles whose Blade views do not exist.
+  - Do not list unpublished/future articles.
+  - Keep blog articles indexable.
+  - Keep private/internal pages noindexed.
+  - Preserve sitemap, robots.txt, GA, JSON-LD, and noindex guardrails.
+
 - `docs/follow-up-workflow.md`
 - Covers Follow-Up -> Invite Back -> Appointment Request -> Staff Handling.
 - Includes staff steps, patient steps, non-goals, data/models, safety and tenancy notes, manual QA checklist, demo script, and roadmap ideas.
