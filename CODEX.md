@@ -13,6 +13,44 @@
 
 Workflow documentation:
 
+### SEO / Marketing Guardrails (May 2026)
+
+- Google Analytics must stay in `resources/views/partials/google-tag.blade.php` with tag ID `G-0T8RLJ2FHK`.
+- Public/admin pages should include GA via shared includes/hooks; do not paste raw `gtag` snippets into random views.
+- `sitemap.xml` is generated directly in `routes/web.php` (string/XML response). Do not reintroduce Blade sitemap rendering.
+- `public/robots.txt` must remain:
+  - `User-agent: *`
+  - `Allow: /`
+  - `Sitemap: https://practiqapp.com/sitemap.xml`
+- Public pages that should remain indexable:
+  - `/`, `/register`, `/subscribe`
+  - `/legal/terms`, `/legal/privacy`, `/legal/hipaa-baa`, `/legal/ai-disclaimer`
+  - Practitioner SEO pages:
+    - `/practice-software-for-acupuncturists`
+    - `/massage-therapy-practice-software`
+    - `/chiropractic-practice-software`
+    - `/physiotherapy-practice-software`
+    - `/wellness-practice-software`
+  - Blog:
+    - `/blog`
+    - published `/blog/*` article routes only
+- Private/internal routes must stay `noindex, nofollow`:
+  - `/admin/*` (Filament render hook)
+  - `/onboarding`
+  - patient/token/session/internal pages (`/patient/*`, token form pages, magic links)
+- Never add `noindex` to homepage, practitioner SEO pages, blog index, or published blog articles.
+- Do not list unpublished/missing blog articles in `/blog` or the sitemap URL array.
+- Production deploy gotcha:
+  - Host path `/opt/practiq` and container path `/app` can diverge.
+  - For Blade/routes-only hotfixes, copy changed files into container path, then run `php artisan optimize:clear` (and `php artisan optimize` if needed).
+- SEO validation commands:
+  - `grep -R "G-0T8RLJ2FHK" -n resources app public routes`
+  - `grep -R "robots-noindex" -n resources app/Providers`
+  - `grep -R "noindex" -n resources app/Providers`
+  - `grep -R "application/ld+json" -n resources routes`
+  - `php artisan test tests/Feature/PublicLandingPageTest.php`
+  - `git diff --check`
+
 - `docs/follow-up-workflow.md`
 - Covers Follow-Up -> Invite Back -> Appointment Request -> Staff Handling.
 - Includes staff steps, patient steps, non-goals, data/models, safety and tenancy notes, manual QA checklist, demo script, and roadmap ideas.
