@@ -72,6 +72,43 @@
     </div>
 </section>
 
+{{-- OPTIONAL NOTE WORKFLOW --}}
+@if(!empty($page['noteWorkflow']) && !empty($page['noteWorkflow']['steps']))
+<section class="border-y border-slate-200 bg-white">
+    <div class="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+        <div class="max-w-3xl">
+            <p class="text-[11px] font-semibold uppercase tracking-[0.07em] text-teal-700" style="font-family:'DM Sans',sans-serif">
+                {{ $page['noteWorkflow']['eyebrow'] ?? 'Workflow' }}
+            </p>
+            <h2 class="mt-3 text-[24px] font-medium leading-snug text-slate-950 sm:text-[28px]">
+                {{ $page['noteWorkflow']['heading'] ?? 'From rough notes to a clearer draft' }}
+            </h2>
+            @if(!empty($page['noteWorkflow']['intro']))
+            <p class="mt-4 text-[15px] leading-[1.75] text-slate-600">{{ $page['noteWorkflow']['intro'] }}</p>
+            @endif
+        </div>
+
+        <div class="mt-8 grid gap-4 lg:grid-cols-[1fr_auto_1fr_auto_1fr] lg:items-stretch">
+            @foreach($page['noteWorkflow']['steps'] as $index => $step)
+            <article class="rounded-xl border border-slate-200 bg-[#fbfaf6] px-5 py-5">
+                <p class="text-[11px] font-semibold uppercase tracking-[0.07em] text-slate-400" style="font-family:'DM Sans',sans-serif">Step {{ $index + 1 }}</p>
+                <h3 class="mt-2 text-[16px] font-semibold leading-snug text-slate-900" style="font-family:'DM Sans',sans-serif">{{ $step['title'] }}</h3>
+                <p class="mt-3 text-[14px] leading-relaxed text-slate-600">{{ $step['body'] }}</p>
+            </article>
+
+            @if($index < count($page['noteWorkflow']['steps']) - 1)
+            <div class="hidden items-center justify-center lg:flex" aria-hidden="true">
+                <svg class="h-5 w-5 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 12h16m-5-5 5 5-5 5" />
+                </svg>
+            </div>
+            @endif
+            @endforeach
+        </div>
+    </div>
+</section>
+@endif
+
 {{-- FEATURES CHIP GRID --}}
 <section class="border-y border-slate-200 bg-white">
     <div class="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">

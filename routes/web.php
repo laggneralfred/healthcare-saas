@@ -44,6 +44,25 @@ $seoLandingPages = [
             'You finish a treatment, type a few rough lines while the next patient is already waiting, and tell yourself you will polish the note later. Then later turns into tomorrow. Meanwhile there are intake forms to review, follow-up to send, and checkout to close.',
             'That does not mean practitioners are careless. It means the day is full. Practiq helps keep those moving parts in one place so continuity does not depend on memory at 8:30 p.m.',
         ],
+        'noteWorkflow' => [
+            'eyebrow' => 'Documentation workflow',
+            'heading' => 'From rough notes to a clearer draft',
+            'intro' => 'A simple way to keep continuity when notes are first captured in shorthand between visits.',
+            'steps' => [
+                [
+                    'title' => 'Rough note fragments',
+                    'body' => '"neck better, sleep worse, right shoulder still catches, check driving next time"',
+                ],
+                [
+                    'title' => 'Practiq helps organize the writing',
+                    'body' => 'The practitioner supplies the facts. Practiq helps with the wording and structure.',
+                ],
+                [
+                    'title' => 'Clearer draft note',
+                    'body' => 'A readable draft the practitioner reviews, edits, and saves only when it is correct.',
+                ],
+            ],
+        ],
         'helps' => [
             ['Visit notes that preserve the thread', 'Capture what changed, what stood out, what you did, and what to watch next. For rough first drafts typed between visits, Practiq can help turn practitioner-written fragments into clearer, more coherent, more standardized draft text.'],
             ['AI writing help with clear boundaries', 'The practitioner supplies the facts. Practiq helps with the writing. The practitioner reviews, edits, and decides what belongs in the chart. Practiq must not invent findings, diagnoses, treatments, or patient statements.'],
