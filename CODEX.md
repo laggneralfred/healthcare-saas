@@ -77,6 +77,51 @@ Workflow documentation:
   - Avoid generic SEO phrases like: "in today's fast-paced healthcare environment", "optimize your workflow", "robust solution", "streamline operations", "empower providers".
   - Favor plain clinic language.
   - Keep a light Practiq mention near the end only when natural.
+- Blog Article Voice and Practiq Value:
+  - Articles should be essays, not SEO outlines.
+  - Future Practiq articles should read like thoughtful human essays, not generic content-marketing overviews.
+  - Do not use listicle or checklist structure unless the topic truly requires it.
+  - Use fewer headings and prefer flowing paragraphs with concrete small-clinic details.
+  - Write from real small-clinic life:
+    - notes written between patients
+    - tired practitioners
+    - rough fragments typed quickly
+    - forms, follow-up, checkout, and admin work piling up
+    - practitioners falling behind because the day is full, not because they do not care
+  - Practiq value should be clear but not hyped:
+    - Practiq can help turn rough practitioner-written fragments into clearer, more coherent, more standardized draft text.
+    - Practiq can help organize notes, forms, follow-up, and workflow without feeling like hospital software.
+    - Product value should be woven into the essay naturally, not dropped in as a sales pitch.
+  - AI boundary:
+    - The practitioner supplies the facts.
+    - Practiq helps with the writing.
+    - The practitioner reviews, edits, and decides what belongs in the chart.
+    - Practiq must not invent findings, diagnoses, treatments, or patient statements.
+    - AI assists writing; it does not replace clinical judgment.
+  - Avoid generic SaaS or SEO language like:
+    - "in today's fast-paced healthcare environment"
+    - "streamline your workflow"
+    - "optimize"
+    - "empower"
+    - "robust"
+    - "seamless"
+    - "leverage"
+    - "unlock"
+    - "transform your documentation"
+    - "game changer"
+    - "best practices"
+    - "actionable insights"
+    - "this article will explore"
+  - SEO remains secondary to voice:
+    - Use SEO naturally.
+    - One article should still focus on one reader problem and one main search intent.
+    - Never sacrifice human voice for keyword density.
+    - If a sentence could appear unchanged in hundreds of SaaS blogs, remove or rewrite it.
+  - Editorial test before publishing:
+    - Does this sound like a person wrote it?
+    - Does it say something specific about small clinic life?
+    - Does the Practiq mention feel useful rather than promotional?
+    - Would a professional writer call this generic?
 - Core positioning ideas (recurring themes, not mandatory exact phrasing):
   - Write naturally first. Structure later.
   - The goal is not longer notes. The goal is notes that fit the visit and can actually be finished.
