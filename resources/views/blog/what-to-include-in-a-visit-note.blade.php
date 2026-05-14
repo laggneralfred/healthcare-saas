@@ -61,8 +61,19 @@
             <p>Not every visit can be handled with a simple narrative. Some cases are changing quickly. Some are clinically dense. Some have an insurance component, a legal shadow, or a strong chance that another person will review the record later. When that is true, more formal structure helps. Not because formality is morally better, but because the chart needs to carry more weight.</p>
             <p>There is no universal line where a routine note becomes a formal one. It depends on the profession, the payer, the setting, the case, and where you practice. Requirements vary, and so does judgment.</p>
             <p>The question underneath it is still the same: when someone else reads this, or when I read it six weeks from now, will the record show why the visit happened, what changed, what I saw, what I did, how the person responded, and what needs attention next?</p>
-            <p>Sometimes the honest note after a visit is not a polished paragraph. It is a few words typed quickly before the next person comes in: “neck better, sleep worse, right shoulder still catches, tolerated tx, check driving next time.” Practiq can help turn that kind of rough draft into clearer, more coherent note text. The practitioner still has to read it, correct it, and decide what belongs in the chart. The software should help with the writing, not make things up. It should never invent findings, diagnoses, treatments, or patient statements, and it does not replace clinical judgment.</p>
             <p class="text-[13px] italic leading-relaxed text-slate-400">This is general information only, not clinical, legal, or billing advice.</p>
+        </div>
+    </section>
+
+    <hr class="art-hr">
+
+    <section class="mt-10">
+        <h2 class="art-serif text-[19px] font-medium text-slate-950">When the first draft is only a few words</h2>
+
+        <div class="mt-4 space-y-4 text-[15px] leading-[1.78] text-slate-700">
+            <p>In real clinic life, the first draft is sometimes barely a draft at all. It is a few rough phrases typed between patients while the visit is still fresh: “neck better, sleep worse, right shoulder still catches, tolerated tx, check driving next time.” That may be all there is time for.</p>
+            <p>Practiq has a built-in AI note helper for that moment. If the practitioner has written the facts in rough form, Practiq can help turn those fragments into clearer, more coherent visit-note text. It can help standardize the wording and make the note easier to read without changing what happened in the room.</p>
+            <p>The practitioner supplies the facts. Practiq helps with the writing. The practitioner still reviews the draft, edits it, and decides what belongs in the chart. The software must not invent findings, diagnoses, treatments, or patient statements. It assists the writing; it does not replace clinical judgment.</p>
         </div>
     </section>
 
