@@ -39,29 +39,29 @@
 
             <a href="/blog/what-to-include-in-a-visit-note" class="group flex flex-col rounded-xl border border-slate-200 bg-white px-6 py-5 transition hover:border-teal-700/30 hover:shadow-sm">
                 <p class="text-[11px] font-semibold uppercase tracking-[0.07em] text-teal-700">Visit Notes · Documentation Basics</p>
-                <h2 class="mt-2 text-[18px] font-medium leading-snug text-slate-950 group-hover:text-teal-800">What to Include in a Visit Note</h2>
-                <p class="mt-2 text-[13px] leading-relaxed text-slate-500">A practical guide to the details that make notes useful without making them longer than they need to be.</p>
+                <h2 class="mt-2 text-[18px] font-medium leading-snug text-slate-950 group-hover:text-teal-800">What Belongs in a Visit Note?</h2>
+                <p class="mt-2 text-[13px] leading-relaxed text-slate-500">A grounded essay on what makes a note useful in a small clinic, written for practitioners who want notes that still feel human.</p>
                 <span class="mt-3 text-[12px] font-medium text-teal-700 group-hover:text-teal-800">Read article →</span>
             </a>
 
             <a href="/blog/acupuncture-visit-note-examples" class="group flex flex-col rounded-xl border border-slate-200 bg-white px-6 py-5 transition hover:border-teal-700/30 hover:shadow-sm">
                 <p class="text-[11px] font-semibold uppercase tracking-[0.07em] text-teal-700">Documentation Guide · Acupuncture</p>
-                <h2 class="mt-2 text-[18px] font-medium leading-snug text-slate-950 group-hover:text-teal-800">Acupuncture Visit Note Examples for Small Practices</h2>
-                <p class="mt-2 text-[13px] leading-relaxed text-slate-500">Four ready-to-use examples using a consistent six-part structure — for initial visits, pain flare-ups, follow-ups, and maintenance care.</p>
+                <h2 class="mt-2 text-[18px] font-medium leading-snug text-slate-950 group-hover:text-teal-800">Acupuncture Notes That Stay Useful</h2>
+                <p class="mt-2 text-[13px] leading-relaxed text-slate-500">A thoughtful piece on keeping the thread of acupuncture care visible, with examples that show shape rather than script.</p>
                 <span class="mt-3 text-[12px] font-medium text-teal-700 group-hover:text-teal-800">Read article →</span>
             </a>
 
             <a href="/blog/small-clinic-visit-notes" class="group flex flex-col rounded-xl border border-slate-200 bg-white px-6 py-5 transition hover:border-teal-700/30 hover:shadow-sm">
                 <p class="text-[11px] font-semibold uppercase tracking-[0.07em] text-teal-700">Visit Notes · Daily Documentation</p>
-                <h2 class="mt-2 text-[18px] font-medium leading-snug text-slate-950 group-hover:text-teal-800">How Small Clinics Can Keep Up With Visit Notes Without Staying Late</h2>
-                <p class="mt-2 text-[13px] leading-relaxed text-slate-500">A realistic five-step note rhythm for practices where one person is doing most of the work.</p>
+                <h2 class="mt-2 text-[18px] font-medium leading-snug text-slate-950 group-hover:text-teal-800">Keeping Up With Visit Notes</h2>
+                <p class="mt-2 text-[13px] leading-relaxed text-slate-500">An essay about notes piling up in the cracks of a small clinic day, and why rough notes are better than lost memory.</p>
                 <span class="mt-3 text-[12px] font-medium text-teal-700 group-hover:text-teal-800">Read article →</span>
             </a>
 
             <a href="/blog/soap-notes-vs-simple-visit-notes" class="group flex flex-col rounded-xl border border-slate-200 bg-white px-6 py-5 transition hover:border-teal-700/30 hover:shadow-sm">
                 <p class="text-[11px] font-semibold uppercase tracking-[0.07em] text-teal-700">Documentation Workflow</p>
                 <h2 class="mt-2 text-[18px] font-medium leading-snug text-slate-950 group-hover:text-teal-800">SOAP Notes or Simple Visit Notes?</h2>
-                <p class="mt-2 text-[13px] leading-relaxed text-slate-500">How small clinics can choose the right note style for each visit — without making documentation harder than it needs to be.</p>
+                <p class="mt-2 text-[13px] leading-relaxed text-slate-500">A practical essay on choosing the note shape that fits the visit, whether that means SOAP or something simpler.</p>
                 <span class="mt-3 text-[12px] font-medium text-teal-700 group-hover:text-teal-800">Read article →</span>
             </a>
 
