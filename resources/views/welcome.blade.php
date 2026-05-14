@@ -174,17 +174,17 @@
 {{-- DISCIPLINES --}}
 <section class="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
     <div class="max-w-2xl">
-        <p class="text-[11px] font-semibold uppercase tracking-[0.07em] text-teal-700" style="font-family:'DM Sans',sans-serif">Who Practiq is for</p>
-        <h2 class="mt-3 text-[26px] font-medium leading-snug text-slate-950 sm:text-[30px]">Practice software for the disciplines it was built for.</h2>
-        <p class="mt-4 text-[15px] leading-[1.75] text-slate-600">Practiq works best for practices where one person wears most of the hats — solo providers and small clinics with limited staff.</p>
+        <p class="text-[11px] font-semibold uppercase tracking-[0.07em] text-teal-700" style="font-family:'DM Sans',sans-serif">Built for small healthcare practices</p>
+        <h2 class="mt-3 text-[26px] font-medium leading-snug text-slate-950 sm:text-[30px]">For your kind of practice</h2>
+        <p class="mt-4 text-[15px] leading-[1.75] text-slate-600">Practiq is built for small clinics, but the day looks a little different in every discipline. Choose the page closest to your work.</p>
     </div>
     <div class="mt-10 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         @foreach([
-            ['/practice-software-for-acupuncturists', 'Acupuncture',   'Visit notes with TCM context, intake forms, appointment requests, follow-up, and checkout tracking.'],
-            ['/massage-therapy-practice-software',    'Massage therapy', 'Client notes, consent forms, appointment requests, follow-up, and simple practice reports.'],
-            ['/chiropractic-practice-software',       'Chiropractic',   'Visit notes, intake forms, patient follow-up, checkout tracking, and basic practice visibility.'],
-            ['/physiotherapy-practice-software',      'Physiotherapy',  'Progress notes, intake forms, appointment requests, follow-up, and checkout tracking.'],
-            ['/wellness-practice-software',           'Wellness',       'Client notes, forms, appointment requests, follow-up, and simple admin support.'],
+            ['/practice-software-for-acupuncturists', 'Acupuncture', 'Preserve the thread of care between visits with notes, intake, follow-up, and checkout in one place.'],
+            ['/massage-therapy-practice-software', 'Massage therapy', 'Keep session notes, client response, follow-up, and checkout from getting scattered across the day.'],
+            ['/chiropractic-practice-software', 'Chiropractic', 'Keep short visits, progress notes, SOAP-style documentation when needed, and follow-up organized.'],
+            ['/physiotherapy-practice-software', 'Physiotherapy', 'Track progress over time, home exercises, reassessment notes, and follow-up plans clearly.'],
+            ['/wellness-practice-software', 'Wellness', 'Use flexible notes, forms, and follow-up for varied wellness practices without making the clinic feel like a hospital.'],
         ] as [$href, $title, $body])
         <a href="{{ $href }}" class="group flex flex-col rounded-xl border border-slate-200 bg-white px-6 py-5 transition hover:border-teal-700/30 hover:shadow-sm">
             <div class="flex items-center justify-between">
