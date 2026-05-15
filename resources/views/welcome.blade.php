@@ -78,6 +78,19 @@
             <p class="mt-4 text-[12px] text-slate-400">30-day free trial. No credit card required.</p>
         </div>
 
+        <div class="mx-auto mt-10 w-full max-w-5xl overflow-hidden rounded-2xl border border-slate-200 bg-[#fbfaf6] shadow-lg shadow-slate-900/5">
+            <img
+                src="/images/practitioner-pages/Collage.png"
+                alt="Practitioner collage showing acupuncture, massage therapy, chiropractic, physiotherapy, and wellness care"
+                class="h-auto w-full object-cover"
+                width="2400"
+                height="1200"
+                loading="eager"
+                decoding="async"
+                fetchpriority="high"
+            >
+        </div>
+
         {{-- Feature preview grid --}}
         <div class="mt-14 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:max-w-3xl">
             @foreach([
