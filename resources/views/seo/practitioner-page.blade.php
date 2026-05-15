@@ -34,25 +34,44 @@
 {{-- HERO --}}
 <section class="border-b border-slate-200 bg-white">
     <div class="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8 lg:py-24">
-        <div class="max-w-3xl">
-            <p class="mb-5 inline-flex w-fit rounded-full border border-teal-800/15 bg-teal-50 px-4 py-2 text-[12px] font-medium text-teal-800" style="font-family:'DM Sans',sans-serif">
-                {{ $page['eyebrow'] }}
-            </p>
-            <h1 class="text-[32px] font-medium leading-[1.2] text-slate-950 sm:text-[42px]">
-                {{ $page['h1'] }}
-            </h1>
-            <p class="mt-6 max-w-2xl text-[17px] leading-[1.75] text-slate-500">
-                {{ $page['subheadline'] }}
-            </p>
-            <div class="mt-9 flex flex-col gap-3 sm:flex-row">
-                <a href="{{ $trialUrl }}" class="inline-flex items-center justify-center rounded-lg bg-slate-900 px-7 py-3.5 text-[15px] font-semibold text-white shadow-sm transition hover:bg-teal-800">
-                    Start free trial
-                </a>
-                <a href="{{ $overviewUrl }}" class="inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white px-7 py-3.5 text-[15px] font-medium text-slate-600 shadow-sm transition hover:border-teal-700/40 hover:text-teal-800">
-                    Watch overview
-                </a>
+        <div class="@if(!empty($page['image']['src'])) grid gap-10 lg:grid-cols-[minmax(0,1fr)_420px] lg:items-center @endif">
+            <div class="max-w-3xl">
+                <p class="mb-5 inline-flex w-fit rounded-full border border-teal-800/15 bg-teal-50 px-4 py-2 text-[12px] font-medium text-teal-800" style="font-family:'DM Sans',sans-serif">
+                    {{ $page['eyebrow'] }}
+                </p>
+                <h1 class="text-[32px] font-medium leading-[1.2] text-slate-950 sm:text-[42px]">
+                    {{ $page['h1'] }}
+                </h1>
+                <p class="mt-6 max-w-2xl text-[17px] leading-[1.75] text-slate-500">
+                    {{ $page['subheadline'] }}
+                </p>
+                <div class="mt-9 flex flex-col gap-3 sm:flex-row">
+                    <a href="{{ $trialUrl }}" class="inline-flex items-center justify-center rounded-lg bg-slate-900 px-7 py-3.5 text-[15px] font-semibold text-white shadow-sm transition hover:bg-teal-800">
+                        Start free trial
+                    </a>
+                    <a href="{{ $overviewUrl }}" class="inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white px-7 py-3.5 text-[15px] font-medium text-slate-600 shadow-sm transition hover:border-teal-700/40 hover:text-teal-800">
+                        Watch overview
+                    </a>
+                </div>
+                <p class="mt-4 text-[12px] text-slate-400">30-day free trial. No credit card required.</p>
             </div>
-            <p class="mt-4 text-[12px] text-slate-400">30-day free trial. No credit card required.</p>
+
+            @if(!empty($page['image']['src']))
+            <div class="mx-auto w-full max-w-[560px] lg:max-w-none">
+                <div class="overflow-hidden rounded-2xl border border-slate-200 bg-[#fbfaf6] shadow-lg shadow-slate-900/5">
+                    <img
+                        src="{{ $page['image']['src'] }}"
+                        alt="{{ $page['image']['alt'] ?? 'Practitioner image' }}"
+                        class="h-auto w-full object-cover"
+                        width="1200"
+                        height="800"
+                        loading="eager"
+                        fetchpriority="high"
+                        decoding="async"
+                    >
+                </div>
+            </div>
+            @endif
         </div>
     </div>
 </section>

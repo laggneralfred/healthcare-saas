@@ -38,6 +38,10 @@ $seoLandingPages = [
         'description' => 'Acupuncture practice software for small clinics: keep visit notes, intake forms, follow-up, and checkout organized without losing continuity. 30-day free trial.',
         'eyebrow' => 'Acupuncture practice software',
         'h1' => 'Practice software for busy acupuncturists.',
+        'image' => [
+            'src' => '/images/practitioner-pages/acupuncture.png',
+            'alt' => 'Acupuncture practitioner working in a calm small clinic setting',
+        ],
         'subheadline' => 'Practiq is built for the way small acupuncture clinics actually run: notes written in between patients, forms and follow-up piling up, and too little time to clean everything up before the day ends.',
         'dailyHeading' => 'In acupuncture clinics, the important work often happens in the margins',
         'dailyCopy' => [
@@ -86,6 +90,10 @@ $seoLandingPages = [
         'description' => 'Massage therapy practice software for independent therapists and small clinics. Keep client notes, intake forms, follow-up, and checkout organized. 30-day free trial.',
         'eyebrow' => 'Massage therapy practice software',
         'h1' => 'Practice software for busy massage therapists.',
+        'image' => [
+            'src' => '/images/practitioner-pages/massage-therapy.png',
+            'alt' => 'Massage therapist working with a client in a professional small clinic setting',
+        ],
         'subheadline' => 'Practiq is built for the pace of small massage practices: back-to-back sessions, short gaps between clients, and admin work that can easily spill into your evening.',
         'dailyHeading' => 'When sessions are stacked, notes and follow-up get squeezed',
         'dailyCopy' => [
@@ -134,6 +142,10 @@ $seoLandingPages = [
         'description' => 'Chiropractic practice software for independent chiropractors and small clinics. Keep visit notes, intake forms, follow-up, and checkout organized. 30-day free trial.',
         'eyebrow' => 'Chiropractic practice software',
         'h1' => 'Practice software for busy chiropractors.',
+        'image' => [
+            'src' => '/images/practitioner-pages/chiropractic.png',
+            'alt' => 'Chiropractor working with a patient in a small clinic setting',
+        ],
         'subheadline' => 'Practiq is built for small chiropractic clinics where visits may be short, schedules are full, and documentation can easily spill past clinic hours.',
         'dailyHeading' => 'When visits are back-to-back, the chart can fall behind',
         'dailyCopy' => [
@@ -182,6 +194,10 @@ $seoLandingPages = [
         'description' => 'Physiotherapy practice software for independent physiotherapists and small clinics. Keep progress notes, intake forms, follow-up, and checkout organized. 30-day free trial.',
         'eyebrow' => 'Physiotherapy practice software',
         'h1' => 'Practice software for busy physiotherapists.',
+        'image' => [
+            'src' => '/images/practitioner-pages/physiotherapy.png',
+            'alt' => 'Physiotherapist guiding a patient through a supported exercise in a small clinic setting',
+        ],
         'subheadline' => 'Practiq is built for small physiotherapy clinics where progress is tracked across visits, schedules stay full, and documentation can quickly pile up between appointments.',
         'dailyHeading' => 'Progress can get lost when notes are rushed',
         'dailyCopy' => [
@@ -230,6 +246,10 @@ $seoLandingPages = [
         'description' => 'Wellness practice software for independent practitioners and small clinics. Keep notes, intake forms, follow-up, and checkout organized without overcomplicating care. 30-day free trial.',
         'eyebrow' => 'Wellness practice software',
         'h1' => 'Practice software for busy wellness practitioners.',
+        'image' => [
+            'src' => '/images/practitioner-pages/wellness.png',
+            'alt' => 'Wellness practitioner meeting with a client in a calm consultation setting',
+        ],
         'subheadline' => 'Practiq is built for small wellness practices where styles vary, schedules stay full, and the admin side can pile up fast without much team support.',
         'dailyHeading' => 'Wellness work is flexible, but continuity still matters',
         'dailyCopy' => [
