@@ -10,7 +10,11 @@
     @include('partials.public-fonts')
 </head>
 <body class="bg-[#fbfaf6] text-slate-900 antialiased">
-@php $trialUrl = '/register'; $overviewUrl = '/#overview-video'; @endphp
+@php
+    $trialUrl = '/register';
+    $workflowUrl = '#workflow';
+    $practiceTypesUrl = '/#practice-types';
+@endphp
 
 {{-- NAV --}}
 <header class="sticky top-0 z-30 border-b border-teal-900/10 bg-[#fbfaf6]/95 backdrop-blur">
@@ -21,6 +25,7 @@
         </a>
         <div class="hidden items-center gap-5 text-sm font-medium text-slate-600 lg:flex">
             <a href="/" class="transition hover:text-teal-800">Home</a>
+            <a href="{{ $workflowUrl }}" class="transition hover:text-teal-800">How it helps</a>
             <a href="/#pricing" class="transition hover:text-teal-800">Pricing</a>
             <a href="/blog" class="transition hover:text-teal-800">Blog</a>
             <a href="/admin/login" class="transition hover:text-teal-800">Login</a>
@@ -49,8 +54,8 @@
                     <a href="{{ $trialUrl }}" class="inline-flex items-center justify-center rounded-lg bg-slate-900 px-7 py-3.5 text-[15px] font-semibold text-white shadow-sm transition hover:bg-teal-800">
                         Start free trial
                     </a>
-                    <a href="{{ $overviewUrl }}" class="inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white px-7 py-3.5 text-[15px] font-medium text-slate-600 shadow-sm transition hover:border-teal-700/40 hover:text-teal-800">
-                        Watch overview
+                    <a href="{{ $workflowUrl }}" class="inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white px-7 py-3.5 text-[15px] font-medium text-slate-600 shadow-sm transition hover:border-teal-700/40 hover:text-teal-800">
+                        See how it helps
                     </a>
                 </div>
                 <p class="mt-4 text-[12px] text-slate-400">30-day free trial. No credit card required.</p>
@@ -77,13 +82,13 @@
 </section>
 
 {{-- DAILY REALITY --}}
-<section class="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
-    <div class="grid gap-10 lg:grid-cols-2">
-        <div>
+<section class="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
+    <div class="grid gap-8 lg:grid-cols-2 lg:items-start">
+        <div class="max-w-xl">
             <p class="text-[11px] font-semibold uppercase tracking-[0.07em] text-teal-700" style="font-family:'DM Sans',sans-serif">Daily reality</p>
             <h2 class="mt-3 text-[24px] font-medium leading-snug text-slate-950 sm:text-[28px]">{{ $page['dailyHeading'] }}</h2>
         </div>
-        <div class="space-y-4 text-[15px] leading-[1.75] text-slate-600">
+        <div class="space-y-4 rounded-xl border border-slate-200 bg-white p-6 text-[15px] leading-[1.75] text-slate-600 sm:p-7">
             @foreach($page['dailyCopy'] as $paragraph)
             <p>{{ $paragraph }}</p>
             @endforeach
@@ -128,25 +133,42 @@
 </section>
 @endif
 
-{{-- FEATURES CHIP GRID --}}
+{{-- HOW IT HELPS --}}
+<section id="workflow" class="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
+    <div class="max-w-2xl">
+        <p class="text-[11px] font-semibold uppercase tracking-[0.07em] text-teal-700" style="font-family:'DM Sans',sans-serif">How Practiq helps</p>
+        <h2 class="mt-3 text-[24px] font-medium leading-snug text-slate-950 sm:text-[28px]">Keep the core work of your practice in one place.</h2>
+    </div>
+    <div class="mt-10 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        @foreach($page['helps'] as [$title, $body])
+        <article class="rounded-xl border border-slate-200 bg-white p-6">
+            <h3 class="text-[14px] font-semibold text-slate-900" style="font-family:'DM Sans',sans-serif">{{ $title }}</h3>
+            <p class="mt-2 text-[13px] leading-relaxed text-slate-600">{{ $body }}</p>
+        </article>
+        @endforeach
+    </div>
+</section>
+
+{{-- WHAT PRACTIQ IS NOT --}}
 <section class="border-y border-slate-200 bg-white">
     <div class="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
-        <div class="max-w-2xl">
-            <p class="text-[11px] font-semibold uppercase tracking-[0.07em] text-teal-700" style="font-family:'DM Sans',sans-serif">What Practiq covers</p>
-            <h2 class="mt-3 text-[24px] font-medium leading-snug text-slate-950 sm:text-[28px]">Keep the core work of your practice in one place.</h2>
+        <div class="max-w-3xl">
+            <p class="text-[11px] font-semibold uppercase tracking-[0.07em] text-teal-700" style="font-family:'DM Sans',sans-serif">Scope</p>
+            <h2 class="mt-3 text-[24px] font-medium leading-snug text-slate-950 sm:text-[28px]">What Practiq is — and what it is not</h2>
+            <p class="mt-4 text-[15px] leading-[1.75] text-slate-600">Practiq is simple practice software for small clinics. It helps with notes, forms, follow-up, appointment requests, checkout tracking, and simple reports.</p>
         </div>
-        <div class="mt-10 grid gap-3 md:grid-cols-2 lg:grid-cols-3">
-            @foreach($page['helps'] as [$title, $body])
-            <div class="flex items-start gap-3 rounded-xl border border-slate-200 bg-[#fbfaf6] px-5 py-4">
-                <svg class="mt-0.5 h-4 w-4 shrink-0 text-teal-700" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
-                    <path fill-rule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clip-rule="evenodd"/>
-                </svg>
-                <div>
-                    <p class="text-[14px] font-semibold text-slate-900" style="font-family:'DM Sans',sans-serif">{{ $title }}</p>
-                    <p class="mt-1 text-[13px] leading-relaxed text-slate-600">{{ $body }}</p>
-                </div>
+        <div class="mt-8 grid gap-2 md:grid-cols-2 lg:max-w-3xl">
+            @foreach([
+                'Not hospital software',
+                'Not an AI clinician',
+                'Not automatic booking chaos',
+                'Not a billing clearinghouse',
+            ] as $item)
+            <div class="flex items-center gap-3 rounded-lg border border-slate-200 bg-[#fbfaf6] px-4 py-3">
+                <span class="text-slate-300">—</span>
+                <span class="text-[13px] text-slate-700">{{ $item }}</span>
             </div>
-            @endforeach
+                @endforeach
         </div>
     </div>
 </section>
@@ -177,38 +199,16 @@
     </div>
 </section>
 
-{{-- WHAT PRACTIQ IS NOT --}}
-<section class="border-y border-slate-200 bg-white">
-    <div class="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
-        <div class="max-w-2xl">
-            <p class="text-[11px] font-semibold uppercase tracking-[0.07em] text-teal-700" style="font-family:'DM Sans',sans-serif">Scope</p>
-            <h2 class="mt-3 text-[24px] font-medium leading-snug text-slate-950 sm:text-[28px]">One thing, done well.</h2>
-            <p class="mt-4 text-[15px] leading-[1.75] text-slate-600">Practiq does one thing: keeps the day-to-day work of a small practice organized. It is not trying to do everything.</p>
-            <ul class="mt-6 space-y-2">
-                @foreach(explode(', ', str_replace(['Practiq is not a ', 'Practiq is not an ', 'Not a ', 'Not an '], '', $page['not'])) as $item)
-                @php $item = rtrim(trim($item), '.'); @endphp
-                @if($item)
-                <li class="flex items-start gap-3 text-[14px] text-slate-600">
-                    <span class="text-slate-300 mt-0.5">—</span>
-                    <span>Not {{ strtolower(trim($item)) }}</span>
-                </li>
-                @endif
-                @endforeach
-            </ul>
-        </div>
-    </div>
-</section>
-
 {{-- CTA BLOCK --}}
 <section class="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
     <div class="flex flex-col gap-6 rounded-xl border border-slate-200 bg-slate-50 px-8 py-10 sm:flex-row sm:items-center sm:justify-between">
         <div>
             <h2 class="text-[22px] font-medium text-slate-950">Try it with your real workflow.</h2>
-            <p class="mt-2 text-[14px] leading-relaxed text-slate-600">30-day free trial. Starter settings are already in place. No credit card required.</p>
+            <p class="mt-2 text-[14px] leading-relaxed text-slate-600">30-day free trial. No credit card required.</p>
         </div>
         <div class="flex shrink-0 flex-col gap-2 sm:flex-row">
             <a href="{{ $trialUrl }}" class="inline-flex items-center justify-center rounded-lg bg-slate-900 px-6 py-3.5 text-[14px] font-semibold text-white transition hover:bg-teal-800">Start free trial</a>
-            <a href="{{ $overviewUrl }}" class="inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white px-6 py-3.5 text-[14px] font-medium text-slate-600 transition hover:border-teal-700/30 hover:text-teal-800">Watch overview</a>
+            <a href="{{ $practiceTypesUrl }}" class="inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white px-6 py-3.5 text-[14px] font-medium text-slate-600 transition hover:border-teal-700/30 hover:text-teal-800">Back to practice types</a>
         </div>
     </div>
 </section>
