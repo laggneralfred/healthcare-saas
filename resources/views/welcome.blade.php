@@ -24,7 +24,6 @@
 @php
     $trialUrl        = '/register';
     $demoUrl         = 'https://demo.practiqapp.com/demo-login';
-    $overviewVideoUrl = '/videos/practiq-product-demo.mp4';
 @endphp
 
 {{-- NAV --}}
@@ -35,7 +34,7 @@
             <span class="text-xl font-bold tracking-tight text-slate-950" style="font-family:'DM Sans',sans-serif">Practiq</span>
         </a>
         <div class="hidden items-center gap-5 text-sm font-medium text-slate-600 lg:flex">
-            <a href="#problems" class="transition hover:text-teal-800">How it helps</a>
+            <a href="#workflow" class="transition hover:text-teal-800">How it helps</a>
             <a href="#pricing" class="transition hover:text-teal-800">Pricing</a>
             <a href="/blog" class="transition hover:text-teal-800">Blog</a>
             <a href="#faq" class="transition hover:text-teal-800">FAQ</a>
@@ -43,7 +42,7 @@
             <a href="/admin/login" class="transition hover:text-teal-800">Login</a>
         </div>
         <div class="flex items-center gap-2">
-            <a href="#overview-video" class="hidden rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-600 shadow-sm transition hover:border-teal-700/30 hover:text-teal-800 sm:inline-flex">Watch overview</a>
+            <a href="{{ $demoUrl }}" class="hidden rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-600 shadow-sm transition hover:border-teal-700/30 hover:text-teal-800 sm:inline-flex">Watch Demo</a>
             <a href="{{ $trialUrl }}" class="rounded-lg bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-teal-800">Start free trial</a>
         </div>
     </nav>
@@ -71,82 +70,31 @@
                 <a href="{{ $trialUrl }}" class="inline-flex items-center justify-center rounded-lg bg-slate-900 px-7 py-3.5 text-[15px] font-semibold text-white shadow-sm transition hover:bg-teal-800">
                     Start free trial
                 </a>
-                <a href="#overview-video" class="inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white px-7 py-3.5 text-[15px] font-medium text-slate-600 shadow-sm transition hover:border-teal-700/40 hover:text-teal-800">
-                    Watch overview
+                <a href="{{ $demoUrl }}" class="inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white px-7 py-3.5 text-[15px] font-medium text-slate-600 shadow-sm transition hover:border-teal-700/40 hover:text-teal-800">
+                    Watch Demo
                 </a>
             </div>
             <p class="mt-4 text-[12px] text-slate-400">30-day free trial. No credit card required.</p>
         </div>
 
-        <div class="mx-auto mt-10 w-full max-w-5xl overflow-hidden rounded-2xl border border-slate-200 bg-[#fbfaf6] shadow-lg shadow-slate-900/5">
-            <img
-                src="/images/practitioner-pages/Collage.png"
-                alt="Practitioner collage showing acupuncture, massage therapy, chiropractic, physiotherapy, and wellness care"
-                class="h-auto w-full object-cover"
-                width="2400"
-                height="1200"
-                loading="eager"
-                decoding="async"
-                fetchpriority="high"
-            >
-        </div>
-
-        {{-- Feature preview grid --}}
-        <div class="mt-14 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:max-w-3xl">
-            @foreach([
-                ['Visit notes',          'Simple or SOAP mode per visit'],
-                ['Intake & consent',     'Sent, submitted, reviewed'],
-                ['Appointment requests', 'Patient requests, you confirm'],
-                ['Follow-up',            'See who needs attention'],
-                ['Checkout tracking',    'Charges, payments, balance'],
-                ['Reports & exports',    'Revenue totals and CSVs'],
-            ] as [$title, $desc])
-            <div class="rounded-lg border border-slate-200 bg-[#fbfaf6] px-4 py-3">
-                <p class="text-[13px] font-semibold text-slate-900" style="font-family:'DM Sans',sans-serif">{{ $title }}</p>
-                <p class="mt-0.5 text-[12px] leading-snug text-slate-500">{{ $desc }}</p>
-            </div>
-            @endforeach
-        </div>
     </div>
 </section>
 
-{{-- VIDEO --}}
-<section id="overview-video" class="border-b border-slate-200 bg-[#fbfaf6]">
-    <div class="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
-        <div class="mx-auto max-w-2xl">
-            <p class="text-[11px] font-semibold uppercase tracking-[0.07em] text-teal-700" style="font-family:'DM Sans',sans-serif">Daily workflow overview</p>
-            <h2 class="mt-3 text-[24px] font-medium leading-snug text-slate-950 sm:text-[28px]">See the daily workflow in two minutes</h2>
-            <p class="mt-4 text-[15px] leading-[1.75] text-slate-600">A quick overview of how Practiq supports setup, appointment requests, documentation, follow-up, and financial exports for small practices.</p>
-        </div>
-        <div class="mx-auto mt-8 max-w-5xl overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl shadow-teal-950/8">
-            <video class="block w-full" controls preload="metadata" aria-label="Practiq product overview video">
-                <source src="{{ $overviewVideoUrl }}" type="video/mp4">
-                Your browser does not support the overview video.
-            </video>
-        </div>
-        <p class="mt-5 text-center text-[13px] text-slate-500">
-            Prefer to click through yourself?
-            <a href="{{ $demoUrl }}" class="font-semibold text-teal-800 transition hover:text-teal-900">demo.practiqapp.com</a>
-        </p>
-    </div>
-</section>
-
-{{-- PROBLEMS --}}
-<section id="problems" class="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
+{{-- CORE WORKFLOW --}}
+<section id="workflow" class="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
     <div class="max-w-2xl">
-        <p class="text-[11px] font-semibold uppercase tracking-[0.07em] text-teal-700" style="font-family:'DM Sans',sans-serif">The real work of a small practice</p>
-        <h2 class="mt-3 text-[26px] font-medium leading-snug text-slate-950 sm:text-[30px]">Your practice shouldn't live in five different places.</h2>
+        <p class="text-[11px] font-semibold uppercase tracking-[0.07em] text-teal-700" style="font-family:'DM Sans',sans-serif">How Practiq helps</p>
+        <h2 class="mt-3 text-[26px] font-medium leading-snug text-slate-950 sm:text-[30px]">One practical workflow for the whole day</h2>
+        <p class="mt-4 text-[15px] leading-[1.75] text-slate-600">Keep the core pieces of a small practice connected, so less gets lost between visits.</p>
     </div>
     <div class="mt-10 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         @foreach([
-            ['Notes pile up after a full schedule',      'A full day means notes get pushed to the end. By then, details blur. Practiq is built for notes written close to the visit — short, clear, and done.'],
-            ['Intake forms end up scattered',             'Forms in emails, on paper, in attachments that never got filed. Practiq keeps intake and consent together — sent, submitted, and reviewed in one place.'],
-            ['Follow-up slips through the cracks',        'The patient you meant to check on Thursday. The invitation back you drafted but never sent. Practiq shows you who needs attention.'],
-            ['You need control of the schedule',          'Patients can request a time. You confirm it. Your schedule stays yours.'],
-            ['Front-desk capacity is real',               'When one person is doing everything, less gets lost if everything is connected. Notes, forms, requests, and checkout in the same place.'],
-            ['You need to see where your practice stands', 'Track what was seen, what was paid, and export what your bookkeeper needs. Not accounting software — just what a small practice actually uses.'],
+            ['Visit notes', 'Write rough fragments when time is tight. Practiq can help shape practitioner-written notes into clearer draft text. The practitioner supplies the facts, reviews the draft, and decides what belongs in the record.'],
+            ['Follow-up', 'See who may need a check-in or an invite back, then review the message before it sends.'],
+            ['Forms and appointment requests', 'Send forms before visits and let patients request times. Your clinic still confirms the schedule.'],
+            ['Checkout and simple reports', 'Track charges, payments, and simple totals without turning your clinic into accounting software.'],
         ] as [$title, $body])
-        <article class="rounded-xl border border-slate-200 bg-white p-6">
+        <article class="rounded-xl border border-slate-200 bg-white p-6 @if($loop->index === 3) md:col-span-2 lg:col-span-1 @endif">
             <h3 class="text-[15px] font-medium text-slate-950">{{ $title }}</h3>
             <p class="mt-2.5 text-[14px] leading-[1.7] text-slate-600">{{ $body }}</p>
         </article>
@@ -154,38 +102,8 @@
     </div>
 </section>
 
-{{-- FEATURES CHIP GRID --}}
-<section class="border-y border-slate-200 bg-white">
-    <div class="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
-        <div class="max-w-2xl">
-            <p class="text-[11px] font-semibold uppercase tracking-[0.07em] text-teal-700" style="font-family:'DM Sans',sans-serif">What Practiq covers</p>
-            <h2 class="mt-3 text-[26px] font-medium leading-snug text-slate-950 sm:text-[30px]">Notes, forms, follow-up, and checkout. One place.</h2>
-        </div>
-        <div class="mt-10 grid gap-3 md:grid-cols-2 lg:grid-cols-3">
-            @foreach([
-                ['Visit notes',                         'Write what happened, in your words. SOAP mode for visits that need structure. AI drafting is available but never automatic — you review everything before it enters the chart.'],
-                ['Intake and consent forms',             'Send before the visit. The patient submits it; you review it before anything changes. No chasing paper on the day.'],
-                ['Appointment requests',                 'Patients request a time. You confirm it. You stay in control of the schedule.'],
-                ['Follow-up and communication',          'See who may be slipping away. Invite back with a message you review before it sends.'],
-                ['Checkout and payment tracking',        'Close out each visit cleanly. Record what was charged, what was paid, and what\'s outstanding.'],
-                ['Practice statistics and exports',      'Revenue totals and bookkeeping CSV exports. Not accounting software — just the numbers a small practice actually uses.'],
-            ] as [$title, $body])
-            <div class="flex items-start gap-3 rounded-xl border border-slate-200 bg-[#fbfaf6] px-5 py-4">
-                <svg class="mt-0.5 h-4 w-4 shrink-0 text-teal-700" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
-                    <path fill-rule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clip-rule="evenodd"/>
-                </svg>
-                <div>
-                    <p class="text-[14px] font-semibold text-slate-900" style="font-family:'DM Sans',sans-serif">{{ $title }}</p>
-                    <p class="mt-1 text-[13px] leading-relaxed text-slate-600">{{ $body }}</p>
-                </div>
-            </div>
-            @endforeach
-        </div>
-    </div>
-</section>
-
 {{-- DISCIPLINES --}}
-<section class="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
+<section id="practice-types" class="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
     <div class="max-w-2xl">
         <p class="text-[11px] font-semibold uppercase tracking-[0.07em] text-teal-700" style="font-family:'DM Sans',sans-serif">Built for small healthcare practices</p>
         <h2 class="mt-3 text-[26px] font-medium leading-snug text-slate-950 sm:text-[30px]">For your kind of practice</h2>
@@ -193,56 +111,58 @@
     </div>
     <div class="mt-10 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         @foreach([
-            ['/practice-software-for-acupuncturists', 'Acupuncture', 'Preserve the thread of care between visits with notes, intake, follow-up, and checkout in one place.'],
-            ['/massage-therapy-practice-software', 'Massage therapy', 'Keep session notes, client response, follow-up, and checkout from getting scattered across the day.'],
-            ['/chiropractic-practice-software', 'Chiropractic', 'Keep short visits, progress notes, SOAP-style documentation when needed, and follow-up organized.'],
-            ['/physiotherapy-practice-software', 'Physiotherapy', 'Track progress over time, home exercises, reassessment notes, and follow-up plans clearly.'],
-            ['/wellness-practice-software', 'Wellness', 'Use flexible notes, forms, and follow-up for varied wellness practices without making the clinic feel like a hospital.'],
-        ] as [$href, $title, $body])
-        <a href="{{ $href }}" class="group flex flex-col rounded-xl border border-slate-200 bg-white px-6 py-5 transition hover:border-teal-700/30 hover:shadow-sm">
-            <div class="flex items-center justify-between">
-                <h3 class="text-[15px] font-medium text-slate-950 group-hover:text-teal-800">{{ $title }}</h3>
-                <svg class="h-4 w-4 text-slate-300 transition group-hover:text-teal-700" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-                </svg>
+            ['/practice-software-for-acupuncturists', 'Acupuncture', 'Preserve the thread of care between visits with notes, intake, and follow-up.', '/images/practitioner-pages/acupuncture.png', 'Acupuncture practitioner working in a calm small clinic setting'],
+            ['/massage-therapy-practice-software', 'Massage therapy', 'Keep session notes, client response, follow-up, and checkout from getting scattered.', '/images/practitioner-pages/massage-therapy.png', 'Massage therapist working with a client in a professional small clinic setting'],
+            ['/chiropractic-practice-software', 'Chiropractic', 'Keep short visits, progress notes, SOAP-style structure when needed, and follow-up organized.', '/images/practitioner-pages/chiropractic.png', 'Chiropractor working with a patient in a small clinic setting'],
+            ['/physiotherapy-practice-software', 'Physiotherapy', 'Track progress over time, home exercises, reassessment notes, and follow-up plans.', '/images/practitioner-pages/physiotherapy.png', 'Physiotherapist guiding a patient through a supported exercise in a small clinic setting'],
+            ['/wellness-practice-software', 'Wellness', 'Use flexible notes, forms, and follow-up without making the clinic feel like a hospital.', '/images/practitioner-pages/wellness.png', 'Wellness practitioner meeting with a client in a calm consultation setting'],
+        ] as [$href, $title, $body, $img, $alt])
+        <a href="{{ $href }}" class="group overflow-hidden rounded-xl border border-slate-200 bg-white transition hover:border-teal-700/30 hover:shadow-sm">
+            <div class="aspect-[16/10] overflow-hidden bg-[#fbfaf6]">
+                <img
+                    src="{{ $img }}"
+                    alt="{{ $alt }}"
+                    class="h-full w-full object-cover"
+                    width="1200"
+                    height="750"
+                    loading="lazy"
+                    decoding="async"
+                >
             </div>
-            <p class="mt-2 text-[13px] leading-relaxed text-slate-500">{{ $body }}</p>
+            <div class="px-5 py-4">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-[15px] font-medium text-slate-950 group-hover:text-teal-800">{{ $title }}</h3>
+                    <svg class="h-4 w-4 text-slate-300 transition group-hover:text-teal-700" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                    </svg>
+                </div>
+                <p class="mt-2 text-[13px] leading-relaxed text-slate-500">{{ $body }}</p>
+            </div>
         </a>
-        @endforeach
-    </div>
-    <div class="mt-6 flex flex-wrap gap-2">
-        @foreach(['Solo practitioners', 'Small multi-practitioner teams', 'Limited-staff clinics', 'Cash-based practices'] as $item)
-        <span class="rounded-full border border-slate-200 bg-white px-4 py-1.5 text-[12px] font-medium text-slate-600">{{ $item }}</span>
         @endforeach
     </div>
 </section>
 
-{{-- STARTER SETUP --}}
+{{-- WHAT PRACTIQ IS NOT --}}
 <section class="border-y border-slate-200 bg-white">
     <div class="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
-        <div class="max-w-2xl">
-            <p class="text-[11px] font-semibold uppercase tracking-[0.07em] text-teal-700" style="font-family:'DM Sans',sans-serif">Getting started</p>
-            <h2 class="mt-3 text-[26px] font-medium leading-snug text-slate-950 sm:text-[30px]">Start with useful defaults, not an empty screen.</h2>
+        <div class="max-w-3xl">
+            <p class="text-[11px] font-semibold uppercase tracking-[0.07em] text-teal-700" style="font-family:'DM Sans',sans-serif">Scope</p>
+            <h2 class="mt-3 text-[26px] font-medium leading-snug text-slate-950 sm:text-[30px]">What Practiq is — and what it is not</h2>
+            <p class="mt-4 text-[15px] leading-[1.75] text-slate-600">Practiq is simple practice software for small clinics. It helps with notes, forms, follow-up, appointment requests, checkout tracking, and simple reports.</p>
         </div>
-        <div class="mt-10 grid gap-4 lg:grid-cols-3">
+        <div class="mt-8 grid gap-2 md:grid-cols-2 lg:max-w-3xl">
             @foreach([
-                ['A calmer first day',          'When you start a trial, Practiq sets up editable defaults — a practitioner, weekday working hours, Initial Visit and Follow-up Visit types, and starter fees. You\'re not staring at a blank system.'],
-                ['Change everything later',     'Every default is editable. The starter settings are just there so you can evaluate the software without first having to configure the software.'],
-                ['Built to stay out of the way', 'No forced online booking. No full accounting claims. No replacement for clinical judgment. Practiq stays focused on the daily clinic workflow.'],
-            ] as [$title, $body])
-            <article class="rounded-xl border border-slate-200 bg-[#fbfaf6] p-6">
-                <h3 class="text-[15px] font-medium text-slate-950">{{ $title }}</h3>
-                <p class="mt-2.5 text-[14px] leading-[1.7] text-slate-600">{{ $body }}</p>
-            </article>
-            @endforeach
-        </div>
-        <div class="mt-6 rounded-xl border border-slate-200 bg-white p-6">
-            <p class="text-[11px] font-semibold uppercase tracking-[0.07em] text-teal-700" style="font-family:'DM Sans',sans-serif">Setup checklist covers</p>
-            <div class="mt-4 flex flex-wrap gap-2">
-                @foreach(['Practice profile', 'Practitioner setup', 'Appointment types', 'Working hours', 'Public website links', 'HIPAA / BAA acknowledgement', 'AI disclaimer acknowledgement'] as $item)
-                <span class="rounded-full border border-slate-200 bg-[#fbfaf6] px-3 py-1.5 text-[12px] font-medium text-slate-600">{{ $item }}</span>
-                @endforeach
+                'Not hospital software',
+                'Not an AI clinician',
+                'Not automatic booking chaos',
+                'Not a billing clearinghouse',
+            ] as $item)
+            <div class="flex items-center gap-3 rounded-lg border border-slate-200 bg-[#fbfaf6] px-4 py-3">
+                <span class="text-slate-300">—</span>
+                <span class="text-[13px] text-slate-700">{{ $item }}</span>
             </div>
+            @endforeach
         </div>
     </div>
 </section>
@@ -252,7 +172,7 @@
     <div class="max-w-2xl">
         <p class="text-[11px] font-semibold uppercase tracking-[0.07em] text-teal-700" style="font-family:'DM Sans',sans-serif">Pricing</p>
         <h2 class="mt-3 text-[26px] font-medium leading-snug text-slate-950 sm:text-[30px]">Clear pricing. No surprises.</h2>
-        <p class="mt-4 text-[15px] leading-[1.75] text-slate-600">Start with the plan that fits your practice today. 30-day free trial, no credit card required. Stripe handles subscription billing.</p>
+        <p class="mt-4 text-[15px] leading-[1.75] text-slate-600">Start with the plan that fits your practice now. 30-day free trial. No credit card required.</p>
     </div>
     <div class="mt-10 grid gap-5 lg:grid-cols-3">
         @foreach([
@@ -272,32 +192,7 @@
         <p class="text-[13px] font-semibold text-slate-900" style="font-family:'DM Sans',sans-serif">Herb &amp; Product Inventory — $19/month add-on</p>
         <p class="mt-1 text-[13px] text-slate-500">Add inventory tracking only if products are part of your practice workflow.</p>
     </div>
-</section>
-
-{{-- WHAT PRACTIQ IS NOT --}}
-<section class="border-y border-slate-200 bg-white">
-    <div class="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
-        <div class="max-w-2xl">
-            <p class="text-[11px] font-semibold uppercase tracking-[0.07em] text-teal-700" style="font-family:'DM Sans',sans-serif">Scope</p>
-            <h2 class="mt-3 text-[26px] font-medium leading-snug text-slate-950 sm:text-[30px]">Focused on your day. Not everything in healthcare.</h2>
-            <p class="mt-4 text-[15px] leading-[1.75] text-slate-600">Practiq does one thing: keeps the day-to-day work of a small practice organized. It is not trying to do everything.</p>
-        </div>
-        <div class="mt-8 grid gap-2 md:grid-cols-2 lg:max-w-3xl">
-            @foreach([
-                'Not a full hospital EHR',
-                'Not an insurance billing clearinghouse',
-                'Not an automatic booking engine',
-                'Not a full accounting system',
-                'Not a replacement for professional judgment',
-                'Not a legal or compliance guarantee',
-            ] as $item)
-            <div class="flex items-center gap-3 rounded-lg border border-slate-200 bg-[#fbfaf6] px-4 py-3">
-                <span class="text-slate-300">—</span>
-                <span class="text-[13px] text-slate-700">{{ $item }}</span>
-            </div>
-            @endforeach
-        </div>
-    </div>
+    <p class="mt-4 text-[12px] text-slate-500">Stripe handles Practiq subscription billing.</p>
 </section>
 
 {{-- FAQ --}}
@@ -310,18 +205,16 @@
         @foreach([
             ['Does Practiq support simple notes and SOAP notes?',
              'Yes. Write in natural language for routine visits, or switch to SOAP mode when the record needs more structure. You choose per visit.'],
-            ['Can patients book themselves automatically?',
-             'No. Patients request a time. You confirm it. You stay in control of the schedule.'],
-            ['Does Practiq include online forms?',
-             'Yes. You send the link, the patient submits it securely, you review it before anything changes in the chart.'],
-            ['Does Practiq use AI?',
-             'AI features are optional drafting tools — never automatic, never diagnostic. You review everything before it enters the record. AI acknowledgement is required before first use.'],
-            ['Can I put Practiq links on my website?',
-             'Yes. Stable public links for new patient requests, existing patient access, and appointment booking requests.'],
-            ['Is setup guided?',
-             'Yes. A setup checklist shows what\'s ready and what still needs attention. Editable starter defaults are already in place when you begin your trial.'],
-            ['Does Practiq include financial reporting?',
-             'Basic collected revenue summaries and CSV exports for bookkeeping. Not accounting software — just the numbers a small practice actually needs.'],
+            ['Can I use simple natural notes?',
+             'Yes. Many teams write brief, natural notes and add structure only when needed.'],
+            ['Can Practiq help with rough notes?',
+             'Yes. If you write the facts in rough form, Practiq can help turn that into clearer draft text. You review and edit before saving.'],
+            ['Can patients request appointments?',
+             'Yes. Patients request a time and your clinic confirms it.'],
+            ['Does AI send anything automatically?',
+             'No. AI suggestions are drafts only. Nothing is sent or saved automatically.'],
+            ['Is Practiq a billing service or clearinghouse?',
+             'No. Practiq includes checkout tracking and simple reports, but it is not a billing clearinghouse or full accounting system.'],
         ] as [$question, $answer])
         <div class="overflow-hidden rounded-xl border border-slate-200 bg-white">
             <button class="acc-trigger flex w-full items-center gap-4 px-6 py-5 text-left transition-colors hover:bg-slate-50" aria-expanded="false">
@@ -344,12 +237,12 @@
 <section class="mx-auto max-w-4xl px-4 pb-20 sm:px-6 lg:px-8">
     <div class="flex flex-col gap-6 rounded-xl border border-slate-200 bg-slate-50 px-8 py-10 sm:flex-row sm:items-center sm:justify-between">
         <div>
-            <h2 class="text-[22px] font-medium text-slate-950">Try it with your real workflow.</h2>
-            <p class="mt-2 text-[14px] leading-relaxed text-slate-600">30-day free trial. Starter settings are already in place. No credit card required.</p>
+            <h2 class="text-[22px] font-medium text-slate-950">Ready to see if it fits your day?</h2>
+            <p class="mt-2 text-[14px] leading-relaxed text-slate-600">Start a free trial and test Practiq with your real workflow.</p>
         </div>
         <div class="flex shrink-0 flex-col gap-2 sm:flex-row">
-            <a href="{{ $trialUrl }}" class="inline-flex items-center justify-center rounded-lg bg-slate-900 px-6 py-3.5 text-[14px] font-semibold text-white transition hover:bg-teal-800">Start free trial</a>
-            <a href="{{ $demoUrl }}" class="inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white px-6 py-3.5 text-[14px] font-medium text-slate-600 transition hover:border-teal-700/30 hover:text-teal-800">View demo</a>
+            <a href="{{ $trialUrl }}" class="inline-flex items-center justify-center rounded-lg bg-slate-900 px-6 py-3.5 text-[14px] font-semibold text-white transition hover:bg-teal-800">Start Free Trial</a>
+            <a href="#practice-types" class="inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white px-6 py-3.5 text-[14px] font-medium text-slate-600 transition hover:border-teal-700/30 hover:text-teal-800">Choose your practice type</a>
         </div>
     </div>
 </section>
