@@ -53,6 +53,13 @@ class RequiresActiveSubscription
             return redirect('/subscribe');
         }
 
+        // Starter tier is the free access tier.
+        if ($practice->hasFreeStarterAccess()) {
+            session()->forget('trial_grace');
+
+            return $next($request);
+        }
+
         // Allow active trial (no Stripe subscription yet)
         if ($practice->trial_ends_at && $practice->trial_ends_at->isFuture()) {
             return $next($request);
