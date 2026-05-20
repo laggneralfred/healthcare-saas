@@ -11,6 +11,16 @@ class Practice extends Model
 {
     use Billable, HasFactory;
 
+    public const PLAN_TIER_STARTER = 'starter';
+    public const PLAN_TIER_PLUS = 'plus';
+    public const PLAN_TIER_CLINIC = 'clinic';
+
+    private const SUPPORTED_PLAN_TIERS = [
+        self::PLAN_TIER_STARTER,
+        self::PLAN_TIER_PLUS,
+        self::PLAN_TIER_CLINIC,
+    ];
+
     protected $fillable = [
         'name', 'slug', 'timezone', 'is_active', 'is_demo',
         'stripe_id', 'pm_type', 'pm_last_four', 'trial_ends_at',
@@ -18,6 +28,7 @@ class Practice extends Model
         'dismissed_onboarding_banner',
         'default_appointment_duration', 'default_reminder_hours',
         'insurance_billing_enabled',
+        'plan_tier',
     ];
 
     protected function casts(): array
@@ -77,6 +88,37 @@ class Practice extends Model
     }
 
     // ── Subscription Helpers ───────────────────────────────────────────────────────
+
+    public function planTier(): string
+    {
+        $tier = strtolower((string) $this->plan_tier);
+
+        if (! in_array($tier, self::SUPPORTED_PLAN_TIERS, true)) {
+            return self::PLAN_TIER_STARTER;
+        }
+
+        return $tier;
+    }
+
+    public function isStarterPlan(): bool
+    {
+        return $this->planTier() === self::PLAN_TIER_STARTER;
+    }
+
+    public function isPlusPlan(): bool
+    {
+        return $this->planTier() === self::PLAN_TIER_PLUS;
+    }
+
+    public function isClinicPlan(): bool
+    {
+        return $this->planTier() === self::PLAN_TIER_CLINIC;
+    }
+
+    public function hasFreeStarterAccess(): bool
+    {
+        return $this->isStarterPlan();
+    }
 
     public function currentPlan(): ?SubscriptionPlan
     {
