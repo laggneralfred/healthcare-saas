@@ -24,9 +24,16 @@ class SubscriptionPlanTest extends TestCase
 
         $this->assertDatabaseHas('subscription_plans', [
             'key' => 'solo',
-            'name' => 'Solo Plan',
+            'name' => 'Starter',
             'price_monthly' => 4900,
             'stripe_price_id' => 'price_solo_configured',
+            'is_active' => true,
+        ]);
+        $this->assertDatabaseHas('subscription_plans', [
+            'key' => 'clinic',
+            'name' => 'Plus',
+            'price_monthly' => 9900,
+            'stripe_price_id' => 'price_clinic_configured',
             'is_active' => true,
         ]);
         $this->assertDatabaseHas('subscription_plans', [
@@ -37,6 +44,7 @@ class SubscriptionPlanTest extends TestCase
         ]);
         $this->assertDatabaseHas('subscription_plans', [
             'key' => 'enterprise',
+            'name' => 'Clinic',
             'price_monthly' => 19900,
             'stripe_price_id' => 'price_enterprise_configured',
             'is_active' => true,
@@ -47,7 +55,7 @@ class SubscriptionPlanTest extends TestCase
     {
         SubscriptionPlan::create([
             'key' => 'solo',
-            'name' => 'Solo Plan',
+            'name' => 'Starter',
             'price_monthly' => 4900,
             'stripe_price_id' => 'price_old',
             'max_practitioners' => 1,
