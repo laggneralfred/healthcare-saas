@@ -50,6 +50,10 @@ class BillingPage extends Page
 
     public ?string $currentPlanName = null;
 
+    public string $currentTierKey = 'starter';
+
+    public string $currentTierLabel = 'Starter';
+
     public ?string $subscriptionEndsAt = null;
 
     public ?string $billingStartsAt = null;
@@ -93,12 +97,15 @@ class BillingPage extends Page
         }
 
         $priceId = $this->resolveActivePriceId($practice);
+        $activePlan = $priceId
+            ? SubscriptionPlan::where('stripe_price_id', $priceId)->first()
+            : null;
 
         $this->activePriceId          = $priceId;
         $this->hasActiveSubscription  = $priceId !== null;
-        $this->currentPlanName        = $priceId
-            ? SubscriptionPlan::where('stripe_price_id', $priceId)->value('name')
-            : null;
+        $this->currentPlanName        = $activePlan?->name;
+        $this->currentTierKey         = $this->resolveCurrentTierKey($practice, $activePlan);
+        $this->currentTierLabel       = $this->tierLabel($this->currentTierKey);
 
         $sub = $practice->subscription('default');
         $this->hasPastDueSubscription = $sub && $sub->stripe_status === 'past_due';
@@ -166,6 +173,28 @@ class BillingPage extends Page
         // $currentPlanName, and $subscriptionEndsAt are public Livewire properties —
         // they are available in the view automatically without being listed here.
         return compact('currentPlan', 'allPlans');
+    }
+
+    protected function resolveCurrentTierKey(\App\Models\Practice $practice, ?SubscriptionPlan $activePlan): string
+    {
+        if ($activePlan !== null) {
+            return match ($activePlan->key) {
+                'clinic' => \App\Models\Practice::PLAN_TIER_PLUS,
+                'enterprise' => \App\Models\Practice::PLAN_TIER_CLINIC,
+                default => \App\Models\Practice::PLAN_TIER_STARTER,
+            };
+        }
+
+        return $practice->planTier();
+    }
+
+    protected function tierLabel(string $tier): string
+    {
+        return match ($tier) {
+            \App\Models\Practice::PLAN_TIER_PLUS => 'Plus',
+            \App\Models\Practice::PLAN_TIER_CLINIC => 'Clinic',
+            default => 'Starter',
+        };
     }
 
     // ── Subscribe action (called from blade via wire:click) ───────────────────

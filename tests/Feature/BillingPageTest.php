@@ -107,8 +107,7 @@ class BillingPageTest extends TestCase
 
         Livewire::test(BillingPage::class)
             ->assertSee('Your free trial ends on')
-            ->assertSee('If you subscribe now, billing starts after your trial ends on')
-            ->assertSee('Billing starts after your trial ends on');
+            ->assertSee('If you subscribe now, billing starts after your trial ends on');
     }
 
     public function test_billing_page_loads_with_stripe_customer_without_console_output(): void
@@ -139,6 +138,99 @@ class BillingPageTest extends TestCase
             ->assertSee('Choose Your Plan');
     }
 
+    public function test_starter_billing_page_hides_starter_stripe_action_and_shows_paid_upgrade_paths(): void
+    {
+        $practice = Practice::factory()->create([
+            'plan_tier' => Practice::PLAN_TIER_STARTER,
+            'trial_ends_at' => null,
+        ]);
+        $user = User::factory()->create(['practice_id' => $practice->id]);
+        $user->assignRole(User::ROLE_OWNER);
+
+        $this->seedPlansForBillingPage([
+            ['key' => 'solo', 'name' => 'Starter', 'price' => 4900, 'stripe' => null, 'max' => 1],
+            ['key' => 'clinic', 'name' => 'Plus', 'price' => 9900, 'stripe' => 'price_plus_test', 'max' => 5],
+            ['key' => 'enterprise', 'name' => 'Clinic', 'price' => 19900, 'stripe' => 'price_clinic_test', 'max' => -1],
+        ]);
+
+        $this->actingAs($user);
+
+        $this->get('/admin/billing')
+            ->assertOk()
+            ->assertSee('Current tier:')
+            ->assertSee('Starter')
+            ->assertSee('Starter is your free basic tier', false)
+            ->assertDontSee("subscribeToPlan('solo')", false)
+            ->assertSee("subscribeToPlan('clinic')", false)
+            ->assertSee("subscribeToPlan('enterprise')", false);
+    }
+
+    public function test_plus_upgrade_action_uses_existing_paid_subscription_flow(): void
+    {
+        $practice = Practice::factory()->create(['plan_tier' => Practice::PLAN_TIER_STARTER]);
+        $user = User::factory()->create(['practice_id' => $practice->id]);
+        $user->assignRole(User::ROLE_OWNER);
+
+        SubscriptionPlan::create([
+            'key' => 'clinic',
+            'name' => 'Plus',
+            'price_monthly' => 9900,
+            'stripe_price_id' => 'price_plus_test',
+            'max_practitioners' => 5,
+            'features' => [],
+            'is_active' => true,
+        ]);
+
+        $this->actingAs($user);
+
+        $page = new class extends BillingPage {
+            public bool $attempted = false;
+
+            protected function attemptSubscription(\App\Models\Practice $practice, SubscriptionPlan $plan): mixed
+            {
+                $this->attempted = true;
+
+                return 'checkout-attempted';
+            }
+        };
+
+        $this->assertSame('checkout-attempted', $page->subscribeToPlan('clinic'));
+        $this->assertTrue($page->attempted);
+    }
+
+    public function test_current_tier_label_displays_plus_for_paid_clinic_subscription(): void
+    {
+        $practice = Practice::factory()->create([
+            'plan_tier' => Practice::PLAN_TIER_STARTER,
+        ]);
+        $user = User::factory()->create(['practice_id' => $practice->id]);
+        $user->assignRole(User::ROLE_OWNER);
+
+        SubscriptionPlan::create([
+            'key' => 'clinic',
+            'name' => 'Plus',
+            'price_monthly' => 9900,
+            'stripe_price_id' => 'price_plus_test',
+            'max_practitioners' => 5,
+            'features' => [],
+            'is_active' => true,
+        ]);
+
+        $practice->subscriptions()->create([
+            'type' => 'default',
+            'stripe_id' => 'sub_plus_test',
+            'stripe_status' => 'active',
+            'stripe_price' => 'price_plus_test',
+            'quantity' => 1,
+        ]);
+
+        $this->actingAs($user);
+
+        Livewire::test(BillingPage::class)
+            ->assertSee('Current tier:')
+            ->assertSee('Plus');
+    }
+
     private function plan(): SubscriptionPlan
     {
         return SubscriptionPlan::firstOrCreate(
@@ -152,6 +244,21 @@ class BillingPageTest extends TestCase
                 'is_active' => true,
             ],
         );
+    }
+
+    private function seedPlansForBillingPage(array $plans): void
+    {
+        foreach ($plans as $plan) {
+            SubscriptionPlan::create([
+                'key' => $plan['key'],
+                'name' => $plan['name'],
+                'price_monthly' => $plan['price'],
+                'stripe_price_id' => $plan['stripe'],
+                'max_practitioners' => $plan['max'],
+                'features' => [],
+                'is_active' => true,
+            ]);
+        }
     }
 
     private function trialExpiresFor(SubscriptionBuilder $builder): ?\Carbon\CarbonInterface

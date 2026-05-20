@@ -19,9 +19,9 @@ class PractitionerObserver
      * on the practice row before counting, serialising concurrent attempts for
      * the same practice.
      *
-     * Enforcement is skipped when the practice has no active subscription plan
-     * (currentLimit() returns null) — this covers initial setup, seeders, and
-     * the Enterprise unlimited tier.
+     * Enforcement is skipped only when currentLimit() resolves to unlimited
+     * (null), such as Enterprise and non-starter tiers without an active
+     * subscription.
      *
      * @throws \App\Exceptions\PractitionerLimitExceededException
      */

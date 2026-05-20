@@ -12,6 +12,10 @@
         {{-- Current Subscription Section --}}
         <div style="background-color: #f9fafb; border-radius: 0.5rem; padding: 1.5rem; border: 1px solid #e5e7eb;">
             <h2 style="font-size: 1.125rem; font-weight: 600; color: #111827; margin-bottom: 1rem;">Current Subscription</h2>
+            <p style="font-size: 0.875rem; color: #374151; margin: 0 0 0.75rem 0;">
+                Current tier:
+                <span style="font-weight: 600;">{{ $currentTierLabel }}</span>
+            </p>
 
             @if ($hasActiveSubscription)
                 <div style="display: flex; flex-direction: column; gap: 0.75rem;">
@@ -66,6 +70,11 @@
                             <p style="font-size: 0.875rem; color: #4b5563; margin-top: 0.25rem;">
                                 Your free trial ends on {{ $trialEndsAt }}. Choose a plan below to continue after the trial.
                             </p>
+                            @if ($currentTierKey === 'starter')
+                                <p style="font-size: 0.875rem; color: #4b5563; margin-top: 0.25rem;">
+                                    Starter is your free basic tier. Upgrade to Plus or Clinic any time.
+                                </p>
+                            @endif
                             <p style="font-size: 0.875rem; color: #92400e; margin-top: 0.5rem; font-weight: 600;">
                                 If you subscribe now, billing starts after your trial ends on {{ $billingStartsAt }}.
                             </p>
@@ -79,8 +88,12 @@
             @else
                 <div style="display: flex; flex-direction: column; gap: 0.75rem;">
                     <p style="font-size: 1.125rem; font-weight: 500; color: #4b5563;">No active plan</p>
-                    <p style="font-size: 0.875rem; color: #4b5563;">Select a plan below to get started with your practice management.</p>
-                    <p style="font-size: 0.875rem; color: #4b5563;">Billing starts today when you subscribe.</p>
+                    @if ($currentTierKey === 'starter')
+                        <p style="font-size: 0.875rem; color: #4b5563;">Starter is your free basic tier. Upgrade to Plus or Clinic below when you need more.</p>
+                    @else
+                        <p style="font-size: 0.875rem; color: #4b5563;">Select a plan below to get started with your practice management.</p>
+                        <p style="font-size: 0.875rem; color: #4b5563;">Billing starts today when you subscribe.</p>
+                    @endif
                 </div>
             @endif
         </div>
@@ -95,6 +108,9 @@
                         // $activePriceId is a reactive Livewire property — always current.
                         $isCurrent     = $activePriceId && $plan->stripe_price_id && $plan->stripe_price_id === $activePriceId;
                         $isMostPopular = $plan->key === 'clinic';
+                        $isStarterCard = $plan->key === 'solo';
+                        $isStarterUser = $currentTierKey === 'starter';
+                        $hideStarterStripeAction = $isStarterUser && $isStarterCard;
                     @endphp
 
                     <div style="position: relative; display: flex; flex-direction: column; border-radius: 1.125rem; background-color: #ffffff; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); overflow: hidden; transition: all 0.3s ease; {{ $isCurrent ? 'border: 2px solid #3b82f6;' : ($isMostPopular ? 'border: 2px solid #3b82f6;' : 'border: 1px solid #e5e7eb;') }}" onmouseover="this.style.boxShadow='0 20px 25px -5px rgba(0,0,0,0.1)'; this.style.transform='scale(1.05)';" onmouseout="this.style.boxShadow='0 10px 15px -3px rgba(0,0,0,0.1)'; this.style.transform='scale(1)';">
@@ -115,10 +131,15 @@
 
                             {{-- Price --}}
                             <div style="padding-bottom: 1.5rem; border-bottom: 1px solid #e5e7eb;">
-                                <p style="font-size: 2.25rem; font-weight: 700; color: #111827;">
-                                    {{ $plan->monthlyDollars() }}
-                                </p>
-                                <p style="font-size: 0.875rem; color: #4b5563; margin-top: 0.25rem;">per month</p>
+                                @if ($hideStarterStripeAction)
+                                    <p style="font-size: 2.25rem; font-weight: 700; color: #111827;">Free</p>
+                                    <p style="font-size: 0.875rem; color: #4b5563; margin-top: 0.25rem;">Basic tier</p>
+                                @else
+                                    <p style="font-size: 2.25rem; font-weight: 700; color: #111827;">
+                                        {{ $plan->monthlyDollars() }}
+                                    </p>
+                                    <p style="font-size: 0.875rem; color: #4b5563; margin-top: 0.25rem;">per month</p>
+                                @endif
                             </div>
 
                             {{-- Practitioners --}}
@@ -141,6 +162,12 @@
                                 <div style="padding-top: 1rem; border-top: 1px solid #e5e7eb;">
                                     <span style="display: inline-flex; align-items: center; border-radius: 9999px; background-color: #dcfce7; padding: 0.35rem 1rem; font-size: 0.8rem; font-weight: 700; color: #166534;">
                                         ✓ Current Plan
+                                    </span>
+                                </div>
+                            @elseif ($hideStarterStripeAction)
+                                <div style="padding-top: 1rem;">
+                                    <span style="display: inline-flex; align-items: center; border-radius: 9999px; background-color: #f3f4f6; padding: 0.35rem 1rem; font-size: 0.8rem; font-weight: 600; color: #374151;">
+                                        Current free tier
                                     </span>
                                 </div>
                             @else

@@ -12,23 +12,31 @@ class PractitionerLimitGuard
     /**
      * The max_practitioners limit imposed by the practice's active subscription plan.
      *
-     * Returns null for unlimited (Enterprise plan or no active subscription — the
-     * "no subscription" case allows initial data setup before billing is configured).
+     * Priority order:
+     * 1) Active Stripe plan max_practitioners (via currentPlan()).
+     * 2) Starter tier fallback (1 practitioner) when no active Stripe plan exists.
+     * 3) Unlimited (null) for non-starter tiers without an active Stripe plan.
+     *
+     * Returns null for unlimited (Enterprise or non-starter without subscription).
      * Returns a positive integer for Solo (1) and Clinic (5).
      */
     public function currentLimit(Practice $practice): int|null
     {
         $plan = $practice->currentPlan();
 
-        if ($plan === null) {
-            return null; // No active subscription — no enforcement
+        if ($plan !== null) {
+            if ($plan->max_practitioners === -1) {
+                return null; // Enterprise — unlimited
+            }
+
+            return $plan->max_practitioners;
         }
 
-        if ($plan->max_practitioners === -1) {
-            return null; // Enterprise — unlimited
+        if ($practice->isStarterPlan()) {
+            return 1;
         }
 
-        return $plan->max_practitioners;
+        return null;
     }
 
     /**

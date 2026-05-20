@@ -96,17 +96,21 @@ class PractitionerLimitTest extends TestCase
         $practice->unsetRelation('subscriptions');
     }
 
-    /** Create a practitioner for the test practice, going through the observer. */
-    private function addPractitioner(): Practitioner
+    /** Create a practitioner for a practice, going through the observer. */
+    private function addPractitioner(?Practice $practice = null): Practitioner
     {
-        return Practitioner::factory()->create(['practice_id' => $this->practice->id]);
+        $targetPractice = $practice ?? $this->practice;
+
+        return Practitioner::factory()->create(['practice_id' => $targetPractice->id]);
     }
 
-    /** Count practitioners for the test practice, bypassing the global scope. */
-    private function practitionerCount(): int
+    /** Count practitioners for a practice, bypassing the global scope. */
+    private function practitionerCount(?Practice $practice = null): int
     {
+        $targetPractice = $practice ?? $this->practice;
+
         return Practitioner::withoutPracticeScope()
-            ->where('practice_id', $this->practice->id)
+            ->where('practice_id', $targetPractice->id)
             ->count();
     }
 
@@ -165,18 +169,49 @@ class PractitionerLimitTest extends TestCase
         $this->assertTrue($this->guard->canAddPractitioner($this->practice));
     }
 
-    // ── No-plan (initial setup / seeder) test ─────────────────────────────────
+    // ── No-plan behavior by plan tier ──────────────────────────────────────────
 
-    public function test_practice_with_no_subscription_can_add_practitioners(): void
+    public function test_starter_practice_without_subscription_cannot_add_second_practitioner(): void
     {
-        // No subscription exists for this practice — simulates initial setup
-        // or running the database seeder before billing is configured.
-        $this->assertNull($this->guard->currentLimit($this->practice));
+        $this->assertSame(1, $this->guard->currentLimit($this->practice));
         $this->assertTrue($this->guard->canAddPractitioner($this->practice));
 
-        // Observer must NOT block creation when there is no active plan.
         $this->addPractitioner();
         $this->assertEquals(1, $this->practitionerCount());
+        $this->assertFalse($this->guard->canAddPractitioner($this->practice));
+
+        $this->expectException(PractitionerLimitExceededException::class);
+        $this->expectExceptionMessageMatches('/limit of 1/');
+        $this->addPractitioner();
+    }
+
+    public function test_plus_and_clinic_practices_without_subscription_can_still_add_multiple_practitioners(): void
+    {
+        $plusPractice = Practice::factory()->create(['plan_tier' => Practice::PLAN_TIER_PLUS]);
+        $clinicPractice = Practice::factory()->create(['plan_tier' => Practice::PLAN_TIER_CLINIC]);
+
+        $this->assertNull($this->guard->currentLimit($plusPractice));
+        $this->assertNull($this->guard->currentLimit($clinicPractice));
+
+        for ($i = 0; $i < 3; $i++) {
+            $this->addPractitioner($plusPractice);
+            $this->addPractitioner($clinicPractice);
+        }
+
+        $this->assertSame(3, $this->practitionerCount($plusPractice));
+        $this->assertSame(3, $this->practitionerCount($clinicPractice));
+        $this->assertTrue($this->guard->canAddPractitioner($plusPractice));
+        $this->assertTrue($this->guard->canAddPractitioner($clinicPractice));
+    }
+
+    public function test_paid_subscription_limit_takes_priority_over_starter_plan_tier_fallback(): void
+    {
+        $this->assertSame(1, $this->guard->currentLimit($this->practice));
+
+        $this->subscribePracticeTo($this->practice, 'clinic');
+        $this->practice->refresh();
+
+        $this->assertSame(5, $this->guard->currentLimit($this->practice));
     }
 
     // ── Downgrade test ─────────────────────────────────────────────────────────
@@ -247,7 +282,7 @@ class PractitionerLimitTest extends TestCase
 
     public function test_current_limit_returns_correct_values_per_plan(): void
     {
-        $this->assertNull($this->guard->currentLimit($this->practice), 'No plan → null');
+        $this->assertSame(1, $this->guard->currentLimit($this->practice), 'Starter tier with no plan → 1');
 
         $this->subscribePracticeTo($this->practice, 'solo');
         $this->practice->refresh();
