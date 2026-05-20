@@ -176,9 +176,9 @@
     </div>
     <div class="mt-10 grid gap-5 lg:grid-cols-3">
         @foreach([
-            ['Starter',          '$49',  'month', 'For one practitioner. All core features included.'],
-            ['Plus',             '$99',  'month', 'For small clinics with up to 5 practitioners.'],
-            ['Growing Practice', '$199', 'month', 'For growing or multi-practitioner practices.'],
+            ['Starter', '$0',   'month', 'Free basic tier: one practitioner, basic patient records, basic scheduling, and visit notes. AI drafting and advanced follow-up are in Plus.'],
+            ['Plus',    '$99',  'month', 'Paid tier for small clinics with up to 5 practitioners. Includes AI drafting and advanced follow-up tools.'],
+            ['Clinic',  '$199', 'month', 'Paid tier for larger practices with unlimited practitioners and expanded operational support.'],
         ] as [$plan, $price, $period, $description])
         <article class="rounded-xl border border-slate-200 bg-white p-8">
             <h3 class="text-[15px] font-medium text-slate-700" style="font-family:'DM Sans',sans-serif">{{ $plan }}</h3>

@@ -221,33 +221,34 @@
         <div class="trust-signals">
             <p>✓ Cancel anytime</p>
             <p>✓ No setup fees</p>
-            <p>✓ All features included</p>
+            <p>✓ Choose the tier that fits your practice</p>
         </div>
 
         <div class="pricing-grid">
             <!-- Starter Plan -->
             <div class="pricing-card">
                 <h3>Starter</h3>
-                <div class="pricing-price">$49<small>/month</small></div>
-                <p class="pricing-description">1 practitioner</p>
+                <div class="pricing-price">$0<small>/month</small></div>
+                <p class="pricing-description">Free basic tier · 1 practitioner</p>
                 <ul class="pricing-features">
-                    <li>Appointment request workflow</li>
-                    <li>Patient intake forms</li>
-                    <li>Clinical visit notes</li>
-                    <li>Basic checkout and payment tracking</li>
-                    <li>Email support</li>
+                    <li>Basic patient records</li>
+                    <li>Basic scheduling</li>
+                    <li>Visit notes</li>
+                    <li>One practitioner</li>
+                    <li>AI drafting and advanced follow-up are in Plus</li>
                 </ul>
                 <a href="{{ route('filament.admin.pages.billing') }}" class="btn">Choose Plan</a>
             </div>
 
-            <!-- Plus Plan (Most Popular) -->
-            <div class="pricing-card most-popular">
-                <span class="badge">Most Popular</span>
+            <!-- Plus Plan -->
+            <div class="pricing-card">
                 <h3>Plus</h3>
                 <div class="pricing-price">$99<small>/month</small></div>
                 <p class="pricing-description">Up to 5 practitioners</p>
                 <ul class="pricing-features">
                     <li>Everything in Starter</li>
+                    <li>AI drafting support</li>
+                    <li>Advanced follow-up tools</li>
                     <li>Multi-practitioner scheduling</li>
                     <li>Practice dashboard & metrics</li>
                     <li>Priority support</li>

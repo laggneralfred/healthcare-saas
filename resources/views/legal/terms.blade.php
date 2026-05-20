@@ -153,17 +153,18 @@
             <p><strong>3.5 Reminder Emails</strong> We will send you reminder emails at 7 days and 3 days before your trial expires and at the point of expiry.</p>
 
             <h2>4. SUBSCRIPTIONS AND BILLING</h2>
-            <p><strong>4.1 Monthly Billing</strong> Subscriptions are billed monthly in advance via Stripe.</p>
+            <p><strong>4.1 Monthly Billing</strong> Paid subscriptions are billed monthly in advance via Stripe.</p>
             <p><strong>4.2 Tiers</strong></p>
             <ul>
-                <li>Starter: $49/month (1 practitioner)</li>
+                <li>Starter: Free / $0 (1 practitioner, basic patient records, basic scheduling, visit notes)</li>
                 <li>Plus: $99/month (up to 5 practitioners)</li>
                 <li>Clinic: $199/month (unlimited practitioners)</li>
                 <li>Herb & Product Inventory add-on: $19/month (optional)</li>
             </ul>
-            <p><strong>4.3 Auto-Renewal</strong> Subscriptions renew automatically each month unless cancelled.</p>
-            <p><strong>4.4 Cancellation</strong> You may cancel your subscription at any time from your account settings. Cancellation takes effect at the end of the current billing period. No refunds are issued for partial months.</p>
-            <p><strong>4.5 Price Changes</strong> We reserve the right to change pricing with 30 days written notice to your registered email address.</p>
+            <p><strong>4.3 Feature Scope by Tier</strong> Starter is intended as a useful basic tier. AI drafting and advanced follow-up tools are available in Plus and higher tiers.</p>
+            <p><strong>4.4 Auto-Renewal</strong> Paid subscriptions renew automatically each month unless cancelled.</p>
+            <p><strong>4.5 Cancellation</strong> You may cancel your subscription at any time from your account settings. Cancellation takes effect at the end of the current billing period. No refunds are issued for partial months.</p>
+            <p><strong>4.6 Price Changes</strong> We reserve the right to change pricing with 30 days written notice to your registered email address.</p>
 
             <h2>5. YOUR DATA</h2>
             <p><strong>5.1 Ownership</strong> All data you enter into Practiq — including patient records, appointments, clinical notes, and billing information — belongs to you. We do not claim ownership of your data.</p>

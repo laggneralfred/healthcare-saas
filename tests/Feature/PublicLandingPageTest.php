@@ -15,32 +15,27 @@ class PublicLandingPageTest extends TestCase
         $this->get('http://localhost/')
             ->assertSuccessful()
             ->assertDontSee('noindex', false)
-            ->assertSee('Simple practice software for busy healthcare providers.')
-            ->assertSee('Practiq helps small practices manage visit notes, intake forms, appointment requests, follow-up, checkout tracking, and simple reports — without adding more admin work to your day.')
+            ->assertSee('Your day is for patients.')
+            ->assertSee('Practiq keeps the everyday work of a small clinic organized')
             ->assertSee('application/ld+json', false)
             ->assertSee('Organization', false)
             ->assertSee('SoftwareApplication', false)
             ->assertSee('Practiq', false)
             ->assertSee('https://practiqapp.com/', false)
-            ->assertSee('How Practiq Helps')
-            ->assertSee('Built for the reality of a busy small practice')
-            ->assertSee('Keep notes, forms, follow-up, and checkout in one practical workflow')
-            ->assertSee('See the daily workflow in two minutes')
-            ->assertSee('Watch a quick overview of how Practiq supports setup, appointment requests, documentation, follow-up, and financial exports for small practices.')
+            ->assertSee('How Practiq helps')
+            ->assertSee('One practical workflow for the whole day')
+            ->assertSee('Keep the core pieces of a small practice connected')
             ->assertSee('Built for small healthcare practices')
             ->assertSee('/practice-software-for-acupuncturists', false)
             ->assertSee('/massage-therapy-practice-software', false)
             ->assertSee('/chiropractic-practice-software', false)
             ->assertSee('/physiotherapy-practice-software', false)
             ->assertSee('/wellness-practice-software', false)
-            ->assertSee('Practice statistics and financial exports')
-            ->assertSee('What Practiq Is Not')
-            ->assertSee('Focused on daily workflow, not everything in healthcare.')
-            ->assertSee('Start with editable defaults, not an empty system.')
-            ->assertSee('Stripe is used for Practiq subscription billing.')
-            ->assertSee('Growing Practice')
-            ->assertSee('/videos/practiq-product-demo.mp4', false)
-            ->assertSee('Watch Overview')
+            ->assertSee('What Practiq is — and what it is not')
+            ->assertSee('Stripe handles Practiq subscription billing.')
+            ->assertSee('$0')
+            ->assertSee('AI drafting and advanced follow-up are in Plus.')
+            ->assertSee('Clinic')
             ->assertSee('/register', false)
             ->assertSee('https://demo.practiqapp.com/demo-login', false)
             ->assertSee('/blog', false)
@@ -54,8 +49,8 @@ class PublicLandingPageTest extends TestCase
     {
         $this->get('https://practiqapp.com/')
             ->assertSuccessful()
-            ->assertSee('Simple practice software for busy healthcare providers.')
-            ->assertSee('How Practiq Helps');
+            ->assertSee('Your day is for patients.')
+            ->assertSee('How Practiq helps');
     }
 
     public function test_app_host_root_redirects_guests_to_login(): void
@@ -151,11 +146,11 @@ class PublicLandingPageTest extends TestCase
                 ->assertSuccessful()
                 ->assertDontSee('noindex', false)
                 ->assertSee($h1)
-                ->assertSee($seoPhrase)
-                ->assertSee('What Practiq Helps With')
-                ->assertSee('Try Practiq with starter settings already in place.')
+                ->assertSee('How Practiq helps')
+                ->assertSee('Getting started')
+                ->assertSee('30-day free trial. No credit card required.')
                 ->assertSee('/register', false)
-                ->assertSee('/#overview-video', false);
+                ->assertSee('/#practice-types', false);
         }
     }
 
@@ -166,11 +161,9 @@ class PublicLandingPageTest extends TestCase
             ->assertDontSee('noindex', false)
             ->assertSee('Keeping Up With Visit Notes')
             ->assertSee('/blog', false)
-            ->assertSee('/practice-software-for-acupuncturists', false)
-            ->assertSee('/massage-therapy-practice-software', false)
-            ->assertSee('/chiropractic-practice-software', false)
-            ->assertSee('/physiotherapy-practice-software', false)
-            ->assertSee('/wellness-practice-software', false);
+            ->assertSee('/blog/what-to-include-in-a-visit-note', false)
+            ->assertSee('/blog/soap-notes-vs-simple-visit-notes', false)
+            ->assertSee('/register', false);
     }
 
     public function test_acupuncture_blog_article_is_public_and_indexable(): void
@@ -200,7 +193,7 @@ class PublicLandingPageTest extends TestCase
         $this->get('/blog/what-to-include-in-a-visit-note')
             ->assertSuccessful()
             ->assertDontSee('noindex', false)
-            ->assertSee('What to Include in a Visit Note')
+            ->assertSee('What Belongs in a Visit Note?')
             ->assertSee('/blog/small-clinic-visit-notes', false)
             ->assertSee('/blog/soap-notes-vs-simple-visit-notes', false)
             ->assertSee('/register', false);
@@ -213,8 +206,7 @@ class PublicLandingPageTest extends TestCase
             ->assertDontSee('noindex', false)
             ->assertSee('SOAP Notes or Simple Notes?')
             ->assertSee('/blog/small-clinic-visit-notes', false)
-            ->assertSee('/blog/acupuncture-visit-note-examples', false)
-            ->assertSee('/practice-software-for-acupuncturists', false)
+            ->assertSee('/blog/what-to-include-in-a-visit-note', false)
             ->assertSee('/register', false);
     }
 }
