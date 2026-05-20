@@ -9,6 +9,7 @@ use App\Models\Practice;
 use App\Models\Practitioner;
 use App\Services\AI\AIAcknowledgementGate;
 use App\Services\AI\AIService;
+use App\Services\Billing\PracticeFeatureAccess;
 use App\Services\EncounterNoteDocument;
 use App\Services\PracticeContext;
 use App\Support\ClinicalStyle;
@@ -26,6 +27,30 @@ trait HandlesEncounterAIActions
         'assessment' => 'Assessment',
         'plan' => 'Plan',
     ];
+
+    public function triggerImproveNote(AIService $ai): void
+    {
+        if (! $this->canUseEncounterAI()) {
+            return;
+        }
+
+        $practice = $this->encounterAIPractice();
+        $featureAccess = app(PracticeFeatureAccess::class);
+
+        if (! $featureAccess->canUseAiFeatures($practice)) {
+            $teaser = $featureAccess->teaserCopy(PracticeFeatureAccess::FEATURE_AI);
+
+            Notification::make()
+                ->title($teaser['heading'])
+                ->body($teaser['body'])
+                ->info()
+                ->send();
+
+            return;
+        }
+
+        $this->improveNote($ai);
+    }
 
     public function improveNote(AIService $ai): void
     {
@@ -667,6 +692,17 @@ trait HandlesEncounterAIActions
         }
 
         return PracticeContext::currentPracticeId();
+    }
+
+    private function encounterAIPractice(): ?Practice
+    {
+        $practiceId = $this->encounterAIPracticeId();
+
+        if (! $practiceId) {
+            return null;
+        }
+
+        return Practice::query()->find($practiceId);
     }
 
     private function encounterAIPracticeType(): string

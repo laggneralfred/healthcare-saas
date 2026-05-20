@@ -14,9 +14,9 @@
                     'Stripe public key configured' => $readiness['stripe_public_key_configured'],
                     'Stripe secret configured' => $readiness['stripe_secret_configured'],
                     'Stripe webhook secret configured' => $readiness['stripe_webhook_secret_configured'],
-                    'Solo price ID configured' => $readiness['configured_price_ids']['solo'] ?? false,
-                    'Clinic price ID configured' => $readiness['configured_price_ids']['clinic'] ?? false,
-                    'Enterprise price ID configured' => $readiness['configured_price_ids']['enterprise'] ?? false,
+                    'Starter price ID configured' => $readiness['configured_price_ids']['solo'] ?? false,
+                    'Plus price ID configured' => $readiness['configured_price_ids']['clinic'] ?? false,
+                    'Clinic price ID configured' => $readiness['configured_price_ids']['enterprise'] ?? false,
                     'Subscription plan rows exist' => $readiness['subscription_plan_rows_exist'],
                     'Active plans have price IDs' => $readiness['active_plan_price_ids_present'],
                 ] as $label => $value)

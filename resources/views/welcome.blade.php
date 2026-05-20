@@ -176,8 +176,8 @@
     </div>
     <div class="mt-10 grid gap-5 lg:grid-cols-3">
         @foreach([
-            ['Solo',             '$49',  'month', 'For one practitioner. All core features included.'],
-            ['Clinic',           '$99',  'month', 'For small clinics with up to 5 practitioners.'],
+            ['Starter',          '$49',  'month', 'For one practitioner. All core features included.'],
+            ['Plus',             '$99',  'month', 'For small clinics with up to 5 practitioners.'],
             ['Growing Practice', '$199', 'month', 'For growing or multi-practitioner practices.'],
         ] as [$plan, $price, $period, $description])
         <article class="rounded-xl border border-slate-200 bg-white p-8">

@@ -156,9 +156,9 @@
             <p><strong>4.1 Monthly Billing</strong> Subscriptions are billed monthly in advance via Stripe.</p>
             <p><strong>4.2 Tiers</strong></p>
             <ul>
-                <li>Solo: $49/month (1 practitioner)</li>
-                <li>Clinic: $99/month (up to 5 practitioners)</li>
-                <li>Enterprise: $199/month (unlimited practitioners)</li>
+                <li>Starter: $49/month (1 practitioner)</li>
+                <li>Plus: $99/month (up to 5 practitioners)</li>
+                <li>Clinic: $199/month (unlimited practitioners)</li>
                 <li>Herb & Product Inventory add-on: $19/month (optional)</li>
             </ul>
             <p><strong>4.3 Auto-Renewal</strong> Subscriptions renew automatically each month unless cancelled.</p>
@@ -175,7 +175,7 @@
             <h2>6. PATIENT DATA AND HIPAA</h2>
             <p><strong>6.1 You are the Covered Entity</strong> Practiq is a technology platform. You, as the health practitioner, are the Covered Entity responsible for compliance with HIPAA and any applicable state health privacy laws.</p>
             <p><strong>6.2 We are a Business Associate</strong> Practiq acts as a Business Associate under HIPAA. We handle patient data only as directed by you and only to provide the services described herein.</p>
-            <p><strong>6.3 Business Associate Agreements</strong> Formal HIPAA Business Associate Agreements (BAA) are available upon request for Enterprise subscribers. Please contact us at alfred.laggner@gmail.com.</p>
+            <p><strong>6.3 Business Associate Agreements</strong> Formal HIPAA Business Associate Agreements (BAA) are available upon request for Clinic subscribers. Please contact us at alfred.laggner@gmail.com.</p>
             <p><strong>6.4 Your Consent</strong> You agree not to enter any patient data into Practiq that you are not legally authorized to collect and store.</p>
 
             <h2>7. ACCEPTABLE USE</h2>

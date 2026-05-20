@@ -225,9 +225,9 @@
         </div>
 
         <div class="pricing-grid">
-            <!-- Solo Plan -->
+            <!-- Starter Plan -->
             <div class="pricing-card">
-                <h3>Solo</h3>
+                <h3>Starter</h3>
                 <div class="pricing-price">$49<small>/month</small></div>
                 <p class="pricing-description">1 practitioner</p>
                 <ul class="pricing-features">
@@ -240,14 +240,14 @@
                 <a href="{{ route('filament.admin.pages.billing') }}" class="btn">Choose Plan</a>
             </div>
 
-            <!-- Clinic Plan (Most Popular) -->
+            <!-- Plus Plan (Most Popular) -->
             <div class="pricing-card most-popular">
                 <span class="badge">Most Popular</span>
-                <h3>Clinic</h3>
+                <h3>Plus</h3>
                 <div class="pricing-price">$99<small>/month</small></div>
                 <p class="pricing-description">Up to 5 practitioners</p>
                 <ul class="pricing-features">
-                    <li>Everything in Solo</li>
+                    <li>Everything in Starter</li>
                     <li>Multi-practitioner scheduling</li>
                     <li>Practice dashboard & metrics</li>
                     <li>Priority support</li>
@@ -255,13 +255,13 @@
                 <a href="{{ route('filament.admin.pages.billing') }}" class="btn">Choose Plan</a>
             </div>
 
-            <!-- Enterprise Plan -->
+            <!-- Clinic Plan -->
             <div class="pricing-card">
-                <h3>Enterprise</h3>
+                <h3>Clinic</h3>
                 <div class="pricing-price">$199<small>/month</small></div>
                 <p class="pricing-description">Unlimited practitioners</p>
                 <ul class="pricing-features">
-                    <li>Everything in Clinic</li>
+                    <li>Everything in Plus</li>
                     <li>Custom onboarding</li>
                     <li>Dedicated support</li>
                     <li>API access</li>

@@ -6,6 +6,7 @@ use App\Models\Encounter;
 use App\Models\Patient;
 use App\Models\Practice;
 use App\Models\Practitioner;
+use App\Services\Billing\PracticeFeatureAccess;
 use App\Services\EncounterDisciplineTemplate;
 use App\Services\EncounterNoteDocument;
 use App\Services\PracticeContext;
@@ -272,7 +273,12 @@ HTML);
                     ->label('AI Assist / Improve with AI')
                     ->color('gray')
                     ->size(Size::Small)
-                    ->action('improveNote'),
+                    ->requiresConfirmation(fn (Get $get, ?Encounter $record = null): bool => self::shouldShowAIUpgradeTeaser($get, $record))
+                    ->modalHeading(fn (Get $get, ?Encounter $record = null): string => self::aiUpgradeTeaserCopy($get, $record)['heading'])
+                    ->modalDescription(fn (Get $get, ?Encounter $record = null): string => self::aiUpgradeTeaserCopy($get, $record)['body'])
+                    ->modalSubmitActionLabel(fn (Get $get, ?Encounter $record = null): string => self::aiUpgradeTeaserCopy($get, $record)['submit_label'])
+                    ->modalCancelActionLabel(fn (Get $get, ?Encounter $record = null): string => self::aiUpgradeTeaserCopy($get, $record)['cancel_label'])
+                    ->action('triggerImproveNote'),
             ])
                 ->hiddenOn('view')
                 ->columnSpanFull(),
@@ -309,6 +315,42 @@ HTML);
     private static function resetTemplateNeedsConfirmation(Get $get): bool
     {
         return ! EncounterDisciplineTemplate::isBlankOrTemplate((string) $get('visit_note_document'));
+    }
+
+    private static function shouldShowAIUpgradeTeaser(Get $get, ?Encounter $record = null): bool
+    {
+        $practice = self::aiFeaturePractice($get, $record);
+
+        return ! app(PracticeFeatureAccess::class)->canUseAiFeatures($practice);
+    }
+
+    private static function aiUpgradeTeaserCopy(Get $get, ?Encounter $record = null): array
+    {
+        if (! self::shouldShowAIUpgradeTeaser($get, $record)) {
+            return [
+                'heading' => 'Improve with AI',
+                'body' => 'Generate an AI draft from your current note.',
+                'submit_label' => 'Continue',
+                'cancel_label' => 'Cancel',
+            ];
+        }
+
+        return app(PracticeFeatureAccess::class)->teaserCopy(PracticeFeatureAccess::FEATURE_AI);
+    }
+
+    private static function aiFeaturePractice(Get $get, ?Encounter $record = null): ?Practice
+    {
+        if ($record?->exists) {
+            return Practice::query()->find($record->practice_id);
+        }
+
+        $practiceId = $get('practice_id') ?: PracticeContext::currentPracticeId();
+
+        if (! $practiceId) {
+            return null;
+        }
+
+        return Practice::query()->find((int) $practiceId);
     }
 
     private static function aiAssistedLabel(string $label, string $field): callable
