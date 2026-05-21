@@ -30,7 +30,7 @@
             <a href="/blog" class="transition hover:text-teal-800">Blog</a>
             <a href="/admin/login" class="transition hover:text-teal-800">Login</a>
         </div>
-        <a href="{{ $trialUrl }}" class="rounded-lg bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-teal-800">Start free trial</a>
+        <a href="{{ $trialUrl }}" class="rounded-lg bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-teal-800">Start free with Starter</a>
     </nav>
 </header>
 
@@ -52,13 +52,13 @@
                 </p>
                 <div class="mt-9 flex flex-col gap-3 sm:flex-row">
                     <a href="{{ $trialUrl }}" class="inline-flex items-center justify-center rounded-lg bg-slate-900 px-7 py-3.5 text-[15px] font-semibold text-white shadow-sm transition hover:bg-teal-800">
-                        Start free trial
+                        Start free with Starter
                     </a>
                     <a href="{{ $workflowUrl }}" class="inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white px-7 py-3.5 text-[15px] font-medium text-slate-600 shadow-sm transition hover:border-teal-700/40 hover:text-teal-800">
                         See how it helps
                     </a>
                 </div>
-                <p class="mt-4 text-[12px] text-slate-400">30-day free trial. No credit card required.</p>
+                <p class="mt-4 text-[12px] text-slate-400">Starter is free. Upgrade to Plus or Clinic when you need more.</p>
             </div>
 
             @if(!empty($page['image']['src']))
@@ -204,10 +204,10 @@
     <div class="flex flex-col gap-6 rounded-xl border border-slate-200 bg-slate-50 px-8 py-10 sm:flex-row sm:items-center sm:justify-between">
         <div>
             <h2 class="text-[22px] font-medium text-slate-950">Try it with your real workflow.</h2>
-            <p class="mt-2 text-[14px] leading-relaxed text-slate-600">30-day free trial. No credit card required.</p>
+            <p class="mt-2 text-[14px] leading-relaxed text-slate-600">Starter is free. Upgrade when your practice is ready.</p>
         </div>
         <div class="flex shrink-0 flex-col gap-2 sm:flex-row">
-            <a href="{{ $trialUrl }}" class="inline-flex items-center justify-center rounded-lg bg-slate-900 px-6 py-3.5 text-[14px] font-semibold text-white transition hover:bg-teal-800">Start free trial</a>
+            <a href="{{ $trialUrl }}" class="inline-flex items-center justify-center rounded-lg bg-slate-900 px-6 py-3.5 text-[14px] font-semibold text-white transition hover:bg-teal-800">Start free with Starter</a>
             <a href="{{ $practiceTypesUrl }}" class="inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white px-6 py-3.5 text-[14px] font-medium text-slate-600 transition hover:border-teal-700/30 hover:text-teal-800">Back to practice types</a>
         </div>
     </div>

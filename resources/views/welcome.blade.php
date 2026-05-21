@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Practiq — Practice Management Software for Small Clinics</title>
-    <meta name="description" content="Practiq keeps visit notes, intake forms, appointment requests, follow-up, and checkout organized for small acupuncture, massage, chiropractic, physiotherapy, and wellness practices. 30-day free trial.">
+    <meta name="description" content="Practiq keeps visit notes, intake forms, appointment requests, follow-up, and checkout organized for small acupuncture, massage, chiropractic, physiotherapy, and wellness practices. Starter is free.">
     @php
         $structuredData = [
             '@context' => 'https://schema.org',
@@ -43,7 +43,7 @@
         </div>
         <div class="flex items-center gap-2">
             <a href="{{ $demoUrl }}" class="hidden rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-600 shadow-sm transition hover:border-teal-700/30 hover:text-teal-800 sm:inline-flex">Watch Demo</a>
-            <a href="{{ $trialUrl }}" class="rounded-lg bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-teal-800">Start free trial</a>
+            <a href="{{ $trialUrl }}" class="rounded-lg bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-teal-800">Start free with Starter</a>
         </div>
     </nav>
 </header>
@@ -68,13 +68,13 @@
             </p>
             <div class="mt-9 flex flex-col gap-3 sm:flex-row">
                 <a href="{{ $trialUrl }}" class="inline-flex items-center justify-center rounded-lg bg-slate-900 px-7 py-3.5 text-[15px] font-semibold text-white shadow-sm transition hover:bg-teal-800">
-                    Start free trial
+                    Start free with Starter
                 </a>
                 <a href="{{ $demoUrl }}" class="inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white px-7 py-3.5 text-[15px] font-medium text-slate-600 shadow-sm transition hover:border-teal-700/40 hover:text-teal-800">
                     Watch Demo
                 </a>
             </div>
-            <p class="mt-4 text-[12px] text-slate-400">30-day free trial. No credit card required.</p>
+            <p class="mt-4 text-[12px] text-slate-400">Starter is free. Upgrade to Plus or Clinic when you need more.</p>
         </div>
 
     </div>
@@ -172,19 +172,19 @@
     <div class="max-w-2xl">
         <p class="text-[11px] font-semibold uppercase tracking-[0.07em] text-teal-700" style="font-family:'DM Sans',sans-serif">Pricing</p>
         <h2 class="mt-3 text-[26px] font-medium leading-snug text-slate-950 sm:text-[30px]">Clear pricing. No surprises.</h2>
-        <p class="mt-4 text-[15px] leading-[1.75] text-slate-600">Start with the plan that fits your practice now. 30-day free trial. No credit card required.</p>
+        <p class="mt-4 text-[15px] leading-[1.75] text-slate-600">Start with free Starter, then move to Plus or Clinic when your practice is ready.</p>
     </div>
     <div class="mt-10 grid gap-5 lg:grid-cols-3">
         @foreach([
-            ['Starter', '$0',   'month', 'Free basic tier: one practitioner, basic patient records, basic scheduling, and visit notes. AI drafting and advanced follow-up are in Plus.'],
-            ['Plus',    '$99',  'month', 'Paid tier for small clinics with up to 5 practitioners. Includes AI drafting and advanced follow-up tools.'],
-            ['Clinic',  '$199', 'month', 'Paid tier for larger practices with unlimited practitioners and expanded operational support.'],
+            ['Starter', '$0',   'month', 'Free tier for one practitioner with patient records, scheduling, visit notes, and core follow-up.'],
+            ['Plus',    '$99',  'month', 'For growing small clinics with up to 5 practitioners. Adds optional AI drafting and advanced follow-up tools.'],
+            ['Clinic',  '$199', 'month', 'For larger practices with unlimited practitioners and expanded operational support.'],
         ] as [$plan, $price, $period, $description])
         <article class="rounded-xl border border-slate-200 bg-white p-8">
             <h3 class="text-[15px] font-medium text-slate-700" style="font-family:'DM Sans',sans-serif">{{ $plan }}</h3>
             <p class="mt-4 price-num text-[42px] font-medium leading-none text-slate-950">{{ $price }}<span class="text-[16px] font-normal text-slate-400" style="font-family:'DM Sans',sans-serif">/{{ $period }}</span></p>
             <p class="mt-4 text-[13px] leading-relaxed text-slate-600">{{ $description }}</p>
-            <a href="{{ $trialUrl }}" class="mt-7 inline-flex w-full items-center justify-center rounded-lg bg-slate-900 px-5 py-3 text-[14px] font-semibold text-white transition hover:bg-teal-800">Start free trial</a>
+            <a href="{{ $trialUrl }}" class="mt-7 inline-flex w-full items-center justify-center rounded-lg bg-slate-900 px-5 py-3 text-[14px] font-semibold text-white transition hover:bg-teal-800">Start free with Starter</a>
         </article>
         @endforeach
     </div>
@@ -212,7 +212,7 @@
             ['Can patients request appointments?',
              'Yes. Patients request a time and your clinic confirms it.'],
             ['Does AI send anything automatically?',
-             'No. AI suggestions are drafts only. Nothing is sent or saved automatically.'],
+             'No. AI suggestions are optional drafts only. Nothing is sent or saved automatically, and practitioners stay in control.'],
             ['Is Practiq a billing service or clearinghouse?',
              'No. Practiq includes checkout tracking and simple reports, but it is not a billing clearinghouse or full accounting system.'],
         ] as [$question, $answer])
@@ -238,10 +238,10 @@
     <div class="flex flex-col gap-6 rounded-xl border border-slate-200 bg-slate-50 px-8 py-10 sm:flex-row sm:items-center sm:justify-between">
         <div>
             <h2 class="text-[22px] font-medium text-slate-950">Ready to see if it fits your day?</h2>
-            <p class="mt-2 text-[14px] leading-relaxed text-slate-600">Start a free trial and test Practiq with your real workflow.</p>
+            <p class="mt-2 text-[14px] leading-relaxed text-slate-600">Start free with Starter and upgrade only when it fits your workflow.</p>
         </div>
         <div class="flex shrink-0 flex-col gap-2 sm:flex-row">
-            <a href="{{ $trialUrl }}" class="inline-flex items-center justify-center rounded-lg bg-slate-900 px-6 py-3.5 text-[14px] font-semibold text-white transition hover:bg-teal-800">Start Free Trial</a>
+            <a href="{{ $trialUrl }}" class="inline-flex items-center justify-center rounded-lg bg-slate-900 px-6 py-3.5 text-[14px] font-semibold text-white transition hover:bg-teal-800">Start Free with Starter</a>
             <a href="#practice-types" class="inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white px-6 py-3.5 text-[14px] font-medium text-slate-600 transition hover:border-teal-700/30 hover:text-teal-800">Choose your practice type</a>
         </div>
     </div>

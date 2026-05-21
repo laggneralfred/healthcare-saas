@@ -34,7 +34,7 @@ class PublicLandingPageTest extends TestCase
             ->assertSee('What Practiq is — and what it is not')
             ->assertSee('Stripe handles Practiq subscription billing.')
             ->assertSee('$0')
-            ->assertSee('AI drafting and advanced follow-up are in Plus.')
+            ->assertSee('Adds optional AI drafting and advanced follow-up tools.')
             ->assertSee('Clinic')
             ->assertSee('/register', false)
             ->assertSee('https://demo.practiqapp.com/demo-login', false)
@@ -148,7 +148,7 @@ class PublicLandingPageTest extends TestCase
                 ->assertSee($h1)
                 ->assertSee('How Practiq helps')
                 ->assertSee('Getting started')
-                ->assertSee('30-day free trial. No credit card required.')
+                ->assertSee('Starter is free. Upgrade to Plus or Clinic when you need more.')
                 ->assertSee('/register', false)
                 ->assertSee('/#practice-types', false);
         }

@@ -87,7 +87,7 @@
             <a href="/blog" class="rounded-xl border border-slate-200 bg-white px-5 py-4 text-[13px] text-slate-700 transition hover:border-teal-700/30 hover:text-teal-800">Browse all blog articles</a>
             <a href="/blog/what-to-include-in-a-visit-note" class="rounded-xl border border-slate-200 bg-white px-5 py-4 text-[13px] text-slate-700 transition hover:border-teal-700/30 hover:text-teal-800">What belongs in a visit note?</a>
             <a href="/blog/small-clinic-visit-notes" class="rounded-xl border border-slate-200 bg-white px-5 py-4 text-[13px] text-slate-700 transition hover:border-teal-700/30 hover:text-teal-800">Keeping up with visit notes</a>
-            <a href="/register" class="rounded-xl border border-slate-200 bg-white px-5 py-4 text-[13px] text-slate-700 transition hover:border-teal-700/30 hover:text-teal-800">Start a free trial</a>
+            <a href="/register" class="rounded-xl border border-slate-200 bg-white px-5 py-4 text-[13px] text-slate-700 transition hover:border-teal-700/30 hover:text-teal-800">Start free with Starter</a>
         </div>
     </section>
 

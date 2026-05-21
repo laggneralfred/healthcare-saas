@@ -214,8 +214,8 @@
     <div class="container">
         <div class="header">
             <div class="logo">Practiq</div>
-            <h1>Your trial has expired</h1>
-            <p>Choose a plan to continue using Practiq</p>
+            <h1>Choose the plan that fits your practice</h1>
+            <p>Starter is free. Upgrade calmly when you need more.</p>
         </div>
 
         <div class="trust-signals">
@@ -235,7 +235,7 @@
                     <li>Basic scheduling</li>
                     <li>Visit notes</li>
                     <li>One practitioner</li>
-                    <li>AI drafting and advanced follow-up are in Plus</li>
+                    <li>Optional AI drafting and advanced follow-up are in Plus</li>
                 </ul>
                 <a href="{{ route('filament.admin.pages.billing') }}" class="btn">Choose Plan</a>
             </div>

@@ -73,10 +73,10 @@
         <div class="mt-10 flex flex-col gap-5 rounded-xl border border-slate-200 bg-slate-50 px-6 py-7 sm:flex-row sm:items-center sm:justify-between">
             <div>
                 <h2 class="text-[18px] font-medium text-slate-950" style="font-family:'Lora',serif">Practiq keeps the day-to-day organized</h2>
-                <p class="mt-1.5 text-[13px] leading-relaxed text-slate-600">Notes, forms, follow-up, and checkout for small clinics. 30-day free trial.</p>
+                <p class="mt-1.5 text-[13px] leading-relaxed text-slate-600">Notes, forms, follow-up, and checkout for small clinics. Starter is free.</p>
             </div>
             <a href="/register" class="shrink-0 rounded-lg bg-slate-900 px-5 py-3 text-[13px] font-semibold text-white transition hover:bg-teal-800">
-                Start free trial
+                Start free with Starter
             </a>
         </div>
 

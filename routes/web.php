@@ -35,7 +35,7 @@ Route::get('/', function (Request $request) use ($isAppHost) {
 $seoLandingPages = [
     'practice-software-for-acupuncturists' => [
         'title' => 'Acupuncture Practice Software for Small Clinics — Notes, Intake, Follow-Up | Practiq',
-        'description' => 'Acupuncture practice software for small clinics: keep visit notes, intake forms, follow-up, and checkout organized without losing continuity. 30-day free trial.',
+        'description' => 'Acupuncture practice software for small clinics: keep visit notes, intake forms, follow-up, and checkout organized without losing continuity. Starter is free.',
         'eyebrow' => 'Acupuncture practice software',
         'h1' => 'Practice software for busy acupuncturists.',
         'image' => [
@@ -78,7 +78,7 @@ $seoLandingPages = [
         ],
         'starterHeading' => 'Start with a usable setup, then adjust it to your style',
         'starterCopy' => [
-            'Your trial starts with editable defaults: a practitioner, weekday hours, Initial Visit and Follow-up Visit types, and starter fees.',
+            'Starter begins with editable defaults: a practitioner, weekday hours, Initial Visit and Follow-up Visit types, and starter fees.',
             'Nothing is locked. The defaults are there so you can evaluate real workflow quickly instead of spending your first hour building scaffolding.',
         ],
         'fit' => ['Solo acupuncturists', 'Small acupuncture clinics', 'TCM practices', 'Five Element practices', 'Cash-based acupuncture practices', 'One-person practices wearing every hat'],
@@ -87,7 +87,7 @@ $seoLandingPages = [
     ],
     'massage-therapy-practice-software' => [
         'title' => 'Massage Therapy Practice Software for Small Clinics — Notes, Intake, Follow-Up | Practiq',
-        'description' => 'Massage therapy practice software for independent therapists and small clinics. Keep client notes, intake forms, follow-up, and checkout organized. 30-day free trial.',
+        'description' => 'Massage therapy practice software for independent therapists and small clinics. Keep client notes, intake forms, follow-up, and checkout organized. Starter is free.',
         'eyebrow' => 'Massage therapy practice software',
         'h1' => 'Practice software for busy massage therapists.',
         'image' => [
@@ -130,7 +130,7 @@ $seoLandingPages = [
         ],
         'starterHeading' => 'Start quickly, then make it your own',
         'starterCopy' => [
-            'Your trial begins with editable starter defaults: a practitioner, weekday hours, Initial Visit and Follow-up Visit types, and starter fees.',
+            'Starter begins with editable defaults: a practitioner, weekday hours, Initial Visit and Follow-up Visit types, and starter fees.',
             'Nothing is locked. The point is to test your real workflow without spending the first hour building setup from scratch.',
         ],
         'fit' => ['Solo massage therapists', 'Small massage studios', 'Therapeutic massage practices', 'Bodywork practitioners', 'Wellness clinics with massage therapy', 'Practitioners who want less paperwork after sessions'],
@@ -139,7 +139,7 @@ $seoLandingPages = [
     ],
     'chiropractic-practice-software' => [
         'title' => 'Chiropractic Practice Software for Small Clinics — Notes, Intake, Follow-Up | Practiq',
-        'description' => 'Chiropractic practice software for independent chiropractors and small clinics. Keep visit notes, intake forms, follow-up, and checkout organized. 30-day free trial.',
+        'description' => 'Chiropractic practice software for independent chiropractors and small clinics. Keep visit notes, intake forms, follow-up, and checkout organized. Starter is free.',
         'eyebrow' => 'Chiropractic practice software',
         'h1' => 'Practice software for busy chiropractors.',
         'image' => [
@@ -182,7 +182,7 @@ $seoLandingPages = [
         ],
         'starterHeading' => 'Start with a usable setup, then adjust it to your clinic',
         'starterCopy' => [
-            'Your trial starts with editable defaults: a practitioner, weekday hours, Initial Visit and Follow-up Visit types, and starter fees.',
+            'Starter begins with editable defaults: a practitioner, weekday hours, Initial Visit and Follow-up Visit types, and starter fees.',
             'Everything is adjustable. The defaults are there so you can test your real workflow quickly instead of spending the first session configuring from scratch.',
         ],
         'fit' => ['Solo chiropractors', 'Small chiropractic offices', 'Cash-based or mixed small practices', 'Clinics that need clearer patient follow-up', 'Practices with limited admin staff'],
@@ -191,7 +191,7 @@ $seoLandingPages = [
     ],
     'physiotherapy-practice-software' => [
         'title' => 'Physiotherapy Practice Software for Small Clinics — Notes, Intake, Follow-Up | Practiq',
-        'description' => 'Physiotherapy practice software for independent physiotherapists and small clinics. Keep progress notes, intake forms, follow-up, and checkout organized. 30-day free trial.',
+        'description' => 'Physiotherapy practice software for independent physiotherapists and small clinics. Keep progress notes, intake forms, follow-up, and checkout organized. Starter is free.',
         'eyebrow' => 'Physiotherapy practice software',
         'h1' => 'Practice software for busy physiotherapists.',
         'image' => [
@@ -234,7 +234,7 @@ $seoLandingPages = [
         ],
         'starterHeading' => 'Start with a usable setup, then adapt it to your clinic',
         'starterCopy' => [
-            'Your trial starts with editable defaults: a practitioner, weekday hours, Initial Visit and Follow-up Visit types, and starter fees.',
+            'Starter begins with editable defaults: a practitioner, weekday hours, Initial Visit and Follow-up Visit types, and starter fees.',
             'Everything is adjustable. The defaults are there so you can test your real workflow quickly instead of spending the first session building setup from scratch.',
         ],
         'fit' => ['Solo physiotherapists', 'Small rehab clinics', 'Private physiotherapy practices', 'Practices with repeated patient visits', 'Clinics that need clearer progress tracking and follow-up'],
@@ -243,7 +243,7 @@ $seoLandingPages = [
     ],
     'wellness-practice-software' => [
         'title' => 'Wellness Practice Software for Small Clinics — Notes, Intake, Follow-Up | Practiq',
-        'description' => 'Wellness practice software for independent practitioners and small clinics. Keep notes, intake forms, follow-up, and checkout organized without overcomplicating care. 30-day free trial.',
+        'description' => 'Wellness practice software for independent practitioners and small clinics. Keep notes, intake forms, follow-up, and checkout organized without overcomplicating care. Starter is free.',
         'eyebrow' => 'Wellness practice software',
         'h1' => 'Practice software for busy wellness practitioners.',
         'image' => [
@@ -286,7 +286,7 @@ $seoLandingPages = [
         ],
         'starterHeading' => 'Start with useful defaults, then adapt to your style',
         'starterCopy' => [
-            'Your trial starts with editable defaults: a practitioner, weekday hours, Initial Visit and Follow-up Visit types, and starter fees.',
+            'Starter begins with editable defaults: a practitioner, weekday hours, Initial Visit and Follow-up Visit types, and starter fees.',
             'Everything is adjustable. The defaults are there so you can test your real workflow quickly instead of building setup from scratch first.',
         ],
         'fit' => ['Solo wellness practitioners', 'Small wellness clinics', 'Integrative health practices', 'Bodywork and holistic care providers', 'Practices built on long-term client relationships'],
