@@ -25,8 +25,8 @@ class SubscriptionPlanTest extends TestCase
         $this->assertDatabaseHas('subscription_plans', [
             'key' => 'solo',
             'name' => 'Starter',
-            'price_monthly' => 4900,
-            'stripe_price_id' => 'price_solo_configured',
+            'price_monthly' => 0,
+            'stripe_price_id' => null,
             'is_active' => true,
         ]);
         $this->assertDatabaseHas('subscription_plans', [
@@ -51,7 +51,7 @@ class SubscriptionPlanTest extends TestCase
         ]);
     }
 
-    public function test_sync_updates_existing_known_subscription_plan_price_ids(): void
+    public function test_sync_clears_starter_stripe_price_id_even_if_legacy_value_exists(): void
     {
         SubscriptionPlan::create([
             'key' => 'solo',
@@ -69,7 +69,8 @@ class SubscriptionPlanTest extends TestCase
 
         $this->assertDatabaseHas('subscription_plans', [
             'key' => 'solo',
-            'stripe_price_id' => 'price_new',
+            'price_monthly' => 0,
+            'stripe_price_id' => null,
         ]);
     }
 

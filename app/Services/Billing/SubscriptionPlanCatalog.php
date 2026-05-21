@@ -13,11 +13,11 @@ class SubscriptionPlanCatalog
             'solo' => [
                 'key' => 'solo',
                 'name' => 'Starter',
-                'price_monthly' => 4900,
+                'price_monthly' => 0,
                 'max_practitioners' => 1,
                 'features' => ['Core clinical tools', '1 Practitioner', 'Basic reporting'],
                 'is_active' => true,
-                'stripe_price_id' => config('services.stripe.subscription_prices.solo'),
+                'stripe_price_id' => null,
             ],
             'clinic' => [
                 'key' => 'clinic',
@@ -44,11 +44,15 @@ class SubscriptionPlanCatalog
     {
         return collect($this->plans())->map(function (array $plan): array {
             $configuredPriceId = $plan['stripe_price_id'] ?: null;
+            $requiresStripePrice = $this->requiresStripePriceId($plan['key']);
 
             $payload = $plan;
             unset($payload['key']);
 
-            if ($configuredPriceId === null) {
+            if (! $requiresStripePrice) {
+                // Starter is intentionally free and does not use a Stripe price ID.
+                $payload['stripe_price_id'] = null;
+            } elseif ($configuredPriceId === null) {
                 unset($payload['stripe_price_id']);
             }
 
@@ -61,7 +65,9 @@ class SubscriptionPlanCatalog
                 'key' => $subscriptionPlan->key,
                 'name' => $subscriptionPlan->name,
                 'stripe_price_id' => $subscriptionPlan->stripe_price_id,
+                'requires_stripe_price' => $requiresStripePrice,
                 'configured' => filled($subscriptionPlan->stripe_price_id),
+                'ready' => ! $requiresStripePrice || filled($subscriptionPlan->stripe_price_id),
                 'source_configured' => filled($configuredPriceId),
             ];
         })->values();
@@ -77,13 +83,24 @@ class SubscriptionPlanCatalog
             'stripe_secret_configured' => filled(config('services.stripe.secret_key')),
             'stripe_webhook_secret_configured' => filled(config('services.stripe.webhook_secret')),
             'configured_price_ids' => collect($this->plans())
-                ->mapWithKeys(fn (array $plan, string $key): array => [$key => filled($plan['stripe_price_id'])])
+                ->mapWithKeys(fn (array $plan, string $key): array => [
+                    $key => $this->requiresStripePriceId($key)
+                        ? filled($plan['stripe_price_id'])
+                        : true,
+                ])
                 ->all(),
             'subscription_plan_rows_exist' => $plans->isNotEmpty(),
             'active_plan_price_ids_present' => $activePlans->isNotEmpty()
-                && $activePlans->every(fn (SubscriptionPlan $plan): bool => filled($plan->stripe_price_id)),
+                && $activePlans->every(
+                    fn (SubscriptionPlan $plan): bool => ! $this->requiresStripePriceId($plan->key) || filled($plan->stripe_price_id),
+                ),
             'plans' => $plans,
         ];
+    }
+
+    private function requiresStripePriceId(string $planKey): bool
+    {
+        return $planKey !== 'solo';
     }
 
     public function mask(?string $value): string

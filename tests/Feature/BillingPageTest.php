@@ -148,7 +148,7 @@ class BillingPageTest extends TestCase
         $user->assignRole(User::ROLE_OWNER);
 
         $this->seedPlansForBillingPage([
-            ['key' => 'solo', 'name' => 'Starter', 'price' => 4900, 'stripe' => null, 'max' => 1],
+            ['key' => 'solo', 'name' => 'Starter', 'price' => 0, 'stripe' => null, 'max' => 1],
             ['key' => 'clinic', 'name' => 'Plus', 'price' => 9900, 'stripe' => 'price_plus_test', 'max' => 5],
             ['key' => 'enterprise', 'name' => 'Clinic', 'price' => 19900, 'stripe' => 'price_clinic_test', 'max' => -1],
         ]);

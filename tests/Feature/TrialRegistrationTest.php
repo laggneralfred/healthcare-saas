@@ -17,6 +17,13 @@ class TrialRegistrationTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        Mail::fake();
+    }
+
     public function test_registration_form_is_accessible()
     {
         $response = $this->get('/register');
@@ -354,6 +361,8 @@ class TrialRegistrationTest extends TestCase
 
     public function test_registration_requires_terms_acceptance()
     {
+        $acceptanceCountBefore = LegalAcceptance::withoutPracticeScope()->count();
+
         $response = $this->post('/register', [
             'practice_name' => 'Terms Test',
             'first_name' => 'Terms',
@@ -367,7 +376,7 @@ class TrialRegistrationTest extends TestCase
 
         $response->assertSessionHasErrors('terms_accepted');
         $this->assertDatabaseMissing('practices', ['name' => 'Terms Test']);
-        $this->assertSame(0, LegalAcceptance::withoutPracticeScope()->count());
+        $this->assertSame($acceptanceCountBefore, LegalAcceptance::withoutPracticeScope()->count());
     }
 
     public function test_terms_of_service_page_is_accessible()

@@ -8,6 +8,7 @@ use App\Filament\Resources\SubscriptionPlans\SubscriptionPlanResource;
 use App\Models\Practice;
 use App\Models\SubscriptionPlan;
 use App\Models\User;
+use App\Services\Billing\SubscriptionPlanCatalog;
 use App\Support\PracticeAccessRoles;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
@@ -24,15 +25,15 @@ class BillingStripeReadinessTest extends TestCase
         PracticeAccessRoles::ensureRoles();
     }
 
-    public function test_billing_page_blocks_missing_stripe_price_id(): void
+    public function test_billing_page_blocks_missing_stripe_price_id_for_paid_plan(): void
     {
         [$practice, $user] = $this->practiceUser();
         SubscriptionPlan::create([
-            'key' => 'solo',
-            'name' => 'Solo Plan',
-            'price_monthly' => 4900,
+            'key' => 'clinic',
+            'name' => 'Plus',
+            'price_monthly' => 9900,
             'stripe_price_id' => null,
-            'max_practitioners' => 1,
+            'max_practitioners' => 5,
             'features' => [],
             'is_active' => true,
         ]);
@@ -40,22 +41,22 @@ class BillingStripeReadinessTest extends TestCase
         $this->actingAs($user);
 
         $result = Livewire::test(BillingPage::class)
-            ->call('subscribeToPlan', 'solo')
+            ->call('subscribeToPlan', 'clinic')
             ->instance();
 
         $this->assertNull($result->redirectTo ?? null);
         $this->assertNull($practice->fresh()->stripe_id);
     }
 
-    public function test_configured_plan_reaches_subscription_attempt_path(): void
+    public function test_configured_paid_plan_reaches_subscription_attempt_path(): void
     {
         [, $user] = $this->practiceUser();
         SubscriptionPlan::create([
-            'key' => 'solo',
-            'name' => 'Solo Plan',
-            'price_monthly' => 4900,
-            'stripe_price_id' => 'price_solo_ready',
-            'max_practitioners' => 1,
+            'key' => 'clinic',
+            'name' => 'Plus',
+            'price_monthly' => 9900,
+            'stripe_price_id' => 'price_clinic_ready',
+            'max_practitioners' => 5,
             'features' => [],
             'is_active' => true,
         ]);
@@ -73,8 +74,23 @@ class BillingStripeReadinessTest extends TestCase
             }
         };
 
-        $this->assertSame('checkout-attempted', $page->subscribeToPlan('solo'));
+        $this->assertSame('checkout-attempted', $page->subscribeToPlan('clinic'));
         $this->assertTrue($page->attempted);
+    }
+
+    public function test_billing_readiness_treats_starter_price_id_as_optional(): void
+    {
+        config([
+            'services.stripe.subscription_prices.solo' => null,
+            'services.stripe.subscription_prices.clinic' => 'price_clinic_ready',
+            'services.stripe.subscription_prices.enterprise' => 'price_enterprise_ready',
+        ]);
+
+        $readiness = app(SubscriptionPlanCatalog::class)->readiness();
+
+        $this->assertTrue($readiness['configured_price_ids']['solo']);
+        $this->assertTrue($readiness['configured_price_ids']['clinic']);
+        $this->assertTrue($readiness['configured_price_ids']['enterprise']);
     }
 
     public function test_normal_practice_users_cannot_access_subscription_plans_or_billing_readiness(): void
